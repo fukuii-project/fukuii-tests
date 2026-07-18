@@ -1,0 +1,37 @@
+# Pre-commit hooks for fukuii-project repos.
+#   install:  pipx install pre-commit && pre-commit install
+#   run all:  pre-commit run --all-files
+#
+# NOTE (supply-chain policy): the `rev:` pins below are the local secret-scan /
+# hygiene toolchain. Verify/bump them via `sentinel` before first use, and keep
+# them current — do not blindly `autoupdate`.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1   # verified current stable via sentinel (2026-07-18)
+    hooks:
+      - id: gitleaks
+
+  # GitHub Actions hardening — a gap the org Security Configuration does NOT cover
+  # (it scans code/secrets/deps, not workflow files). zizmor catches the tj-actions /
+  # trivy-action attack class (injection, unpinned actions, cache poisoning).
+  - repo: https://github.com/zizmorcore/zizmor-pre-commit   # repo confirmed correct via sentinel
+    rev: v1.27.0   # verified current stable via sentinel (2026-07-18)
+    hooks:
+      - id: zizmor
+  - repo: https://github.com/rhysd/actionlint                # repo confirmed correct via sentinel (no mirror needed)
+    rev: v1.7.12   # verified current stable via sentinel (2026-07-18)
+    hooks:
+      - id: actionlint
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0    # verified current stable via sentinel (2026-07-18); no hooks used here were removed/renamed
+    hooks:
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+      - id: check-json
+      - id: mixed-line-ending

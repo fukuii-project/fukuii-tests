@@ -1,0 +1,18 @@
+# fukuii-tests — contributor guide
+
+Test fixtures and conformance vectors for Fukuii. Part of the [Fukuii project](https://github.com/fukuii-project).
+
+## Layout
+
+- `etc/` — Ethereum Classic conformance corpus.
+- `olympia/` — Fukuii fork vectors (ECIP-1111 / 1112 / 1121 / 1122).
+- `hive/` — Fukuii client configs and simulators.
+- `preserved/` — retained pre-Merge fixtures.
+- Upstream suites (`ethereum/tests`, `hive`) are pinned submodules.
+
+## Working here
+
+- Public repo — never commit secrets; scrub fixtures of any real keys or tokens.
+- Commits follow [Conventional Commits](https://www.conventionalcommits.org/) — see the org
+  [Contributing guide](https://github.com/fukuii-project/.github/blob/main/CONTRIBUTING.md).
+- Vendored corpora keep their upstream licenses; record attribution in `NOTICE` when adding them.
