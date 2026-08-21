@@ -10,8 +10,24 @@ paths = [
   '''\.env\..*\.example$''',
   '''.*\.tfvars\.example$''',
 ]
-# Placeholder tokens used in examples/docs (never real secrets):
+# Mirrored corpora: a hive test-harness bootnode key, public upstream since 2016.
+#
+# ethereum/hive's DAO-fork simulators start a throwaway bootnode inside an
+# ephemeral Docker container so test clients can discover each other. The key is
+# that container's network identity for the length of one test run. It secures no
+# account, no funds and no service, and it has been published in a public
+# repository for roughly a decade.
+#
+# Allowlisted by VALUE, not by path, deliberately. The files are byte-identical
+# mirrors and editing them to satisfy a scanner would destroy the property that
+# makes a mirror worth keeping -- but allowlisting the whole directory would blind
+# the scanner to a genuine key arriving in a fixture later. This lets exactly this
+# known value through and keeps scanning everything else.
+#
+# NOTE: gitleaks scans the staged diff directly, so pre-commit's `exclude:` does
+# NOT filter it. Mirrored content reaches this scanner regardless of that setting.
 regexes = [
+  '''5ce1f6fc42c817c38939498ee7fcdd9a06fa9d947d02d42dfe814406f370c4eb''',
   '''__set_me__''',
   '''__password__''',
   '''__generate_a_random_secret__''',

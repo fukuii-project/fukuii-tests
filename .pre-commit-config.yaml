@@ -5,6 +5,37 @@
 # NOTE (supply-chain policy): the `rev:` pins below are the local secret-scan /
 # hygiene toolchain. Verify/bump them via `sentinel` before first use, and keep
 # them current — do not blindly `autoupdate`.
+
+# archive/ is EXCLUDED from every hook below.
+#
+# These are byte-for-byte copies of upstream material, and their value depends
+# entirely on being exactly that: a conformance vector's bytes ARE its meaning, and
+# a fixture that no longer matches what upstream published cannot be compared
+# against it. The provenance guarantee -- that a diff from the recorded ref is an
+# exact account of what this project changed -- collapses if a formatting hook is
+# free to add itself to that diff.
+#
+# Not hypothetical: on 2026-08-21 `end-of-file-fixer` appended a trailing newline
+# to 6,985 mirrored fixtures in a single commit. It was caught only because that
+# hook reports failure when it rewrites something. A hook that fixed silently would
+# have landed the change inside a commit whose message said "pure rename".
+#
+# A formatting or hygiene rule is a rule about code THIS project writes. It has no
+# authority over a mirror. Everything OUTSIDE archive/ is ours and is deliberately
+# NOT excluded.
+#
+# One pattern covers the whole archive, which is the point of gathering the
+# mirrors under a single frozen root: previously this listed each corpus and had
+# to be edited in the same commit as every move.
+#
+# WARNING: this is keyed on PATH. Renaming or moving a corpus out from under these
+# patterns silently unprotects it -- update this list in the SAME commit as any
+# such move, and verify by effect afterwards.
+exclude: |
+  (?x)^(
+    archive/
+  )
+
 repos:
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.1   # verified current stable via sentinel (2026-07-18)
