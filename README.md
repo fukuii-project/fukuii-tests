@@ -13,12 +13,14 @@ Part of the [Fukuii project](https://github.com/fukuii-project).
 
 | Path | What |
 |---|---|
-| `etc/` | Ethereum Classic conformance corpus |
-| `olympia/` | Fukuii fork vectors (ECIP-1111 / 1112 / 1121 / 1122) |
-| `hive/` | Fukuii client configs and simulators |
-| `preserved/` | Retained pre-Merge fixtures |
+| `archive/` | preserved copies of upstream material that is being deprecated or deleted — **frozen** |
+| `upstream/` | live upstream repositories, pinned as submodules and not fetched by default |
+| `proposals/` | tests for a single EIP or ECIP, independent of any network |
+| `networks/` | tests scoped to a network or one of its upgrades |
 
-Upstream suites (`ethereum/tests`, `hive`) are tracked as pinned submodules.
+`archive/` and `upstream/` are inherited; `proposals/` and `networks/` are this project's own
+work. Nothing under `archive/` is edited — see [AGENTS.md](AGENTS.md) for why, and for how the
+freeze is checked.
 
 ## License
 
