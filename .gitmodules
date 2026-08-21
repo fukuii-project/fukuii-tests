@@ -1,0 +1,53 @@
+# Submodules are declared here, at the repository ROOT, because git reads this file
+# only from the root. A .gitmodules inside a vendored corpus is upstream's own and
+# is inert at this level.
+#
+# Everything under upstream/ is a pin on a LIVE upstream: the Ethereum Foundation is
+# building for Ethereum and its repositories are not disappearing, so tracking is
+# the right instrument and a copy would only drift.
+#
+# A pin names a commit that HAS the material, which is what preserves older wire
+# and proof-of-work coverage as upstream default branches move on. Bump
+# deliberately, never reflexively.
+#
+# Contents are NOT fetched by default. legacytests alone is ~2.6 GB.
+
+[submodule "upstream/ethereum/tests"]
+	path = upstream/ethereum/tests
+	url = https://github.com/ethereum/tests
+
+[submodule "upstream/ethereum/legacytests"]
+	path = upstream/ethereum/legacytests
+	url = https://github.com/ethereum/legacytests
+
+[submodule "upstream/ethereum/devp2p"]
+	path = upstream/ethereum/devp2p
+	url = https://github.com/ethereum/devp2p
+
+[submodule "upstream/ethereum/hive"]
+	path = upstream/ethereum/hive
+	url = https://github.com/ethereum/hive
+
+# etclabscore pinned LegacyTests at an older ref than ethereum/tests does. That is
+# provenance, not duplication -- it records what that corpus itself referenced.
+[submodule "archive/etclabscore/tests/LegacyTests"]
+	path = archive/etclabscore/tests/LegacyTests
+	url = https://github.com/ethereum/legacytests
+
+# The modern spec-test lineage. execution-spec-tests was ARCHIVED 2026-07-02 and
+# its code migrated to execution-specs, which now also publishes the fixture
+# releases. Both are pinned: the live one because it is the home, the archived one
+# because an archive is one policy change from a deletion and a pin costs nothing.
+#
+# Reviewed 2026-08-21 and NOTHING needed extracting from either. Fork tests
+# migrated intact -- execution-specs carries MORE proof-of-work-era coverage than
+# the archive did -- and the classic state-test fillers EEST kept under
+# tests/static/ are held far more completely by legacytests.
+
+[submodule "upstream/ethereum/execution-specs"]
+	path = upstream/ethereum/execution-specs
+	url = https://github.com/ethereum/execution-specs
+
+[submodule "upstream/ethereum/execution-spec-tests"]
+	path = upstream/ethereum/execution-spec-tests
+	url = https://github.com/ethereum/execution-spec-tests
