@@ -2,6 +2,37 @@
 
 Test fixtures and conformance vectors for Fukuii. Part of the [Fukuii project](https://github.com/fukuii-project).
 
+## What this repository contains, and what runs it
+
+**Fixtures, as language-neutral JSON. Not test code.**
+
+The runner is Scala and lives in the client, not here — `fukuii-cli` has the certification harness
+under its `chainspec` and `evm` test trees, built on ScalaTest. This repository supplies the data
+it reads.
+
+That split is deliberate and standard: every client consumes the same fixtures through its own
+harness, in its own language. It is why a fixture is worth authoring at all — a Scala-specific
+test would be Fukuii's alone, while a fixture can be run by any Ethereum Classic client.
+
+### Naming follows the fixture convention, not Scala's
+
+`proposals/` and `networks/` are **data trees**. Directory and file names follow the conventions
+the corpora already use — lowercase, fork- and suite-shaped — not Scala's PascalCase. A
+`FooSpec.scala` name here would be wrong; there is no Scala here to name.
+
+The client-vocabulary rule below still applies to the *concepts* — upgrade, activation, proposal
+— and to directory names we invent. It does not turn data files into type names.
+
+### How the client finds a corpus
+
+`fukuii-cli` resolves a fixture root at test time, from an environment variable or a pointer file
+in its own working tree, and expects corpora at organization-scoped paths beneath it.
+
+**It does not point here yet, and it should not until there is a suite to point at.** Today it
+reads the raw reference clones directly, which is the right bootstrap. Read the client for the
+current variable name and the exact paths rather than restating them here — that contract is
+under active development.
+
 ## Layout
 
 Four roots, split by **what a thing is** rather than which network it concerns. Nothing is named
