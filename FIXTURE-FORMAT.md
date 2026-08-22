@@ -163,6 +163,26 @@ somebody else's specification.
 Where three overlays disagree, the specification is the first suspect, not the odd implementation
 out.
 
+### As of 2026-08-21 the overlays are not a valid oracle at all
+
+**The specifications were redrafted after the overlays were written**, so the implementations are
+known to lag them. An Olympia fixture generated from an overlay today would encode a superseded
+draft — and it would look exactly like a correct fixture, because a state root computed from the
+wrong rules is still a valid state root.
+
+The client and the overlays are being brought into alignment together. Until that lands:
+
+- **Do not author Olympia fixtures from overlay behavior.** There is nothing to check them
+  against, and the thing they would encode is known to be stale.
+- **The specification is ahead of every implementation**, which inverts the usual relationship.
+  For every upgrade through Spiral a running client settles the answer; for Olympia the
+  specification does, and no client has caught up.
+- **When the overlays do align, any Olympia fixture authored earlier has to be re-derived**, not
+  re-checked. Its expected values came from rules that no longer apply.
+
+This is why the current scope stops at Spiral. It is not sequencing preference — before Olympia
+there is a client to be right against, and at Olympia there is not yet.
+
 ### Recording the oracle is part of the fixture
 
 Which implementation produced the expected values, and at which version. A fixture whose oracle is
