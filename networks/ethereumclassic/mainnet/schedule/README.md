@@ -30,6 +30,26 @@ the test.
 
 Four repricings and four confirmations-of-no-change, in one file.
 
+## `chainid_opcode.json`
+
+Two assertions in one body. The opcode does not exist before Phoenix, so every upgrade below it
+writes no storage — and from Phoenix onward it returns **this chain's identifier, not
+Ethereum's**.
+
+| upgrade | slot zero |
+|---|---|
+| Frontier … Agharta | nothing written — the opcode is not there |
+| Phoenix … Spiral | **61** |
+
+**This one can never be borrowed, and the reason is worth stating precisely.** Ethereum's
+equivalent upgrade activates the same EIP set, so the rule sets are identical — and filled there,
+the identical body returns **1**. A fixture asserting one value is wrong for the other chain at
+otherwise identical rules. The divergence is not in the rules; it is in what the chain *is*.
+
+**An empty expectation is an assertion here, not a gap.** The five upgrades that write nothing are
+asserting the opcode's absence. That is only legible because the fixture spans the schedule: at a
+single upgrade, "no storage" and "we did not test this" look the same.
+
 ## Two things the sequence surfaced that a single-upgrade fixture would not
 
 **The signature scheme changes mid-schedule.** This chain adopts replay protection at Die Hard,
