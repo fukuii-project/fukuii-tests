@@ -163,6 +163,25 @@ It is not a state-transition rule, so it belongs in a fork-identifier test rathe
 Recorded in this directory because the schedule is where someone will look for it, and because
 "no state expectation" should not read as "nothing to test".
 
+## The generator now reaches the early upgrades
+
+Die Hard, Gotham and Defuse Difficulty Bomb were unfillable until the fork table gained entries
+for them. Every fixture in this directory now carries an expectation at **twelve** upgrades rather
+than nine.
+
+Two things about that are worth recording:
+
+**The entries were derived, not authored.** Each reads off the production client's own mainnet
+configuration evaluated at its upgrade's height. And the parameters had already been confirmed by
+three independent implementations across two languages, so nothing new was decided — existing
+facts were exposed to a tool that could not previously see them.
+
+**The generator used here is the modernized build, and that was verified rather than assumed.**
+Given identical input at every upgrade both builds can address, the two produce **bit-identical
+state roots**. That equivalence is what makes fixtures generated with it production-equivalent —
+and it holds for these upgrades specifically, not for anything after Spiral, where the modernized
+build diverges by design.
+
 ## The schedule in full, in order
 
 Every entry, so the sequence reads completely and no absence is silent. **"Not filled" is a
@@ -176,9 +195,9 @@ classification here, never an omission.**
 | 4 | DAO Wars | — aborted; never activated on any chain |
 | 5 | DAO Fork | — declined by this chain; **testable, but through the fork identifier rather than state** — see below |
 | 6 | Gas Reprice | **filled** |
-| 7 | Die Hard | — no fork name in the generator |
-| 8 | Gotham | — no fork name in the generator |
-| 9 | Defuse Difficulty Bomb | — no fork name in the generator |
+| 7 | Die Hard | **filled** |
+| 8 | Gotham | **filled** |
+| 9 | Defuse Difficulty Bomb | **filled** |
 | 10 | Atlantis | **filled** |
 | 11 | Agharta | **filled** |
 | 12 | Phoenix | **filled** |
@@ -189,15 +208,16 @@ classification here, never an omission.**
 | 17 | MESS default off | — chain-selection policy, not a state-transition rule |
 | 18 | Spiral | **filled** |
 
-Nine filled, nine classified. The nine that are not filled fall into **three distinct reasons**,
+Twelve filled, six classified. The nine that are not filled fall into **three distinct reasons**,
 and collapsing them would misrepresent the coverage:
 
 - **Nothing to assert** (2, 4, 5, 13, 17) — no state-transition rule changes, so a state fixture
   has no expectation to carry. Frontier Thawing is the clearest case: the client's own schedule
   marks it unenforced. Covering the MESS transitions needs chain-selection tests; covering the
   declined fork needs a block-level one.
-- **No fork name** (7, 8, 9, 14) — the rules exist and are implemented, but the generator cannot
-  be told to select them. A tooling gap, and the one that is worth closing.
+- **No fork name** (14) — the rules exist and are implemented, but the generator cannot be told to
+  select them. Entries 7, 8 and 9 were in this category until the generator's fork table gained
+  them; only the mining-epoch upgrade remains, and a state fixture would not exercise it anyway.
 - **Aborted** (4) — never happened anywhere.
 
 ## Upgrades with no expectation, and the two different reasons

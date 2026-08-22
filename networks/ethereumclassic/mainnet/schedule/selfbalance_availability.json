@@ -6,7 +6,7 @@
       "oracle-version": "v1.12.21-unstable",
       "generated": "2026-08-21",
       "signing": "txbytes carries the signed transaction; the signing key is a filling input, not a fixture field, and the harness reads `sender`.",
-      "unfilled-no-fork-name": "No expectation for ETC_DieHard, ETC_Gotham, ETC_DefuseDifficultyBomb, ETC_Thanos: the generator's fork table has no name for them, so their rules cannot be selected. A tooling gap, not a claim that the case does not apply.",
+      "unfilled-no-fork-name": "No expectation for ETC_Thanos: the generator's fork table has no name for them, so their rules cannot be selected. A tooling gap, not a claim that the case does not apply.",
       "unfilled-not-a-state-rule": "No expectation for ETC_DAOFork, ETC_DAOWars, ETC_FrontierThawing, ETC_MESSOff, ETC_MESSOn: these change no state-transition rule, so a state fixture has nothing to assert about them. Covering them needs block-level or chain-selection tests."
     },
     "config": {
@@ -86,6 +86,45 @@
             "value": 0
           },
           "replay-protected": false
+        }
+      ],
+      "ETC_DieHard": [
+        {
+          "hash": "0xf85dec627f6ad324f20618fc018f5fb8ef8e1b9f5783f6e23b9579403d6f65fa",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Gotham": [
+        {
+          "hash": "0xf85dec627f6ad324f20618fc018f5fb8ef8e1b9f5783f6e23b9579403d6f65fa",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_DefuseDifficultyBomb": [
+        {
+          "hash": "0xf85dec627f6ad324f20618fc018f5fb8ef8e1b9f5783f6e23b9579403d6f65fa",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
         }
       ],
       "ETC_Atlantis": [
