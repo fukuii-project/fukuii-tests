@@ -131,17 +131,30 @@ Olympia has no production client to match, so its oracles are the Ethereum Class
 project maintains — on Besu (Java), core-geth (Go) and Nethermind (C#), each forked from an
 unrelated upstream codebase.
 
-**They are independent as implementations and not as specifications.** Three teams did not read
-the specification separately; one team wrote both the specification and all three overlays. So:
+**They are independent as implementations, and the specification's independence varies by rule.**
+Three teams did not read the specification separately; one team wrote both it and all three
+overlays. So agreement between overlays catches a coding error in one implementation, and an
+ambiguity three codebases read differently. It cannot catch a specification all three read the
+same wrong way.
 
-| agreement between overlays catches | it does not catch |
-|---|---|
-| a coding error in one implementation | a specification that is wrong |
-| an ambiguity read differently by three codebases | a specification all three read the same wrong way |
+**But specification risk is not uniform, and treating it as uniform is its own error.** The ECIPs
+carry cross-implementation review, and the weight that review buys depends on how novel the rule
+is:
 
-That is real corroboration and it is worth having — three unrelated codebases agreeing is strong
-evidence against an implementation slip. It is **not** the independence a pre-Olympia fixture
-gets, where neither the rules nor the clients are ours.
+| the rule is… | specification risk | why |
+|---|---|---|
+| an EIP adopted unchanged | **low** | implemented and audited across the ecosystem for years |
+| an adaptation with precedent elsewhere | **low-to-moderate** | the pattern has been reviewed where it already runs |
+| genuinely novel, no precedent anywhere | **this is where the caveat bites** | only our own review stands behind it |
+
+The base-fee ECIP is the worked example of the middle row: it activates a universally implemented
+EIP, and the part that departs from Ethereum — crediting the fee rather than destroying it — is
+reviewed against networks that already do something similar, with implementations cited at pinned
+commits. That is materially stronger than a rule invented here.
+
+**So the question for an Olympia fixture is which row its rule sits in**, and the ECIP is where
+that is recorded — read it rather than assuming the worst case. Reserve the strong caveat for
+genuinely novel rules, and say which ECIP and which review the fixture is leaning on.
 
 **So an Olympia fixture must record that its oracle is our own overlay**, and must not be
 presented as carrying the same weight as one derived from a production client implementing
