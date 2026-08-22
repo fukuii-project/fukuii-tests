@@ -91,6 +91,30 @@ does not exist before Spiral, so pre-Spiral upgrades failed for a reason that ha
 with the rule under test. The body here uses `PUSH1 0x00` so it is valid everywhere and the only
 thing varying is the price.
 
+## The declined fork is testable, and three clients reach the same answer three ways
+
+The DAO fork carries no state expectation here because this chain declined it — but that
+declination *is* observable, in the fork identifier. Ethereum's identifier sequence includes the
+fork's block; this chain's must not.
+
+Verified 2026-08-21 across three independent implementations, which express the same decision by
+three different mechanisms:
+
+| client | mechanism |
+|---|---|
+| the early production client | keeps the block and sets a flag declining support, then excludes it from the identifier explicitly |
+| today's production client | omits the field entirely, so the reflection that builds the identifier never sees it |
+| the second implementation | uses a distinct field name of its own |
+
+**Same outcome, three encodings.** One of them needed a dedicated change to get there — a 2020
+commit removing the block from the identifier list, landing with over a hundred lines of new
+tests — which is a reasonable signal that this is exactly the kind of behavior a conformance
+fixture should pin rather than leave to each client's internals.
+
+It is not a state-transition rule, so it belongs in a fork-identifier test rather than here.
+Recorded in this directory because the schedule is where someone will look for it, and because
+"no state expectation" should not read as "nothing to test".
+
 ## The schedule in full, in order
 
 Every entry, so the sequence reads completely and no absence is silent. **"Not filled" is a
@@ -102,7 +126,7 @@ classification here, never an omission.**
 | 2 | Frontier Thawing | — the client models this as *unenforced*: scheduled and named, changing neither rule nor state |
 | 3 | Homestead | **filled** |
 | 4 | DAO Wars | — aborted; never activated on any chain |
-| 5 | DAO Fork | — Ethereum's irregular state change, declined by this chain |
+| 5 | DAO Fork | — declined by this chain; **testable, but through the fork identifier rather than state** — see below |
 | 6 | Gas Reprice | **filled** |
 | 7 | Die Hard | — no fork name in the generator |
 | 8 | Gotham | — no fork name in the generator |
