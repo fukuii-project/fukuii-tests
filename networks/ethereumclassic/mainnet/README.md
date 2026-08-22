@@ -34,6 +34,37 @@ being the suite.
 3. **Author the fixtures**, scoped to this upgrade, under this chain's configuration.
 4. **Cross-check against the oracles**, and treat any disagreement as a finding.
 
+## The generator gap, and it is the prerequisite for all of this
+
+A fixture's post-state root has to be computed by executing the transaction, so every authored
+fixture depends on a generator that can be told **which upgrade's rules to apply**.
+
+core-geth's `evm t8n` is that generator, and it resolves an upgrade by name against a table in its
+`tests` package. Measured 2026-08-21, that table carries **six** Ethereum Classic entries —
+Atlantis, Agharta, Phoenix, Magneto, Mystique, Spiral. Every one of them is Atlantis or later.
+
+**So the tooling gap lands exactly on the coverage gap.** Spiral can be generated today. Die Hard
+cannot be generated at all, because there is no name to ask for — and Die Hard is precisely the
+upgrade whose rule combination has never existed on Ethereum.
+
+### What is missing, and which of it matters
+
+| absent name | why it matters, or does not |
+|---|---|
+| **Die Hard** | **essential.** Two EIPs live, two not, in a combination nothing else can express |
+| Gotham | this chain's monetary policy — block rewards, so it reaches block-level fixtures rather than state ones |
+| Defuse Difficulty Bomb | difficulty, not EVM state — needed for difficulty fixtures |
+| Thanos | an epoch-length change to the mining algorithm; state tests do not exercise it |
+| Gas Reprice | the same EIP as Ethereum's equivalent, which is already in the table |
+
+**This is the modernization opportunity in the overlay.** Adding the missing entries to
+`white-b0x/core-geth`'s fork table is small, self-contained, and unlocks fixture generation for
+the whole schedule rather than its last six upgrades. Until it lands, sequential authoring stops
+where the table stops.
+
+That work belongs in the client overlay, not here. What belongs here is the record that this
+suite's sequence depends on it.
+
 ## Die Hard is the first upgrade that cannot be borrowed
 
 Ethereum took EIP-155, EIP-160, EIP-161 and EIP-170 **together**, in one upgrade. Ethereum
