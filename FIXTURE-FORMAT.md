@@ -83,6 +83,52 @@ publishing a fixture, not a number to pick from.
 **A fixture whose oracle is unrecorded is not usable.** Say which implementation produced the
 expected values, and at which version.
 
+## The oracles, and what each one settles
+
+Measured 2026-08-21. **Re-verify before relying on any of this** — these are readings of active
+codebases.
+
+| client | standing | settles |
+|---|---|---|
+| **core-geth** | **production. This is what Ethereum Classic runs.** | the answer. Where Fukuii disagrees, Fukuii is wrong until shown otherwise |
+| **besu-etc** | independent, second implementation | corroboration — a second opinion on the same fixture |
+| **go-ethereum-pow** | Ethereum's last proof-of-work release, v1.10.26, frozen 2022-11-03 | the proof-of-work-era EVM the two chains share |
+
+**The point of a second implementation is disagreement.** Two clients agreeing raises confidence;
+two disagreeing is a finding to resolve *before* a fixture is published, never a number to choose
+between.
+
+### besu-etc is weaker than core-geth, but not in the ways it is usually assumed
+
+Checked rather than assumed, because the received wisdom about it is mostly wrong:
+
+- **It has proof-of-work mining** — `PoWMiningCoordinator`, `PoWMinerExecutor`, in main source.
+- **Its Ethereum Classic upgrade schedule is complete and correct**, through Spiral, with
+  activation heights matching core-geth exactly and the DAO-rejection block set.
+
+Where it is genuinely weak:
+
+- **It does not implement MESS at all.** No artificial-finality code exists, so it cannot be an
+  oracle for that rule — there is nothing to ask.
+- **Its Ethereum Classic consensus classes are almost entirely untested.** Four of its five carry
+  no test coverage, so agreement from it is weaker evidence than agreement from a client whose
+  behavior is exercised.
+- **It has never run Ethereum Classic-labelled fixtures**, consuming only Ethereum's corpus.
+
+So treat it as a real second opinion with a known blind spot, not as a co-equal authority and not
+as a client to dismiss.
+
+### go-ethereum-pow is for the shared era only
+
+It is **Ethereum's** client, carrying no Ethereum Classic configuration, and its history includes
+post-merge code. It is useful precisely where the two chains share rules — the proof-of-work-era
+EVM — and says nothing about anything Ethereum Classic did differently.
+
+### Recording the oracle is part of the fixture
+
+Which implementation produced the expected values, and at which version. A fixture whose oracle is
+unknown cannot be re-derived, and cannot be re-checked when a client changes.
+
 ## Naming
 
 Data-tree conventions, not Scala's. Directory and file names follow what the corpora already
