@@ -35,6 +35,32 @@ It exercises both halves of what makes this upgrade Ethereum Classic's:
 
 The oracle, its version, and the generation date are recorded in the fixture's own `_info`.
 
+## `warm_coinbase.json` and `cold_account_access_control.json`
+
+EIP-3651 makes the coinbase account warm from the start of a transaction. Both fixtures store the
+gas consumed by a `BALANCE` read, so the assertion is a number rather than a state shape.
+
+Measured at fill time, the same bytecode across two adjacent upgrades:
+
+| `BALANCE` on | Spiral | one upgrade earlier |
+|---|---:|---:|
+| the coinbase | **106** | 2606 |
+| an unrelated address | 2607 | 2607 |
+
+**The control is the point.** A cheaper coinbase read on its own could be a general repricing;
+the unrelated address staying at 2607 is what attributes the 2,500-gas saving to this EIP
+specifically. A fixture that only asserted the first row would pass for the wrong reason if
+anything else about account access changed.
+
+## What the failures proved, and they are worth keeping
+
+While probing, the same bytecode was run one upgrade earlier and **wrote no storage at all**. That
+is not a defect — `PUSH0` does not exist before this upgrade, so the code is invalid there.
+
+So Spiral activation is confirmed from both directions: the opcode works here, and identical code
+is rejected before. The pre-Spiral measurements above therefore use a `PUSH1 0x00` variant, so
+that what is being compared is the account-access price and not the availability of an opcode.
+
 ## Adding to this directory
 
 Read `../../../../FIXTURE-FORMAT.md` first. The expected values must come from an implementation
