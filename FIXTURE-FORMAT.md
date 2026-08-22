@@ -93,6 +93,7 @@ codebases.
 | **core-geth** | **production. This is what Ethereum Classic runs.** | the answer. Where Fukuii disagrees, Fukuii is wrong until shown otherwise |
 | **besu-etc** | independent, second implementation | corroboration — a second opinion on the same fixture |
 | **go-ethereum-pow** | Ethereum's last proof-of-work release, v1.10.26, frozen 2022-11-03 | the proof-of-work-era EVM the two chains share |
+| **the Olympia overlays** | ours, on three unrelated upstreams | Olympia only — see below, the independence is narrower than it looks |
 
 **The point of a second implementation is disagreement.** Two clients agreeing raises confidence;
 two disagreeing is a finding to resolve *before* a fixture is published, never a number to choose
@@ -123,6 +124,31 @@ as a client to dismiss.
 It is **Ethereum's** client, carrying no Ethereum Classic configuration, and its history includes
 post-merge code. It is useful precisely where the two chains share rules — the proof-of-work-era
 EVM — and says nothing about anything Ethereum Classic did differently.
+
+### Olympia: three implementations, one specification
+
+Olympia has no production client to match, so its oracles are the Ethereum Classic overlays this
+project maintains — on Besu (Java), core-geth (Go) and Nethermind (C#), each forked from an
+unrelated upstream codebase.
+
+**They are independent as implementations and not as specifications.** Three teams did not read
+the specification separately; one team wrote both the specification and all three overlays. So:
+
+| agreement between overlays catches | it does not catch |
+|---|---|
+| a coding error in one implementation | a specification that is wrong |
+| an ambiguity read differently by three codebases | a specification all three read the same wrong way |
+
+That is real corroboration and it is worth having — three unrelated codebases agreeing is strong
+evidence against an implementation slip. It is **not** the independence a pre-Olympia fixture
+gets, where neither the rules nor the clients are ours.
+
+**So an Olympia fixture must record that its oracle is our own overlay**, and must not be
+presented as carrying the same weight as one derived from a production client implementing
+somebody else's specification.
+
+Where three overlays disagree, the specification is the first suspect, not the odd implementation
+out.
 
 ### Recording the oracle is part of the fixture
 
