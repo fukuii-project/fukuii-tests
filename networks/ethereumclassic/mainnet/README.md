@@ -3,38 +3,36 @@
 Built **sequentially**, upgrade by upgrade, rather than by picking at gaps. A suite assembled from
 whichever upgrades looked interesting is a suite with holes nobody has enumerated.
 
-Each upgrade answers three questions, in order:
+**Every fixture here is authored.** Nothing is borrowed, relabelled, or referenced as coverage.
+
+## Why from scratch, when corpora already exist
+
+Because a borrowed fixture is correct only by audit, and an authored one is correct by
+construction.
+
+The material available to lean on has known, measured problems. The archived Ethereum Classic
+labels were produced by a text substitution that did not change what the fixtures test, so some
+of them assert rules this chain does not run — including fixtures relabelled from Ethereum's
+proof-of-stake transition, which assert that a zero-difficulty block is valid. Ethereum's own
+corpora carry Ethereum's chain configuration and Ethereum's upgrade boundaries.
+
+Auditing that material into trustworthiness is more work than authoring, and it leaves a suite
+whose correctness rests on the audit having been exhaustive. Authoring leaves a suite where each
+fixture states which upgrade it targets, under this chain's configuration, at the rule set that
+upgrade actually carries.
+
+**The existing corpora remain essential — as input, not as coverage.** They say what is worth
+testing, they supply cases decades of adversarial work already found, and they serve as
+comparison when an authored fixture and a borrowed one disagree. That is a different role from
+being the suite.
+
+## Each upgrade, in order
 
 1. **What rules does it carry?** Read from the production client, never from a rendered spec.
-2. **What existing corpus covers those rules**, and under whose chain configuration?
-3. **What is left over?** That, and only that, is authored here.
-
-## Where the sequence currently stands
-
-The client certifies Ethereum at Frontier, Homestead and Tangerine Whistle, and Ethereum Classic
-at **Gas Reprice** — by running Ethereum's Tangerine Whistle fixtures under Ethereum Classic's
-rules, which is sound because that upgrade is EIP-150 on both chains.
-
-**Gas Reprice is the last upgrade an Ethereum corpus can cover unaided.** Everything after it
-needs this directory.
-
-## The sequence
-
-| upgrade | relation to Ethereum | coverage |
-|---|---|---|
-| Frontier … Gas Reprice | identical rules | **reference** — Ethereum corpora, run under this chain's configuration |
-| **Die Hard** | **a combination no Ethereum fork ever had** | **author** — see below |
-| Gotham | Ethereum Classic's own monetary policy | **author** — no Ethereum counterpart exists |
-| Defuse Difficulty Bomb | Ethereum Classic removed the bomb | **author** — Ethereum only ever delayed it |
-| Atlantis | Byzantium minus one EIP | **author the difference**; reference the rest |
-| Agharta | Constantinople + Petersburg | reference — confirm the archive label first |
-| Phoenix | Istanbul, equivalent | **reference** — archived label is sound |
-| Magneto | Berlin, equivalent | **reference** — archived label is sound |
-| Mystique | London minus three EIPs | **author the difference**; reference the rest |
-| Spiral | Shanghai minus two EIPs | **author** — no archived coverage exists at all |
-
-Read the rule content for each from the production client. **Heights are deliberately absent
-here**; a copied activation point goes stale silently while continuing to read as authoritative.
+2. **What has upstream already thought to test at the equivalent rules?** Mine the corpora for
+   cases — the shapes, the edges, the attacks.
+3. **Author the fixtures**, scoped to this upgrade, under this chain's configuration.
+4. **Cross-check against the oracles**, and treat any disagreement as a finding.
 
 ## Die Hard is the first upgrade that cannot be borrowed
 
