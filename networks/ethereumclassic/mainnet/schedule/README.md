@@ -50,6 +50,29 @@ otherwise identical rules. The divergence is not in the rules; it is in what the
 asserting the opcode's absence. That is only legible because the fixture spans the schedule: at a
 single upgrade, "no storage" and "we did not test this" look the same.
 
+## Gas repricing across the schedule
+
+Three fixtures measure what an operation *costs* rather than whether it exists. The contrast
+between them is the reason they are worth having as a set:
+
+| | Frontier | Gas Reprice | Phoenix | Magneto |
+|---|---:|---:|---:|---:|
+| `SLOAD` | 57 | 207 | **807** | **2107** |
+| `EXTCODESIZE` on self | 26 | 706 | 706 | **106** |
+| `BALANCE` on the coinbase | 26 | 406 | 706 | 2606 → **106** at Spiral |
+
+**One upgrade moves these in opposite directions.** Magneto introduces cold-access pricing, which
+raises `SLOAD` to 2107 — and *lowers* `EXTCODESIZE` on the executing account to 106, because that
+account is pre-warmed. A fixture that measured only one of them would support the wrong
+generalization about what that upgrade did.
+
+The third row is the same story one upgrade later: Spiral pre-warms the coinbase, so a read that
+had been paying the cold price since Magneto drops back to the warm one.
+
+**This is what a repricing looks like when it is measured rather than described.** A specification
+says a price changed; a fixture says by how much, at which upgrade, and to which operations —
+including the ones that moved the other way.
+
 ## Opcode availability across the schedule
 
 Seven fixtures, one per opcode, each asserting where it becomes available. Every boundary was
