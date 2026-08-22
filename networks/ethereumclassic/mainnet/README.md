@@ -51,16 +51,31 @@ upgrade whose rule combination has never existed on Ethereum.
 
 | absent name | why it matters, or does not |
 |---|---|
-| **Die Hard** | **essential.** Two EIPs live, two not, in a combination nothing else can express |
+| **Die Hard** | **essential.** Two EIPs live, two not — plus this chain's own difficulty-pause rule, which activates at the same upgrade and has no Ethereum counterpart at all |
 | Gotham | this chain's monetary policy — block rewards, so it reaches block-level fixtures rather than state ones |
 | Defuse Difficulty Bomb | difficulty, not EVM state — needed for difficulty fixtures |
 | Thanos | an epoch-length change to the mining algorithm; state tests do not exercise it |
 | Gas Reprice | the same EIP as Ethereum's equivalent, which is already in the table |
 
-**This is the modernization opportunity in the overlay.** Adding the missing entries to
-`white-b0x/core-geth`'s fork table is small, self-contained, and unlocks fixture generation for
-the whole schedule rather than its last six upgrades. Until it lands, sequential authoring stops
-where the table stops.
+### The six entries that exist are upstream's, and the missing ones are derivable
+
+Verified 2026-08-21: the Ethereum Classic fork entries are **byte-identical between the
+production client and this project's overlay**. None were added here. So generating a fixture at
+one of them uses an oracle that is independent in both senses — upstream's configuration,
+executed by upstream's implementation.
+
+**Adding the missing entries does not give that up**, because they are derivation rather than
+invention. The production client's own mainnet configuration already states which rules are live
+at each height, and the existing entries show the encoding: a rule live at that upgrade is set to
+zero, a rule not yet reached is left unset. An entry for the missing upgrade is that configuration
+read at its own activation height and written in the table's own form.
+
+What remains ours is the packaging — a name in a test table. The configuration is upstream's
+reading of its own chain, and the implementation executing it is upstream's too.
+
+**This is the modernization opportunity in the overlay.** Small, self-contained, and it unlocks
+generation for the whole schedule rather than its last six upgrades. Until it lands, sequential
+authoring stops where the table stops.
 
 That work belongs in the client overlay, not here. What belongs here is the record that this
 suite's sequence depends on it.
