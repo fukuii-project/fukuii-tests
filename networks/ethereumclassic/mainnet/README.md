@@ -80,6 +80,34 @@ authoring stops where the table stops.
 That work belongs in the client overlay, not here. What belongs here is the record that this
 suite's sequence depends on it.
 
+## What already exists for the unreachable upgrades — surveyed 2026-08-21
+
+Before authoring for Die Hard, Gotham, Defuse Difficulty Bomb or Thanos, the reference clients and
+the archive were searched for anything that already covers them. The result is worth recording
+because it is mostly negative, and a negative result nobody wrote down gets re-derived.
+
+| source | what it has |
+|---|---|
+| production client | Go unit tests for the era-reward schedule, the difficulty pause, the bomb disposal and the mining epoch change — hardcoded expectations, no portable fixtures |
+| production client | **a difficulty-fixture generator**, environment-gated, emitting into a `dfETC` directory — but keyed on the same fork table, so it reaches Atlantis onward and no further |
+| the second client | ETC configuration-parsing tests only. Its Ethereum Classic consensus classes are almost entirely untested |
+| the archive | **nothing.** No fixture, filler or difficulty case names any of these four upgrades. Its `DifficultyTests` cover Ethereum's forks, bomb delays included, and stop there |
+
+**So the coverage that exists is real but locked inside one client, in Go, as hardcoded
+assertions.** That is exactly the shape this repository exists to replace: two independent clients
+cannot check each other against a unit test that only one of them can run.
+
+### One thing found that changes the tooling picture
+
+The production client can already **generate** difficulty fixtures for Ethereum Classic forks, and
+that generator is a second, separate path from the state-transition tool this suite has been
+using. It is gated off by default and bounded by the same fork table.
+
+That matters for the difficulty-shaped upgrades. Die Hard's pause rule and the bomb disposal are
+difficulty behavior, not state-transition behavior, so a state fixture would have nothing to
+assert about them even with a fork name available. **They need the difficulty path, not the state
+path** — and extending the fork table unlocks both at once.
+
 ## Die Hard is the first upgrade that cannot be borrowed
 
 Ethereum took EIP-155, EIP-160, EIP-161 and EIP-170 **together**, in one upgrade. Ethereum
