@@ -91,6 +91,43 @@ does not exist before Spiral, so pre-Spiral upgrades failed for a reason that ha
 with the rule under test. The body here uses `PUSH1 0x00` so it is valid everywhere and the only
 thing varying is the price.
 
+## The schedule in full, in order
+
+Every entry, so the sequence reads completely and no absence is silent. **"Not filled" is a
+classification here, never an omission.**
+
+| # | upgrade | in a state fixture |
+|---|---|---|
+| 1 | Frontier | **filled** |
+| 2 | Frontier Thawing | — the client models this as *unenforced*: scheduled and named, changing neither rule nor state |
+| 3 | Homestead | **filled** |
+| 4 | DAO Wars | — aborted; never activated on any chain |
+| 5 | DAO Fork | — Ethereum's irregular state change, declined by this chain |
+| 6 | Gas Reprice | **filled** |
+| 7 | Die Hard | — no fork name in the generator |
+| 8 | Gotham | — no fork name in the generator |
+| 9 | Defuse Difficulty Bomb | — no fork name in the generator |
+| 10 | Atlantis | **filled** |
+| 11 | Agharta | **filled** |
+| 12 | Phoenix | **filled** |
+| 13 | MESS default on | — chain-selection policy, not a state-transition rule |
+| 14 | Thanos | — no fork name in the generator |
+| 15 | Magneto | **filled** |
+| 16 | Mystique | **filled** |
+| 17 | MESS default off | — chain-selection policy, not a state-transition rule |
+| 18 | Spiral | **filled** |
+
+Nine filled, nine classified. The nine that are not filled fall into **three distinct reasons**,
+and collapsing them would misrepresent the coverage:
+
+- **Nothing to assert** (2, 4, 5, 13, 17) — no state-transition rule changes, so a state fixture
+  has no expectation to carry. Frontier Thawing is the clearest case: the client's own schedule
+  marks it unenforced. Covering the MESS transitions needs chain-selection tests; covering the
+  declined fork needs a block-level one.
+- **No fork name** (7, 8, 9, 14) — the rules exist and are implemented, but the generator cannot
+  be told to select them. A tooling gap, and the one that is worth closing.
+- **Aborted** (4) — never happened anywhere.
+
 ## Upgrades with no expectation, and the two different reasons
 
 Absence in a `post` map is never a claim that the case does not apply. Each fixture records which
