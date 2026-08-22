@@ -1,8 +1,11 @@
-# `schedule/` — one body, asserted across the whole upgrade sequence
+# `state/` — state-transition fixtures
 
-A fixture here carries a `post` entry **per upgrade**, not one. The format is keyed by upgrade
-label, and the harness is told which to read, so a single test body can pin behavior across the
-entire schedule.
+Grouped by subject: `opcodes/`, `gas/`, `storage/`, `accounts/`. **Every fixture here spans the
+schedule** — one body, an expectation at each upgrade the generator can address — so the
+directories describe what a fixture is *about*, never which upgrade it speaks to.
+
+A fixture carries a `post` entry **per upgrade**, not one. The format is keyed by upgrade label
+and the harness is told which to read, so one body pins behavior across the entire schedule.
 
 ## Why this is the shape, rather than one fixture per upgrade
 
