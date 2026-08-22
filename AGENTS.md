@@ -23,6 +23,10 @@ the corpora already use — lowercase, fork- and suite-shaped — not Scala's Pa
 The client-vocabulary rule below still applies to the *concepts* — upgrade, activation, proposal
 — and to directory names we invent. It does not turn data files into type names.
 
+**The schema is in [FIXTURE-FORMAT.md](FIXTURE-FORMAT.md)** — what the harness parses, the
+Ethereum Classic specifics that differ from Ethereum's, and why an authored fixture's expected
+values must come from an implementation other than the one being certified.
+
 ### How the client finds a corpus
 
 `fukuii-cli` resolves a fixture root at test time, from an environment variable or a pointer file
