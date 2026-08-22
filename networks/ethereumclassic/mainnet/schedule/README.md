@@ -73,6 +73,31 @@ had been paying the cold price since Magneto drops back to the warm one.
 says a price changed; a fixture says by how much, at which upgrade, and to which operations —
 including the ones that moved the other way.
 
+## Storage writes, and a rule that no stored number can show
+
+`sstore_set_cost.json` measures writing a non-zero value into a previously-zero slot: flat for six
+upgrades, then higher at Magneto where a first touch of untouched storage starts paying the
+cold-access surcharge on top of the write. Notably the net-metering change at Phoenix does **not**
+move it.
+
+`sstore_clear_refund.json` is the more interesting one, and it asserts a **state root** rather
+than a stored value.
+
+**A refund is invisible to the contract that earns it.** It is not returned on the stack and
+cannot be read back; it lands in the transaction's accounting and reaches the sender's balance.
+So the measure-and-store technique every other fixture here uses simply cannot see it.
+
+What the fixture does instead is clear a slot that starts non-zero and let the root carry the
+difference: the contract's own storage ends identical at every upgrade, and only what the sender
+is left holding differs. Measured across the schedule, the root is **the same for eight upgrades
+and changes at Mystique**, which reduced the refund. One boundary, isolated, with nothing else
+moving.
+
+**That is worth noting as a technique.** Where a rule has no observable effect inside the EVM, the
+post-state root is still sensitive to it — so the fixture asserts the root and says in its comment
+what the root is standing in for. A reader who does not know why that root changed learns nothing
+from a bare hash.
+
 ## Opcode availability across the schedule
 
 Seven fixtures, one per opcode, each asserting where it becomes available. Every boundary was
