@@ -50,6 +50,34 @@ otherwise identical rules. The divergence is not in the rules; it is in what the
 asserting the opcode's absence. That is only legible because the fixture spans the schedule: at a
 single upgrade, "no storage" and "we did not test this" look the same.
 
+## Opcode availability across the schedule
+
+Seven fixtures, one per opcode, each asserting where it becomes available. Every boundary was
+confirmed against the production client rather than assumed from a specification:
+
+| opcode | available from |
+|---|---|
+| `DELEGATECALL` | Homestead |
+| `RETURNDATASIZE`, `STATICCALL` | Atlantis |
+| `SHL`, `EXTCODEHASH` | Agharta |
+| `SELFBALANCE`, `CHAINID` | Phoenix |
+| `PUSH0` | Spiral |
+
+### The probe stores a marker, not the opcode's result
+
+Run the opcode, discard what it produced, store a non-zero value. A written slot means the opcode
+executed; an empty one means it did not exist there.
+
+**Storing the result instead does not work, and fails silently.** `RETURNDATASIZE` and
+`SELFBALANCE` both return zero in this setup, and storing zero into an already-zero slot cannot be
+distinguished from never storing at all — so the first version of these fixtures reported those
+opcodes as unavailable at *every* upgrade, including ones where they plainly work. The probe
+looked correct and measured nothing.
+
+That is worth stating because it is the same failure this directory already documents twice: an
+instrument that cannot report a negative is not measuring. Here the negative and the positive were
+the same value.
+
 ## Two things the sequence surfaced that a single-upgrade fixture would not
 
 **The signature scheme changes mid-schedule.** This chain adopts replay protection at Die Hard,
