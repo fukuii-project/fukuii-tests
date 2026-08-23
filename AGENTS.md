@@ -45,7 +45,7 @@ for a bucket that means different things in different places.
 | directory | what it holds | posture |
 |---|---|---|
 | `archive/` | preserved copies of dying or deleted upstream material | **frozen — never edited** |
-| `upstream/` | live upstreams, pinned as submodules, not fetched by default | tracked |
+| `upstream/` | live upstreams, pinned as submodules, fetched | tracked |
 | `proposals/` | our tests for a single EIP or ECIP, network-agnostic | **authored** |
 | `networks/` | our tests scoped to a network or an upgrade | **authored** |
 
@@ -74,6 +74,24 @@ across a family while anything keyed to a height is not.
 **An upgrade with no activation point yet still lives under its network**, marked unactivated —
 the client's `UpgradeSchedule` treats unscheduled entries as a modelled case. It does not get a
 parallel tree that has to be merged later.
+
+### A pin is readable, so read it
+
+**The pins are fetched, and an unfetched pin is a reason to fetch it, not to skip the check.**
+`git submodule update --init <path>` materializes the exact recorded tree; the SHA does not move,
+so the working tree stays clean and nothing is re-decided.
+
+**Never answer a question about a pin by reading a newer ref of the same upstream.** A branch
+tracking upstream is a different commit that will answer confidently and sometimes differently,
+which is the same failure this repository already documents for a rendered specification against
+its authoring copy. It is also not durable: a commit no branch or tag reaches can be dropped by a
+routine `git gc`, so a pin that resolves against a moving clone today may not tomorrow. The pin
+is only guaranteed readable where it is held.
+
+**A claim about the whole corpus has to include the pins**, which are the majority of it by file
+count. Verify by reading the tree at the pinned SHA, and prefer comparing content over comparing
+directory names — two corpora can carry identically-named directories holding different data, or
+identical data under a name that suggests otherwise.
 
 ### Vendor, extract, or pin — decided by what would be lost
 
