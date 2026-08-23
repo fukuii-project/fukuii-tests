@@ -1,0 +1,615 @@
+{
+  "difficultyBombPauseAndRemoval": {
+    "_info": {
+      "comment": "The difficulty bomb across the schedule: growing, then frozen, then gone. A block number here selects a point on the exponential curve, not a claim about mainnet history -- every label's activation heights are rebased to zero, so the label chooses the rule set and the height is a parameter of the test. The interval is held at 9 seconds, which every rule through Mystique treats identically, so the whole visible spread between labels is the bomb. Through Gas Reprice it grows unchecked. At Die Hard ECIP-1010 freezes its reference point for two million blocks and then resumes it with that span subtracted, so the term is absent below the resume point and twenty doublings behind above it. Gotham changes emission and not difficulty, so its expectations must equal Die Hard's -- that equality is an assertion, not redundancy. From Defuse ECIP-1041 disposes of the bomb entirely, and the disposal returns before the explosion clause is reached, which is why the pause schedule becomes unobservable rather than merely unused.",
+      "unfillable": {
+        "ETC_Thanos": "no fork name in the generator",
+        "ETC_FrontierThawing": "scheduled and named, but changes no rule and no state",
+        "ETC_DAOWars": "aborted; never activated on any chain",
+        "ETC_DAOFork": "Ethereum's irregular state change, declined by this chain",
+        "ETC_MESSOn": "chain-selection policy, not a state-transition rule",
+        "ETC_MESSOff": "chain-selection policy, not a state-transition rule"
+      }
+    },
+    "ETC_Frontier": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13113601"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13113856"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "14162176"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "281549056"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "281474989824256"
+      }
+    },
+    "ETC_Homestead": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13113601"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13113856"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "14162176"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "281549056"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "281474989824256"
+      }
+    },
+    "ETC_GasReprice": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13113601"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13113856"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "14162176"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "281549056"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "281474989824256"
+      }
+    },
+    "ETC_DieHard": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "13113601"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "13113856"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "281549056"
+      }
+    },
+    "ETC_Gotham": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "13113601"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "13113856"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "281549056"
+      }
+    },
+    "ETC_DefuseDifficultyBomb": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "13113600"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "13113600"
+      }
+    },
+    "ETC_Atlantis": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "13107200"
+      }
+    },
+    "ETC_Agharta": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "13107200"
+      }
+    },
+    "ETC_Phoenix": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "13107200"
+      }
+    },
+    "ETC_Magneto": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "13107200"
+      }
+    },
+    "ETC_Mystique": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "13107200"
+      }
+    },
+    "ETC_Spiral": {
+      "bomb_absent_below_first_period_n199999": {
+        "parentTimestamp": "2599987",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2599996",
+        "currentBlockNumber": "199999",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_first_period_n200000": {
+        "parentTimestamp": "2600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "2600009",
+        "currentBlockNumber": "200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_paused_n1000000": {
+        "parentTimestamp": "13000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "13000009",
+        "currentBlockNumber": "1000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_resumes_after_pause_n2200000": {
+        "parentTimestamp": "28600000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "28600009",
+        "currentBlockNumber": "2200000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n3000000": {
+        "parentTimestamp": "39000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "39000009",
+        "currentBlockNumber": "3000000",
+        "currentDifficulty": "13107200"
+      },
+      "bomb_n5000000": {
+        "parentTimestamp": "65000000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "65000009",
+        "currentBlockNumber": "5000000",
+        "currentDifficulty": "13107200"
+      }
+    }
+  }
+}

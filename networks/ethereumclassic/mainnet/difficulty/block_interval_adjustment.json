@@ -1,0 +1,807 @@
+{
+  "difficultyBlockIntervalAdjustment": {
+    "_info": {
+      "comment": "How the block interval moves difficulty, across the schedule. Held at a height below the bomb's first period at every label, so the whole of each expectation is the adjustment rule. Frontier's rule is binary -- an interval under the duration limit raises difficulty by one unit of parent/2048 and anything at or above it lowers difficulty by that same single unit, however late the block. Homestead replaces it with a graduated term, max(1 - interval/10, -99), so lateness is proportional and clamped. Atlantis changes the divisor to 9 under EIP-100. The 13-second case is the sharpest single reading: it is Frontier's threshold exactly, so Frontier decreases where Homestead holds. The 1000-second case is the widest divergence available, Frontier moving one unit where Homestead moves the full clamped 99, from identical inputs.",
+      "unfillable": {
+        "ETC_Thanos": "no fork name in the generator",
+        "ETC_FrontierThawing": "scheduled and named, but changes no rule and no state",
+        "ETC_DAOWars": "aborted; never activated on any chain",
+        "ETC_DAOFork": "Ethereum's irregular state change, declined by this chain",
+        "ETC_MESSOn": "chain-selection policy, not a state-transition rule",
+        "ETC_MESSOff": "chain-selection policy, not a state-transition rule"
+      }
+    },
+    "ETC_Frontier": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      }
+    },
+    "ETC_Homestead": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_GasReprice": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_DieHard": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_Gotham": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_DefuseDifficultyBomb": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_Atlantis": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_Agharta": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_Phoenix": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_Magneto": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_Mystique": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    },
+    "ETC_Spiral": {
+      "interval_1s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950001",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13113600"
+      },
+      "interval_9s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950009",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_10s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950010",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_12s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950012",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_13s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950013",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13107200"
+      },
+      "interval_20s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950020",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13100800"
+      },
+      "interval_30s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1950030",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "13094400"
+      },
+      "interval_1000s": {
+        "parentTimestamp": "1950000",
+        "parentDifficulty": "13107200",
+        "parentUncles": "0",
+        "currentTimestamp": "1951000",
+        "currentBlockNumber": "150000",
+        "currentDifficulty": "12473600"
+      }
+    }
+  }
+}
