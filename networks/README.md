@@ -11,6 +11,53 @@ networks/
   ethereum/
 ```
 
+## One directory per test type, and no upgrade in a path
+
+Beneath a network, fixtures are grouped by **test type first**, then by subject:
+
+```
+networks/ethereumclassic/mainnet/
+  state/            state-transition fixtures     post keyed by upgrade
+    opcodes/          availability
+    gas/              repricing
+    storage/          reads, writes, refunds
+    accounts/         creation, clearing, code limits
+  difficulty/       difficulty fixtures           a different generator, a different reader
+  blocks/           block-level fixtures          rewards, uncles
+  forkid/           fork-identifier vectors
+```
+
+Type first because the harness resolves by type: a difficulty fixture and a state fixture are
+read by different code paths and cannot share a directory. Subject beneath it because a flat
+directory of a few hundred fixtures is unnavigable, and subject is the axis a reader searches by.
+
+**No directory is ever named for an upgrade.** A corpus is declared to the client as
+`(directory, upgrade label, chain id)`: the client reads one directory and pulls the expectation
+for one upgrade out of every fixture in it, reading the same directory once per upgrade. The
+upgrade dimension therefore lives inside each fixture, and a directory named for an upgrade
+competes with that map and will eventually disagree with it.
+
+Two upgrade-shaped directories did get created here while authoring, and were removed. They are
+worth naming because the mistake is easy to repeat: one described *how* a fixture was scoped and
+the other *which* upgrade it targeted, so a fixture could sit in either and the split decided
+nothing. Recording the layout here is what stops that recurring -- it drifted precisely because
+it lived only in the directory listing.
+
+## Each type has its own file shape -- check it against the reader
+
+The two types in use nest differently, and neither is guessable:
+
+| type | shape |
+|---|---|
+| state | `{ config, env, pre, transaction, post: { <upgrade>: [ … ] } }` |
+| difficulty | `{ <outerName>: { _info, <upgrade>: { <case>: { … } } } }` |
+
+A difficulty file carries an **outer name above the upgrade labels**, because the reader loads
+the file as a map and hands each top-level *value* to its per-upgrade loop. Flattening that level
+makes every field of every case look like an upgrade label. Confirm a new type's shape by
+round-tripping a fixture through a client that reads it, with a deliberately wrong value proving
+the reader rejects one -- not by pattern-matching an existing file.
+
 ## What is network-scoped, and what is not
 
 The client composes rules in three layers, and a test belongs to the layer whose facts it
