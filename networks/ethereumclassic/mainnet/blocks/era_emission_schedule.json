@@ -1,0 +1,196 @@
+{
+  "eraEmissionSchedule": {
+    "_info": {
+      "comment": "The era emission schedule. Rewards here are a function of block number and, for an uncle, of how far back it was mined -- no state, no transaction -- so these are computable and checkable without executing a block. THE ACTIVATION IS A NON-EVENT, and that is the first thing to assert: the rule takes effect at block 5,000,000 but that block falls in era 0, whose reward is the unchanged 5e18. Nothing moves until 5,000,001. A fixture testing the activation height alone would pass against a client that had not implemented the rule at all. THE UNCLE REWARD IS THE LARGE CHANGE, not the block reward. Through era 0 an uncle miner is paid on how recent the uncle is, (8 - distance)/8 of the full reward, which at distance one is 4.375e18. From era 1 that is replaced by a flat thirty-second of the era reward, 1.25e17 -- a drop of thirty-five times, against the block reward's fall of a fifth. The distance table is carried for every vector so the change from distance-sensitive to flat is visible as a shape and not just as a number: through era 0 the six entries differ from each other, and from era 1 they are identical. The includer's own per-uncle reward is a thirty-second in every era, so it moves only with the era reward and never with the formula.",
+      "oracle": "Computed independently from ECIP-1017 -- era length 5,000,000, a four-fifths disinflation per era, and the two uncle formulas -- then cross-checked against the production client's own reward vectors, which agree on all eleven block numbers they cover.",
+      "scope": "These are emission values, not block-level state transitions. Asserting that a mined block credits these amounts still needs a block-level runner, which the transition tool cannot supply: its reward flag is a single flat value applied uniformly and never consults the chain configuration's era schedule.",
+      "generated": "2026-08-23"
+    },
+    "eraLength": "5000000",
+    "activationBlock": "5000000",
+    "vectors": [
+      {
+        "block": "1",
+        "era": "0",
+        "winnerReward": "5000000000000000000",
+        "nephewRewardPerUncle": "156250000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "4375000000000000000",
+          "2": "3750000000000000000",
+          "3": "3125000000000000000",
+          "4": "2500000000000000000",
+          "5": "1875000000000000000",
+          "6": "1250000000000000000"
+        }
+      },
+      {
+        "block": "4999999",
+        "era": "0",
+        "winnerReward": "5000000000000000000",
+        "nephewRewardPerUncle": "156250000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "4375000000000000000",
+          "2": "3750000000000000000",
+          "3": "3125000000000000000",
+          "4": "2500000000000000000",
+          "5": "1875000000000000000",
+          "6": "1250000000000000000"
+        }
+      },
+      {
+        "block": "5000000",
+        "era": "0",
+        "winnerReward": "5000000000000000000",
+        "nephewRewardPerUncle": "156250000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "4375000000000000000",
+          "2": "3750000000000000000",
+          "3": "3125000000000000000",
+          "4": "2500000000000000000",
+          "5": "1875000000000000000",
+          "6": "1250000000000000000"
+        }
+      },
+      {
+        "block": "5000001",
+        "era": "1",
+        "winnerReward": "4000000000000000000",
+        "nephewRewardPerUncle": "125000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "125000000000000000",
+          "2": "125000000000000000",
+          "3": "125000000000000000",
+          "4": "125000000000000000",
+          "5": "125000000000000000",
+          "6": "125000000000000000"
+        }
+      },
+      {
+        "block": "9999999",
+        "era": "1",
+        "winnerReward": "4000000000000000000",
+        "nephewRewardPerUncle": "125000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "125000000000000000",
+          "2": "125000000000000000",
+          "3": "125000000000000000",
+          "4": "125000000000000000",
+          "5": "125000000000000000",
+          "6": "125000000000000000"
+        }
+      },
+      {
+        "block": "10000000",
+        "era": "1",
+        "winnerReward": "4000000000000000000",
+        "nephewRewardPerUncle": "125000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "125000000000000000",
+          "2": "125000000000000000",
+          "3": "125000000000000000",
+          "4": "125000000000000000",
+          "5": "125000000000000000",
+          "6": "125000000000000000"
+        }
+      },
+      {
+        "block": "10000001",
+        "era": "2",
+        "winnerReward": "3200000000000000000",
+        "nephewRewardPerUncle": "100000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "100000000000000000",
+          "2": "100000000000000000",
+          "3": "100000000000000000",
+          "4": "100000000000000000",
+          "5": "100000000000000000",
+          "6": "100000000000000000"
+        }
+      },
+      {
+        "block": "14999999",
+        "era": "2",
+        "winnerReward": "3200000000000000000",
+        "nephewRewardPerUncle": "100000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "100000000000000000",
+          "2": "100000000000000000",
+          "3": "100000000000000000",
+          "4": "100000000000000000",
+          "5": "100000000000000000",
+          "6": "100000000000000000"
+        }
+      },
+      {
+        "block": "15000000",
+        "era": "2",
+        "winnerReward": "3200000000000000000",
+        "nephewRewardPerUncle": "100000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "100000000000000000",
+          "2": "100000000000000000",
+          "3": "100000000000000000",
+          "4": "100000000000000000",
+          "5": "100000000000000000",
+          "6": "100000000000000000"
+        }
+      },
+      {
+        "block": "15000001",
+        "era": "3",
+        "winnerReward": "2560000000000000000",
+        "nephewRewardPerUncle": "80000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "80000000000000000",
+          "2": "80000000000000000",
+          "3": "80000000000000000",
+          "4": "80000000000000000",
+          "5": "80000000000000000",
+          "6": "80000000000000000"
+        }
+      },
+      {
+        "block": "19999999",
+        "era": "3",
+        "winnerReward": "2560000000000000000",
+        "nephewRewardPerUncle": "80000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "80000000000000000",
+          "2": "80000000000000000",
+          "3": "80000000000000000",
+          "4": "80000000000000000",
+          "5": "80000000000000000",
+          "6": "80000000000000000"
+        }
+      },
+      {
+        "block": "20000000",
+        "era": "3",
+        "winnerReward": "2560000000000000000",
+        "nephewRewardPerUncle": "80000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "80000000000000000",
+          "2": "80000000000000000",
+          "3": "80000000000000000",
+          "4": "80000000000000000",
+          "5": "80000000000000000",
+          "6": "80000000000000000"
+        }
+      },
+      {
+        "block": "20000001",
+        "era": "4",
+        "winnerReward": "2048000000000000000",
+        "nephewRewardPerUncle": "64000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "64000000000000000",
+          "2": "64000000000000000",
+          "3": "64000000000000000",
+          "4": "64000000000000000",
+          "5": "64000000000000000",
+          "6": "64000000000000000"
+        }
+      }
+    ]
+  }
+}

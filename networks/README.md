@@ -52,13 +52,16 @@ The two types in use nest differently, and neither is guessable:
 | state | `{ config, env, pre, transaction, post: { <upgrade>: [ … ] } }` |
 | difficulty | `{ <outerName>: { _info, <upgrade>: { <case>: { … } } } }` |
 | fork identifier | `{ <outerName>: { _info, genesisHash, forkBlocks, vectors: [ … ] } }` |
+| block-level | `{ <outerName>: { _info, eraLength, activationBlock, vectors: [ … ] } }` |
 
-**A fork-identifier file is not keyed by upgrade at all**, and that is a property of the subject
+**Neither the fork-identifier nor the block-level files are keyed by upgrade**, and that is a property of the subject
 rather than an inconsistency. An identifier is a checksum over the *whole* schedule evaluated at a
 head, so it has no per-upgrade expectation to carry; the vector list is indexed by head block. It
 is also the one type here that can assert something about an upgrade changing no
 state-transition rule, because a fork block participates in the checksum whether or not it
-changes anything a transaction can observe.
+changes anything a transaction can observe. The block-level file is indexed by block number for
+the same reason: emission is a function of height and uncle distance, with no per-upgrade
+expectation to carry.
 
 A difficulty file carries an **outer name above the upgrade labels**, because the reader loads
 the file as a map and hands each top-level *value* to its per-upgrade loop. Flattening that level
