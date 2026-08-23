@@ -5,7 +5,8 @@
       "ghostInvariants": "ECIP-1017 changes payments only. It does not touch ommer VALIDATION, and the two must agree or the reward formula pays for a block that should not have been accepted. At most 2 ommers per block; the ancestor walk is 7 deep; an ommer's parent must be one of those ancestors and must not be the block's own parent, which makes the valid distances exactly 1 through 6. The era-0 formula is defined past that range -- distance 7 would pay an eighth of the reward and distance 8 nothing -- but GHOST makes both unreachable. A client whose validation admitted a distance-7 ommer would therefore mint currency no other client mints, which is why the invariant is recorded beside the amounts rather than left to the validation suite.",
       "oracle": "Computed independently from ECIP-1017 and cross-checked against the production client's own reward vectors: eleven block numbers for the winner reward and eleven for the ommer reward, all agreeing. The ommer test there draws its distance at random, so it exercises the formula without pinning any particular distance; these vectors pin all six.",
       "scope": "Emission values, not block-level state transitions. Asserting that a mined block credits these amounts still needs a block-level runner, which the transition tool cannot supply: its reward flag is one flat value applied uniformly and never consults the era schedule.",
-      "generated": "2026-08-23"
+      "generated": "2026-08-23",
+      "observedGrounding": "Every value in this fixture is confirmed against mainnet, not only against a client. Six zero-transaction zero-ommer blocks give an exact static reward per era; ten boundary-adjacent blocks confirm the reduction lands after the boundary rather than on it; three ommer-bearing blocks confirm both reward formulas and the includer bonus. See observedMainnet."
     },
     "eraLength": "5000000",
     "activationBlock": "5000000",
@@ -488,6 +489,134 @@
         "maxIssuance": "2304000000000000000",
         "maxIssuanceOverBaseReward": "1.125000"
       }
-    ]
+    ],
+    "observedMainnet": {
+      "method": "Miner balance delta across a single block, read from archive state at the block and its parent. This is the chain's own record rather than any client's computation, so it settles disagreements between implementations instead of adding another opinion to them.",
+      "source": "an archive node serving eth_getBalance at historical heights, 2026-08-23",
+      "emptyBlockBaselines": {
+        "note": "Zero transactions and zero ommers, so the delta IS the static reward with no fee component and nothing else to subtract. One per era, and every one matches the computed schedule exactly.",
+        "blocks": [
+          {
+            "block": "4900002",
+            "era": "0",
+            "observedDeltaWei": "5000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "5100001",
+            "era": "1",
+            "observedDeltaWei": "4000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "10100000",
+            "era": "2",
+            "observedDeltaWei": "3200000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "15100002",
+            "era": "3",
+            "observedDeltaWei": "2560000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "20100003",
+            "era": "4",
+            "observedDeltaWei": "2048000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "25100000",
+            "era": "5",
+            "observedDeltaWei": "1638400000000000000",
+            "matchesComputed": true
+          }
+        ]
+      },
+      "eraBoundaries": {
+        "note": "THE REDUCTION LANDS AT BOUNDARY PLUS ONE, NEVER AT THE BOUNDARY. A block at an exact multiple of the era length is the LAST block of the outgoing era, not the first of the incoming one. Verified at all four transitions against chain state. The deltas here include transaction fees, so read the integer part.",
+        "blocks": [
+          {
+            "block": "4999999",
+            "observedDeltaWei": "5002226000000000000",
+            "impliedBaseWei": "5000000000000000000"
+          },
+          {
+            "block": "5000000",
+            "observedDeltaWei": "5002214544000000000",
+            "impliedBaseWei": "5000000000000000000",
+            "note": "last block of era 1 -- still 5"
+          },
+          {
+            "block": "5000002",
+            "observedDeltaWei": "4000627900000000000",
+            "impliedBaseWei": "4000000000000000000"
+          },
+          {
+            "block": "10000000",
+            "observedDeltaWei": "4001260116000000000",
+            "impliedBaseWei": "4000000000000000000",
+            "note": "last block of era 2 -- still 4"
+          },
+          {
+            "block": "10000002",
+            "observedDeltaWei": "3200000000000000000",
+            "impliedBaseWei": "3200000000000000000"
+          },
+          {
+            "block": "15000000",
+            "observedDeltaWei": "3302194713000000000",
+            "impliedBaseWei": "3200000000000000000",
+            "note": "last block of era 3, carrying one ommer: 3.2 base plus a 0.1 includer bonus plus fees"
+          },
+          {
+            "block": "20000000",
+            "observedDeltaWei": "2560242043000000000",
+            "impliedBaseWei": "2560000000000000000",
+            "note": "last block of era 4 -- still 2.56"
+          },
+          {
+            "block": "20000002",
+            "observedDeltaWei": "2048021000000000000",
+            "impliedBaseWei": "2048000000000000000"
+          }
+        ]
+      },
+      "ommerPayments": {
+        "note": "Observed ommer payouts, with the ommer's own height resolved from its hash rather than inferred from the amount, which would be circular.",
+        "blocks": [
+          {
+            "block": "4500004",
+            "era": "0",
+            "ommerHeight": "4500003",
+            "distance": "1",
+            "ommerRewardWei": "4375000000000000000",
+            "includerBonusWei": "156250000000000000",
+            "note": "era 0 pays on recency: seven eighths of five at distance one"
+          },
+          {
+            "block": "3000012",
+            "era": "0",
+            "distance": "2",
+            "ommerRewardWei": "3750000000000000000",
+            "includerBonusWei": "156250000000000000",
+            "note": "six eighths of five at distance two"
+          },
+          {
+            "block": "6000003",
+            "era": "1",
+            "ommerRewardWei": "125000000000000000",
+            "includerBonusWei": "125000000000000000",
+            "note": "era 1 pays a flat thirty-second regardless of distance, and the ommer miner and the includer are paid the same amount -- which is what the rule says it intends"
+          }
+        ]
+      },
+      "explorerDiscrepancy": {
+        "summary": "A widely used block explorer reports the reduced reward AT each era boundary rather than after it, understating four blocks in this chain's history: 5,000,000, 10,000,000, 15,000,000 and 20,000,000.",
+        "evidence": "At block 5,000,000 it reports 4.002214544 where chain state shows a delta of 5.002214544 -- exactly one ETC less, with a byte-identical fee component, which identifies the error as the era selection and not the fee accounting. Both its v1 and v2 endpoints return the same wrong figure, so it is in the reward logic rather than a legacy endpoint.",
+        "verdict": "The specification, the production client, the Parity-lineage client and the chain's own state all agree on the later boundary. The explorer is the only source that disagrees, and it is wrong. Recorded here because an explorer is what most people check, so a fixture asserting the correct value is the thing that survives the disagreement."
+      }
+    }
   }
 }
