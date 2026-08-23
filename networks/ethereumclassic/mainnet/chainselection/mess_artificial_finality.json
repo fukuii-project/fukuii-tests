@@ -1,0 +1,176 @@
+{
+  "messArtificialFinality": {
+    "_info": {
+      "comment": "Chain-selection defense: whether a proposed reorganization is accepted. This is the only rule in the schedule that decides between two competing chains rather than computing anything about one, which is why it needs its own directory. It is expressible as vectors because the decision is a pure function of three scalars -- how long ago the two chains parted, and each chain's total difficulty since that point. No state, no transactions, no block bodies. WINDOW: active from 11,380,000 up to but NOT including 19,250,000, so the rule switches off exactly at Spiral. The boundary is asymmetric -- inclusive at the start, exclusive at the end -- and both edges are in the vectors because either could be off by one without the other showing it. CURVE: the required advantage rises with the age of the split and is capped, so a reorg is free at zero age and needs thirty-one times the local chain's difficulty once the split is about seven hours old. The cap matters as much as the curve: past it the requirement stops growing, so an attacker gains nothing by waiting longer. DECISION: rejection is strict, got < want, so a proposal matching the threshold EXACTLY is accepted. The vectors pin that at three points by pairing an exact match with the value one below it, because an implementation using a non-strict comparison passes every test that does not sit on the boundary.",
+      "oracle": "Computed independently from ECIP-1100 and cross-checked against the production client's own curve vectors, which agree on all seven points they cover. The curve is (3x^2 - 2x^3/xcap) * height / xcap^2 + 128 with x capped at 25132, height 3840, and integer division at each step -- the ordering of those divisions is part of the rule, not an implementation detail, because they truncate.",
+      "implementations": "Three were read: the production client, and this project's Besu and Scala work. All three agree on the curve and on the window. The production client enforces the window in an unobvious place -- a generic enablement helper that special-cases this rule by matching the getter's function NAME at runtime through reflection, rather than at the call site, which is why the reorg path appears not to check deactivation at all. Renaming that getter would silently disable the deactivation, which is a reason for this fixture to exist rather than an aside.",
+      "scope": "These assert the decision function. Asserting that a client actually declines to reorganize still needs a chain-level runner that can present two competing chains.",
+      "generated": "2026-08-23"
+    },
+    "activationBlock": "11380000",
+    "deactivationBlock": "19250000",
+    "curveDenominator": "128",
+    "curveXCap": "25132",
+    "curveHeight": "3840",
+    "windowVectors": [
+      {
+        "block": "0",
+        "active": false
+      },
+      {
+        "block": "11379999",
+        "active": false
+      },
+      {
+        "block": "11380000",
+        "active": true
+      },
+      {
+        "block": "11380001",
+        "active": true
+      },
+      {
+        "block": "15000000",
+        "active": true
+      },
+      {
+        "block": "19249999",
+        "active": true
+      },
+      {
+        "block": "19250000",
+        "active": false
+      },
+      {
+        "block": "19250001",
+        "active": false
+      },
+      {
+        "block": "25000000",
+        "active": false
+      }
+    ],
+    "curveVectors": [
+      {
+        "secondsSinceCommonAncestor": "0",
+        "curveNumerator": "128",
+        "requiredMultipleOfLocalTd": "1.000000"
+      },
+      {
+        "secondsSinceCommonAncestor": "100",
+        "curveNumerator": "128",
+        "requiredMultipleOfLocalTd": "1.000000"
+      },
+      {
+        "secondsSinceCommonAncestor": "1300",
+        "curveNumerator": "157",
+        "requiredMultipleOfLocalTd": "1.226562"
+      },
+      {
+        "secondsSinceCommonAncestor": "3900",
+        "curveNumerator": "376",
+        "requiredMultipleOfLocalTd": "2.937500"
+      },
+      {
+        "secondsSinceCommonAncestor": "6500",
+        "curveNumerator": "765",
+        "requiredMultipleOfLocalTd": "5.976562"
+      },
+      {
+        "secondsSinceCommonAncestor": "13000",
+        "curveNumerator": "2147",
+        "requiredMultipleOfLocalTd": "16.773438"
+      },
+      {
+        "secondsSinceCommonAncestor": "12566",
+        "curveNumerator": "2048",
+        "requiredMultipleOfLocalTd": "16.000000"
+      },
+      {
+        "secondsSinceCommonAncestor": "25131",
+        "curveNumerator": "3967",
+        "requiredMultipleOfLocalTd": "30.992188"
+      },
+      {
+        "secondsSinceCommonAncestor": "25132",
+        "curveNumerator": "3968",
+        "requiredMultipleOfLocalTd": "31.000000"
+      },
+      {
+        "secondsSinceCommonAncestor": "25133",
+        "curveNumerator": "3968",
+        "requiredMultipleOfLocalTd": "31.000000"
+      },
+      {
+        "secondsSinceCommonAncestor": "100000",
+        "curveNumerator": "3968",
+        "requiredMultipleOfLocalTd": "31.000000"
+      }
+    ],
+    "decisionVectors": [
+      {
+        "secondsSinceCommonAncestor": "0",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "1000",
+        "rejected": false,
+        "note": "equal difficulty and no age: accepted, because the comparison is strict"
+      },
+      {
+        "secondsSinceCommonAncestor": "0",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "999",
+        "rejected": true,
+        "note": "one less than local at zero age: rejected"
+      },
+      {
+        "secondsSinceCommonAncestor": "0",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "1001",
+        "rejected": false,
+        "note": "more than local at zero age: accepted"
+      },
+      {
+        "secondsSinceCommonAncestor": "12566",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "16000",
+        "rejected": false,
+        "note": "exactly sixteen times local at the curve midpoint: accepted"
+      },
+      {
+        "secondsSinceCommonAncestor": "12566",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "15999",
+        "rejected": true,
+        "note": "one below sixteen times local: rejected"
+      },
+      {
+        "secondsSinceCommonAncestor": "25132",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "31000",
+        "rejected": false,
+        "note": "exactly thirty-one times local at the cap: accepted"
+      },
+      {
+        "secondsSinceCommonAncestor": "25132",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "30999",
+        "rejected": true,
+        "note": "one below thirty-one times local: rejected"
+      },
+      {
+        "secondsSinceCommonAncestor": "100000",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "31000",
+        "rejected": false,
+        "note": "far past the cap, still thirty-one times: accepted, the curve is flat"
+      },
+      {
+        "secondsSinceCommonAncestor": "100000",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "30999",
+        "rejected": true,
+        "note": "far past the cap, one below: rejected"
+      }
+    ]
+  }
+}

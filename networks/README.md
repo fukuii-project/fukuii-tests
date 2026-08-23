@@ -25,6 +25,7 @@ networks/ethereumclassic/mainnet/
   difficulty/       difficulty fixtures           a different generator, a different reader
   blocks/           block-level fixtures          rewards, uncles
   forkid/           fork-identifier vectors
+  chainselection/   reorg-defense vectors         which of two chains a node prefers
 ```
 
 Type first because the harness resolves by type: a difficulty fixture and a state fixture are
@@ -53,6 +54,7 @@ The two types in use nest differently, and neither is guessable:
 | difficulty | `{ <outerName>: { _info, <upgrade>: { <case>: { … } } } }` |
 | fork identifier | `{ <outerName>: { _info, genesisHash, forkBlocks, vectors: [ … ] } }` |
 | block-level | `{ <outerName>: { _info, eraLength, activationBlock, vectors: [ … ] } }` |
+| chain selection | `{ <outerName>: { _info, activationBlock, deactivationBlock, windowVectors, curveVectors, decisionVectors } }` |
 
 **Neither the fork-identifier nor the block-level files are keyed by upgrade**, and that is a property of the subject
 rather than an inconsistency. An identifier is a checksum over the *whole* schedule evaluated at a
