@@ -1,0 +1,591 @@
+{
+  "ommerPaymentVectors": {
+    "_info": {
+      "comment": "What a block SHAPE credits, and to whom. era_emission_schedule.json states the emission values; this states the payments a block with ommers produces, which is what a block-level runner asserts and what nothing in this suite previously carried. Three payments are made per block and they go to different places: the winner's base reward and a bonus per included ommer to the includer, and a reward to each ommer's own miner. The ommer accounting is what ECIP-1017 changes; the base reward is the part it changes least.",
+      "howAHarnessReadsThis": "Build a block at `block.number` with coinbase `block.coinbase` carrying the listed ommers, apply the reward rules, and compare the balance delta of every address in `expectedCredits`. `expectedCredits` is keyed BY ADDRESS AND THE VALUES ARE TOTALS -- an address that receives two payments in one block appears once, holding their sum. That is not a convenience of the file format: the client credits with an add rather than a write, and era0_ommer_miner_is_the_includer is the vector that separates the two. `derivedIntermediates` is what a correct harness computes on the way; a harness that reads those fields instead of deriving them asserts nothing.",
+      "grounding": "Nine vectors are marked observed and carry a real mainnet block: their expected credits were confirmed against archive state on 2026-08-24, miner balance delta across the block. Where the block carries transactions the ommer miner's credit is still exact -- fees land in the INCLUDER's balance and nowhere else -- and `observed.includerCreditIsExact` says which side to trust. The rest are marked computed and use obviously synthetic addresses; they cover shapes mainnet does not conveniently supply, above all the era boundary, where the same block shape one block apart is the sharpest statement of the rule this file exists for.",
+      "oracle": "core-geth production v1.12.21-unstable at commit 4185df450, read rather than run: params/mutations/rewards_classic.go's ecip1017BlockReward and GetBlockEra, and params/mutations/rewards.go's GetBlockWinnerRewardByEra, GetBlockWinnerRewardForUnclesByEra, GetBlockUncleRewardByEra and AccumulateRewards. Two details of that code are load-bearing and neither is in ECIP-1017's prose: the era reward is `5e18 * 4**era / 5**era` with a SINGLE truncating division rather than the reduction applied era by era, and the includer's bonus is the ERA-ADJUSTED winner reward divided by 32, truncating twice. Nine vectors are additionally grounded in chain state, which outranks the client.",
+      "oracle-version": "core-geth v1.12.21-unstable @ 4185df450; observed mainnet 2026-08-24",
+      "scope": "These are payments, not block validity. Whether an ommer is ADMISSIBLE -- at most two per block, within seven ancestors, not already included -- is validation rather than emission, and era_emission_schedule.json carries those invariants. They have to agree or a client mints currency no other client mints, which is why both are stated.",
+      "generated": "2026-08-24"
+    },
+    "eraLength": "5000000",
+    "maxOmmersPerBlock": "2",
+    "validOmmerDistances": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "vectors": [
+      {
+        "name": "era0_one_ommer_distance_1",
+        "grounding": "observed",
+        "block": {
+          "number": "4500004",
+          "coinbase": "0xc91716199ccde49dc4fafaeb68925127ac80443f"
+        },
+        "ommers": [
+          {
+            "number": "4500003",
+            "distance": "1",
+            "coinbase": "0x0ecb40429864de150fba884183d38c783278bfc3"
+          }
+        ],
+        "expectedCredits": {
+          "0x0ecb40429864de150fba884183d38c783278bfc3": "4375000000000000000",
+          "0xc91716199ccde49dc4fafaeb68925127ac80443f": "5156250000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "4375000000000000000"
+          ]
+        },
+        "observed": {
+          "transactionsInBlock": "0",
+          "includerCreditIsExact": true,
+          "note": "Zero transactions, so BOTH credits are exact to the wei."
+        },
+        "note": "Era 0 pays the ommer's miner on RECENCY: (8 - distance)/8 of the base reward. All six valid distances appear, each from a real block, because a suite carrying one distance passes a client that gets the slope wrong."
+      },
+      {
+        "name": "era0_one_ommer_distance_2",
+        "grounding": "observed",
+        "block": {
+          "number": "3000012",
+          "coinbase": "0x9eab4b0fc468a7f5d46228bf5a76cb52370d068d"
+        },
+        "ommers": [
+          {
+            "number": "3000010",
+            "distance": "2",
+            "coinbase": "0x8c5535afdbdeea80adedc955420f684931bf91e0"
+          }
+        ],
+        "expectedCredits": {
+          "0x8c5535afdbdeea80adedc955420f684931bf91e0": "3750000000000000000",
+          "0x9eab4b0fc468a7f5d46228bf5a76cb52370d068d": "5156250000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "3750000000000000000"
+          ]
+        },
+        "observed": {
+          "transactionsInBlock": "1",
+          "includerCreditIsExact": false,
+          "note": "The block carries transactions, whose fees land in the includer's balance and nowhere else -- so the ommer miner's credit is exact and the includer's observed delta exceeds its expected credit by exactly those fees."
+        },
+        "note": "Era 0 pays the ommer's miner on RECENCY: (8 - distance)/8 of the base reward. All six valid distances appear, each from a real block, because a suite carrying one distance passes a client that gets the slope wrong."
+      },
+      {
+        "name": "era0_one_ommer_distance_3",
+        "grounding": "observed",
+        "block": {
+          "number": "1000356",
+          "coinbase": "0x2a65aca4d5fc5b5c859090a6c34d164135398226"
+        },
+        "ommers": [
+          {
+            "number": "1000353",
+            "distance": "3",
+            "coinbase": "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5"
+          }
+        ],
+        "expectedCredits": {
+          "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5": "3125000000000000000",
+          "0x2a65aca4d5fc5b5c859090a6c34d164135398226": "5156250000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "3125000000000000000"
+          ]
+        },
+        "observed": {
+          "transactionsInBlock": "0",
+          "includerCreditIsExact": true,
+          "note": "Zero transactions, so BOTH credits are exact to the wei."
+        },
+        "note": "Era 0 pays the ommer's miner on RECENCY: (8 - distance)/8 of the base reward. All six valid distances appear, each from a real block, because a suite carrying one distance passes a client that gets the slope wrong."
+      },
+      {
+        "name": "era0_one_ommer_distance_4",
+        "grounding": "observed",
+        "block": {
+          "number": "1000501",
+          "coinbase": "0x2a65aca4d5fc5b5c859090a6c34d164135398226"
+        },
+        "ommers": [
+          {
+            "number": "1000497",
+            "distance": "4",
+            "coinbase": "0xa027231f42c80ca4125b5cb962a21cd4f812e88f"
+          }
+        ],
+        "expectedCredits": {
+          "0xa027231f42c80ca4125b5cb962a21cd4f812e88f": "2500000000000000000",
+          "0x2a65aca4d5fc5b5c859090a6c34d164135398226": "5156250000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "2500000000000000000"
+          ]
+        },
+        "observed": {
+          "transactionsInBlock": "0",
+          "includerCreditIsExact": true,
+          "note": "Zero transactions, so BOTH credits are exact to the wei."
+        },
+        "note": "Era 0 pays the ommer's miner on RECENCY: (8 - distance)/8 of the base reward. All six valid distances appear, each from a real block, because a suite carrying one distance passes a client that gets the slope wrong."
+      },
+      {
+        "name": "era0_one_ommer_distance_5",
+        "grounding": "observed",
+        "block": {
+          "number": "1001792",
+          "coinbase": "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5"
+        },
+        "ommers": [
+          {
+            "number": "1001787",
+            "distance": "5",
+            "coinbase": "0x68795c4aa09d6f4ed3e5deddf8c2ad3049a601da"
+          }
+        ],
+        "expectedCredits": {
+          "0x68795c4aa09d6f4ed3e5deddf8c2ad3049a601da": "1875000000000000000",
+          "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5": "5156250000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "1875000000000000000"
+          ]
+        },
+        "observed": {
+          "transactionsInBlock": "0",
+          "includerCreditIsExact": true,
+          "note": "Zero transactions, so BOTH credits are exact to the wei."
+        },
+        "note": "Era 0 pays the ommer's miner on RECENCY: (8 - distance)/8 of the base reward. All six valid distances appear, each from a real block, because a suite carrying one distance passes a client that gets the slope wrong."
+      },
+      {
+        "name": "era0_one_ommer_distance_6",
+        "grounding": "observed",
+        "block": {
+          "number": "1200179",
+          "coinbase": "0x4bb96091ee9d802ed039c4d1a5f6216f90f81b01"
+        },
+        "ommers": [
+          {
+            "number": "1200173",
+            "distance": "6",
+            "coinbase": "0x2a65aca4d5fc5b5c859090a6c34d164135398226"
+          }
+        ],
+        "expectedCredits": {
+          "0x2a65aca4d5fc5b5c859090a6c34d164135398226": "1250000000000000000",
+          "0x4bb96091ee9d802ed039c4d1a5f6216f90f81b01": "5156250000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "1250000000000000000"
+          ]
+        },
+        "observed": {
+          "transactionsInBlock": "0",
+          "includerCreditIsExact": true,
+          "note": "Zero transactions, so BOTH credits are exact to the wei."
+        },
+        "note": "Era 0 pays the ommer's miner on RECENCY: (8 - distance)/8 of the base reward. All six valid distances appear, each from a real block, because a suite carrying one distance passes a client that gets the slope wrong."
+      },
+      {
+        "name": "era0_ommer_miner_is_the_includer",
+        "grounding": "observed",
+        "block": {
+          "number": "1000042",
+          "coinbase": "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5"
+        },
+        "ommers": [
+          {
+            "number": "1000039",
+            "distance": "3",
+            "coinbase": "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5"
+          }
+        ],
+        "expectedCredits": {
+          "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5": "8281250000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "3125000000000000000"
+          ]
+        },
+        "observed": {
+          "transactionsInBlock": "1",
+          "includerCreditIsExact": false,
+          "note": "The block carries transactions, whose fees land in the includer's balance and nowhere else -- so the ommer miner's credit is exact and the includer's observed delta exceeds its expected credit by exactly those fees.",
+          "observedIncluderDeltaWei": "8282300000000000000",
+          "sumOfBothCreditsWei": "8281250000000000000",
+          "aClientThatOverwroteWouldShow": [
+            "5156250000000000000",
+            "3125000000000000000"
+          ]
+        },
+        "note": "ONE ADDRESS, TWO PAYMENTS, AND THEY ADD. The miner of the ommer is also the miner of the including block, which is permitted and happens. `expectedCredits` therefore carries a single entry holding the SUM -- 5.15625 for winning plus 3.125 for the ommer at distance three. A client that writes a balance rather than adding to it credits one of the two and silently destroys the other; both wrong answers are values that appear elsewhere in this file, so the sum is the only reading that distinguishes them. Observed: the miner's delta at this block is 8282300000000000000, which is the sum plus one transaction's fee."
+      },
+      {
+        "name": "era0_two_ommers_same_distance",
+        "grounding": "computed",
+        "block": {
+          "number": "1500000",
+          "coinbase": "0x0000000000000000000000000000000000000a01"
+        },
+        "ommers": [
+          {
+            "number": "1499998",
+            "distance": "2",
+            "coinbase": "0x0000000000000000000000000000000000000b01"
+          },
+          {
+            "number": "1499998",
+            "distance": "2",
+            "coinbase": "0x0000000000000000000000000000000000000b02"
+          }
+        ],
+        "expectedCredits": {
+          "0x0000000000000000000000000000000000000b01": "3750000000000000000",
+          "0x0000000000000000000000000000000000000b02": "3750000000000000000",
+          "0x0000000000000000000000000000000000000a01": "5312500000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "3750000000000000000",
+            "3750000000000000000"
+          ]
+        },
+        "note": "Two ommers, the maximum this chain admits, both at distance two. The includer is paid its bonus TWICE -- the bonus is per ommer, not per block -- and each ommer miner is paid in full. Addresses are synthetic and obviously so; the arithmetic is the assertion."
+      },
+      {
+        "name": "era0_two_ommers_different_distances",
+        "grounding": "computed",
+        "block": {
+          "number": "1500000",
+          "coinbase": "0x0000000000000000000000000000000000000a01"
+        },
+        "ommers": [
+          {
+            "number": "1499999",
+            "distance": "1",
+            "coinbase": "0x0000000000000000000000000000000000000b01"
+          },
+          {
+            "number": "1499994",
+            "distance": "6",
+            "coinbase": "0x0000000000000000000000000000000000000b02"
+          }
+        ],
+        "expectedCredits": {
+          "0x0000000000000000000000000000000000000b01": "4375000000000000000",
+          "0x0000000000000000000000000000000000000b02": "1250000000000000000",
+          "0x0000000000000000000000000000000000000a01": "5312500000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "4375000000000000000",
+            "1250000000000000000"
+          ]
+        },
+        "note": "Two ommers at distances one and six, the widest spread available. Each is priced on its OWN distance, so a client that priced both from the first, or from the block's own height, produces two identical credits where these differ by 3.125 ETC."
+      },
+      {
+        "name": "era_boundary_last_block_of_era_0",
+        "grounding": "computed",
+        "block": {
+          "number": "5000000",
+          "coinbase": "0x0000000000000000000000000000000000000a01"
+        },
+        "ommers": [
+          {
+            "number": "4999999",
+            "distance": "1",
+            "coinbase": "0x0000000000000000000000000000000000000b01"
+          }
+        ],
+        "expectedCredits": {
+          "0x0000000000000000000000000000000000000b01": "4375000000000000000",
+          "0x0000000000000000000000000000000000000a01": "5156250000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": [
+            "4375000000000000000"
+          ]
+        },
+        "note": "THE ERA BOUNDARY, ASSERTED AS A PAIR. The same block shape one block apart: one ommer at distance one. Block 5,000,000 is the LAST block of era 0 and still pays on recency -- 4.375 to the ommer's miner. Block 5,000,001 is the first of era 1 and pays a flat thirty-second of the reduced base -- 0.125, a thirty-five-fold drop, and the same amount the includer receives for including it. Two rules change at once here and the pair is what separates them: the base reward falls by a fifth while the ommer rule stops reading distance at all. A client applying the reduction one block early fails the first of these and a client applying it one block late fails the second."
+      },
+      {
+        "name": "era_boundary_first_block_of_era_1",
+        "grounding": "computed",
+        "block": {
+          "number": "5000001",
+          "coinbase": "0x0000000000000000000000000000000000000a01"
+        },
+        "ommers": [
+          {
+            "number": "5000000",
+            "distance": "1",
+            "coinbase": "0x0000000000000000000000000000000000000b01"
+          }
+        ],
+        "expectedCredits": {
+          "0x0000000000000000000000000000000000000b01": "125000000000000000",
+          "0x0000000000000000000000000000000000000a01": "4125000000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "1",
+          "winnerReward": "4000000000000000000",
+          "includerBonusPerOmmer": "125000000000000000",
+          "ommerRewards": [
+            "125000000000000000"
+          ]
+        },
+        "note": "THE ERA BOUNDARY, ASSERTED AS A PAIR. The same block shape one block apart: one ommer at distance one. Block 5,000,000 is the LAST block of era 0 and still pays on recency -- 4.375 to the ommer's miner. Block 5,000,001 is the first of era 1 and pays a flat thirty-second of the reduced base -- 0.125, a thirty-five-fold drop, and the same amount the includer receives for including it. Two rules change at once here and the pair is what separates them: the base reward falls by a fifth while the ommer rule stops reading distance at all. A client applying the reduction one block early fails the first of these and a client applying it one block late fails the second."
+      },
+      {
+        "name": "era1_one_ommer_distance_4",
+        "grounding": "observed",
+        "block": {
+          "number": "5100005",
+          "coinbase": "0xdf7d7e053933b5cc24372f878c90e62dadad5d42"
+        },
+        "ommers": [
+          {
+            "number": "5100001",
+            "distance": "4",
+            "coinbase": "0x9eab4b0fc468a7f5d46228bf5a76cb52370d068d"
+          }
+        ],
+        "expectedCredits": {
+          "0x9eab4b0fc468a7f5d46228bf5a76cb52370d068d": "125000000000000000",
+          "0xdf7d7e053933b5cc24372f878c90e62dadad5d42": "4125000000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "1",
+          "winnerReward": "4000000000000000000",
+          "includerBonusPerOmmer": "125000000000000000",
+          "ommerRewards": [
+            "125000000000000000"
+          ]
+        },
+        "observed": {
+          "transactionsInBlock": "6",
+          "includerCreditIsExact": false,
+          "note": "The block carries transactions, whose fees land in the includer's balance and nowhere else -- so the ommer miner's credit is exact and the includer's observed delta exceeds its expected credit by exactly those fees."
+        },
+        "note": "Era 1 at distance four, observed. Pairs with era0_one_ommer_distance_4 above: the SAME distance, in the previous era, pays 2.5 ETC where this pays 0.125. That is the rule change measured rather than computed."
+      },
+      {
+        "name": "era1_one_ommer_distance_4_second_witness",
+        "grounding": "observed",
+        "block": {
+          "number": "6000003",
+          "coinbase": "0xdf7d7e053933b5cc24372f878c90e62dadad5d42"
+        },
+        "ommers": [
+          {
+            "number": "5999999",
+            "distance": "4",
+            "coinbase": "0x83583acf790af2bc3a317b1e4d24b196c32923d8"
+          }
+        ],
+        "expectedCredits": {
+          "0x83583acf790af2bc3a317b1e4d24b196c32923d8": "125000000000000000",
+          "0xdf7d7e053933b5cc24372f878c90e62dadad5d42": "4125000000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "1",
+          "winnerReward": "4000000000000000000",
+          "includerBonusPerOmmer": "125000000000000000",
+          "ommerRewards": [
+            "125000000000000000"
+          ]
+        },
+        "observed": {
+          "transactionsInBlock": "16",
+          "includerCreditIsExact": false,
+          "note": "The block carries transactions, whose fees land in the includer's balance and nowhere else -- so the ommer miner's credit is exact and the includer's observed delta exceeds its expected credit by exactly those fees."
+        },
+        "note": "A second era-1 block at distance four, nine hundred thousand blocks later and mined by the same pool. Its ommer miner is paid the identical 0.125, which is what a flat rule looks like from the outside -- one observation of a constant is a value, two are a rule."
+      },
+      {
+        "name": "era1_one_ommer_distance_1",
+        "grounding": "computed",
+        "block": {
+          "number": "5100009",
+          "coinbase": "0x0000000000000000000000000000000000000a01"
+        },
+        "ommers": [
+          {
+            "number": "5100008",
+            "distance": "1",
+            "coinbase": "0x0000000000000000000000000000000000000b01"
+          }
+        ],
+        "expectedCredits": {
+          "0x0000000000000000000000000000000000000b01": "125000000000000000",
+          "0x0000000000000000000000000000000000000a01": "4125000000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "1",
+          "winnerReward": "4000000000000000000",
+          "includerBonusPerOmmer": "125000000000000000",
+          "ommerRewards": [
+            "125000000000000000"
+          ]
+        },
+        "note": "Era 1 at distance ONE, and the credit is identical to the observed distance-four vector above. In era 0 those two differ by 1.875 ETC. Distance independence is the whole of what ECIP-1017 changed about ommer accounting, and it is only visible as a pair."
+      },
+      {
+        "name": "era1_two_ommers",
+        "grounding": "computed",
+        "block": {
+          "number": "5200000",
+          "coinbase": "0x0000000000000000000000000000000000000a01"
+        },
+        "ommers": [
+          {
+            "number": "5199999",
+            "distance": "1",
+            "coinbase": "0x0000000000000000000000000000000000000b01"
+          },
+          {
+            "number": "5199994",
+            "distance": "6",
+            "coinbase": "0x0000000000000000000000000000000000000b02"
+          }
+        ],
+        "expectedCredits": {
+          "0x0000000000000000000000000000000000000b01": "125000000000000000",
+          "0x0000000000000000000000000000000000000b02": "125000000000000000",
+          "0x0000000000000000000000000000000000000a01": "4250000000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "1",
+          "winnerReward": "4000000000000000000",
+          "includerBonusPerOmmer": "125000000000000000",
+          "ommerRewards": [
+            "125000000000000000",
+            "125000000000000000"
+          ]
+        },
+        "note": "Two ommers in era 1 at distances one and six. Every party receives the same amount, which is the flattening at its most visible -- in era 0 the identical shape pays three different figures."
+      },
+      {
+        "name": "era2_one_ommer_distance_3",
+        "grounding": "computed",
+        "block": {
+          "number": "10000001",
+          "coinbase": "0x0000000000000000000000000000000000000a01"
+        },
+        "ommers": [
+          {
+            "number": "9999998",
+            "distance": "3",
+            "coinbase": "0x0000000000000000000000000000000000000b01"
+          }
+        ],
+        "expectedCredits": {
+          "0x0000000000000000000000000000000000000b01": "100000000000000000",
+          "0x0000000000000000000000000000000000000a01": "3300000000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "2",
+          "winnerReward": "3200000000000000000",
+          "includerBonusPerOmmer": "100000000000000000",
+          "ommerRewards": [
+            "100000000000000000"
+          ]
+        },
+        "note": "Era 2. The base reward has compounded down and the ommer rule is still flat, so the ommer's credit tracks the base rather than the distance. Included because a client that hard-coded era 1's figures rather than deriving them passes every vector above."
+      },
+      {
+        "name": "era5_one_ommer_distance_3",
+        "grounding": "computed",
+        "block": {
+          "number": "25000001",
+          "coinbase": "0x0000000000000000000000000000000000000a01"
+        },
+        "ommers": [
+          {
+            "number": "24999998",
+            "distance": "3",
+            "coinbase": "0x0000000000000000000000000000000000000b01"
+          }
+        ],
+        "expectedCredits": {
+          "0x0000000000000000000000000000000000000b01": "51200000000000000",
+          "0x0000000000000000000000000000000000000a01": "1689600000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "5",
+          "winnerReward": "1638400000000000000",
+          "includerBonusPerOmmer": "51200000000000000",
+          "ommerRewards": [
+            "51200000000000000"
+          ]
+        },
+        "note": "Era 5. The base reward has compounded down and the ommer rule is still flat, so the ommer's credit tracks the base rather than the distance. Included because a client that hard-coded era 1's figures rather than deriving them passes every vector above."
+      },
+      {
+        "name": "no_ommers_control",
+        "grounding": "computed",
+        "block": {
+          "number": "1500000",
+          "coinbase": "0x0000000000000000000000000000000000000a01"
+        },
+        "ommers": [],
+        "expectedCredits": {
+          "0x0000000000000000000000000000000000000a01": "5000000000000000000"
+        },
+        "derivedIntermediates": {
+          "era": "0",
+          "winnerReward": "5000000000000000000",
+          "includerBonusPerOmmer": "156250000000000000",
+          "ommerRewards": []
+        },
+        "note": "NO OMMERS, and the includer receives the base reward and nothing else. The control: a client that pays an includer bonus unconditionally, or that credits a phantom ommer, differs here and agrees with every other vector in this file."
+      }
+    ]
+  }
+}
