@@ -226,14 +226,27 @@ and collapsing them would misrepresent the coverage:
 ## Upgrades with no expectation, and the two different reasons
 
 Absence in a `post` map is never a claim that the case does not apply. Each fixture records which
-of these it hit:
+of these it hit, under a distinct `_info` key, and the keys are documented in
+`../../../../FIXTURE-FORMAT.md`:
 
-- **No fork name in the generator's table** — Die Hard, Gotham, Defuse Difficulty Bomb, Thanos.
-  Their rules cannot be selected, so nothing can be filled. A tooling gap; see the parent
-  directory.
-- **Not a state-transition rule** — Frontier Thawing, DAO Wars, the DAO fork this chain declined,
-  and both MESS transitions. A state fixture has nothing to assert about them; they need
-  block-level or chain-selection tests.
+- **No fork name in the generator's table** — `unfilled-no-fork-name`. **Thanos alone**, now that
+  the fork table has entries for Die Hard, Gotham and Defuse Difficulty Bomb. Its rules cannot be
+  selected, so nothing can be filled. A tooling gap, and it would not be exercised by a state
+  fixture anyway — it is a proof-of-work rule, covered in `../pow/`.
+- **Not a state-transition rule** — `unfilled-not-a-state-rule`. Frontier Thawing, DAO Wars, the
+  DAO fork this chain declined, and both MESS transitions. A state fixture has nothing to assert
+  about them; the declined fork is covered in `../forkid/` and `../blocks/`, and the MESS pair in
+  `../chainselection/`.
 
-Nine of the schedule's eighteen entries are fillable today. The other nine are accounted for by
-one of those two reasons, and neither is "we did not get to it".
+There is a third, used by one fixture: **`unfilled-typed-before-die-hard`**, where the transaction
+cannot be *signed* under those rules at all, so there is no encoding to record. That is a limit of
+what this format can express rather than a consensus claim.
+
+**Twelve of the schedule's eighteen entries are fillable, and all twelve are filled.** The other
+six are accounted for by the reasons above, and none of them is "we did not get to it".
+
+> This section said **nine** and listed Die Hard, Gotham and Defuse as unfillable, which the
+> section three above it had already recorded as fixed -- the same file disagreeing with itself
+> across two screens. Corrected 2026-08-24. It is the shape a status number always rots into, and
+> the reason the count is stated once here and derived from the ordered schedule above rather than
+> repeated.

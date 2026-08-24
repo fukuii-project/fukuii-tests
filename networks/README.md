@@ -23,9 +23,10 @@ networks/ethereumclassic/mainnet/
     storage/          reads, writes, refunds
     accounts/         creation, clearing, code limits
   difficulty/       difficulty fixtures           a different generator, a different reader
-  blocks/           block-level fixtures          rewards, uncles
+  blocks/           block-level fixtures          rewards, uncles, required headers
   forkid/           fork-identifier vectors
   chainselection/   reorg-defense vectors         which of two chains a node prefers
+  pow/              proof-of-work epoch vectors   which dataset a seal is verified against
 ```
 
 Type first because the harness resolves by type: a difficulty fixture and a state fixture are
@@ -50,14 +51,29 @@ The two types in use nest differently, and neither is guessable:
 
 | type | shape |
 |---|---|
-| state | `{ config, env, pre, transaction, post: { <upgrade>: [ … ] } }` |
+| state | `{ <case>: { config, env, pre, transaction, post: { <upgrade>: [ … ] } } }` |
 | difficulty | `{ <outerName>: { _info, <upgrade>: { <case>: { … } } } }` |
-| fork identifier | `{ <outerName>: { _info, genesisHash, forkBlocks, vectors: [ … ] } }` |
-| block-level | `{ <outerName>: { _info, eraLength, activationBlock, vectors: [ … ] } }` |
-| chain selection | `{ <outerName>: { _info, activationBlock, deactivationBlock, windowVectors, curveVectors, decisionVectors } }` |
+| fork identifier | `{ <outerName>: { _info, genesisHash, forkBlocks, declinedForkBlock, vectors } }` |
+| block-level | `{ <outerName>: { _info, … , vectors } }` — **more than one schema; see below** |
+| chain selection | `{ <outerName>: { _info, activationBlock, deactivationBlock, windowVectors, curveVectors, decisionVectors, subchainVectors } }` |
+| proof of work | `{ <outerName>: { _info, activationBlock, epochLength…, vectors } }` |
 
-**Neither the fork-identifier nor the block-level files are keyed by upgrade**, and that is a property of the subject
-rather than an inconsistency. An identifier is a checksum over the *whole* schedule evaluated at a
+**This table is a map, not the specification.** `../FIXTURE-FORMAT.md` is the contract — every
+field, its type, its units, and what a reader does when one is absent. Read that before writing a
+reader; this is only for finding the right section of it.
+
+**Three of the six types have no reader anywhere yet**, and the other three describe formats that
+already exist and are shared with the vendored corpora. Which is which is stated at the top of
+`../FIXTURE-FORMAT.md`, and treating the six as equally settled is the mistake it exists to
+prevent.
+
+**A type directory is not necessarily one schema.** `blocks/` holds two files that share no field
+beyond `_info` — one says what a block pays, the other what a header at a height must be. The
+single outer key names the schema, and a harness dispatches on it rather than assuming a directory
+is homogeneous.
+
+**Only two of the six types are keyed by upgrade at all** -- state and difficulty -- and that is a
+property of the subjects rather than an inconsistency. An identifier is a checksum over the *whole* schedule evaluated at a
 head, so it has no per-upgrade expectation to carry; the vector list is indexed by head block. It
 is also the one type here that can assert something about an upgrade changing no
 state-transition rule, because a fork block participates in the checksum whether or not it

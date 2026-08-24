@@ -11,8 +11,10 @@ state/        state-transition fixtures    post keyed by upgrade
   storage/      reads, writes, refunds
   accounts/     creation, clearing, code limits
 difficulty/   difficulty fixtures          a different generator reads these
-blocks/       block-level fixtures         rewards and uncles
+blocks/       block-level fixtures         rewards and uncles, and required headers
 forkid/       fork-identifier vectors
+chainselection/  reorg-defense vectors     which of two chains a node prefers
+pow/          proof-of-work epoch vectors  which dataset a seal is verified against
 ```
 
 **Type first, because the harness resolves by type.** A corpus is declared to the client as a
@@ -37,9 +39,15 @@ the mining-epoch change — has no fork name and would not be exercised by a sta
 
 `state/README.md` carries the per-upgrade detail and the full ordered schedule.
 
-**Two upgrades can never be reached from `state/`.** This chain's era emission is a block reward,
-and the bomb removal is difficulty behavior. A perfect state suite still leaves both at zero,
-which is why `difficulty/` and `blocks/` are not optional extras.
+**Four upgrades can never be reached from `state/`, not two.** This chain's era emission is a block
+reward and the bomb removal is difficulty behavior -- and beyond those, the reorg-defense pair is
+chain-selection policy and Thanos is a proof-of-work rule. A perfect state suite leaves all four at
+zero, which is why the other four directories are not optional extras.
+
+**Every activation in the production client's mainnet configuration is now covered by something**,
+and that claim is derived from the configuration field by field rather than from the EIP-shaped
+subset of it. The two that closed last were found exactly that way: `ECIP1099FBlock`, which no
+`EIP...Block` grep can see, and `RequireBlockHashes`, which is not an activation block at all.
 
 ## Adding a fixture
 

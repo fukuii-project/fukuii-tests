@@ -486,8 +486,17 @@ in this schedule is covered by nothing else in the suite for exactly that reason
 
 ## Shape 4 — block-level vectors (`blocks/`)
 
-**Specified here.** Emission is a function of height and ommer distance, with no per-upgrade
-expectation to carry, so this shape is indexed by block number.
+**Specified here.** Block-level rules are functions of height, with no per-upgrade expectation to
+carry, so this shape is indexed by block number rather than keyed by upgrade.
+
+> **`blocks/` holds more than one schema, and the outer name is what says which.** This is true of
+> all three repository-specified types and it is a real difference from `state/` and `difficulty/`,
+> where every file in a directory has the same shape. A type directory here groups files by the
+> **reader code path** they need, and each file's single outer key names its own schema —
+> `eraEmissionSchedule` and `requiredBlockHeaders` are both block-level and share no fields beyond
+> `_info`. A harness dispatches on that outer name; it must not assume a directory is homogeneous.
+
+### `eraEmissionSchedule` — what a block pays
 
 ```jsonc
 {
@@ -568,6 +577,43 @@ Two disciplines this sub-object exists to enforce:
   never the chain.
 
 ---
+
+### `requiredBlockHeaders` — what a header at a height must be
+
+```jsonc
+{
+  "requiredBlockHeaders": {
+    "_info": { … },
+    "requiredHashes": [ { "block": "1920000", "hash": "0x9436…", "role": "…", "note": "…" } ],
+    "vectors": [ { "block": "1920000", "hash": "0x…", "accepted": true,
+                   "hashTakenFrom": "…", "note": "…" } ],
+    "declinedForkExtraData": {
+      "marker":     "0x64616f2d686172642d666f726b",
+      "markerText": "dao-hard-fork",
+      "range":      { "from": "1920000", "to": "1920009" },
+      "mustCarryMarker": false,
+      "observed":   [ { "block": "1920000", "extraData": "0x…",
+                        "carriesMarker": false, "miner": "0x…" } ]
+    }
+  }
+}
+```
+
+`requiredHashes` is the rule: a block at one of these heights **must** hash to exactly that value,
+and a chain presenting anything else there is refused however much difficulty it carries.
+
+`vectors` exercises it, and reading them needs one rule that is easy to get backwards: a vector at
+a height with **no** requirement carries `accepted: true`. Those exist so a harness cannot pass the
+file by refusing everything — a check that refuses every block also refuses every wrong one.
+Counterexamples are **real hashes of real neighbouring blocks presented at the wrong height**,
+never fabricated values, because a client validating only the *shape* of a hash passes a fabricated
+one for the wrong reason.
+
+`declinedForkExtraData` is an **observation, not a rule this suite invents**. It records what the
+chain actually carries across Ethereum's DAO block range, and `mustCarryMarker: false` is the claim
+a client has to satisfy: a client that ported Ethereum's DAO header validator unchanged requires
+the marker, rejects all ten of these blocks, and cannot sync past 1,920,000 — a failure that
+presents as a corrupt database rather than as a misconfigured fork.
 
 ## Shape 5 — chain-selection vectors (`chainselection/`)
 
