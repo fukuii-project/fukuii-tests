@@ -1,0 +1,213 @@
+{
+  "netStorageMeteringAcrossUpgrades": {
+    "_info": {
+      "comment": "What repeated writes to one storage slot cost, which is where net metering lives. Four independent slots in one body, each bracketed by its own gas reading: a single set, a set then a change (a dirty write), a set then a clear, and a write of zero over zero. AGHARTA IS A NON-EVENT HERE AND THAT IS AN ASSERTION. Ethereum adopted net metering at Constantinople and withdrew it at Petersburg; this chain bundled both into Agharta and so never ran it -- the production client's configuration carries the line for it commented out, beside a commented-out Petersburg. Every sequence therefore reads identically at Atlantis and Agharta, and anyone porting expectations from Ethereum's Constantinople gets this wrong. Net metering arrives at PHOENIX under EIP-2200. The rise at Magneto is cold-slot access being charged separately, not metering changing again.",
+      "oracle": "core-geth production, evm t8n at each upgrade's rules, chain id 61",
+      "oracle-version": "v1.12.21-unstable",
+      "generated": "2026-08-23",
+      "signing": "txbytes carries the signed transaction; the signing key is a filling input, not a fixture field, and the harness reads `sender`.",
+      "eip": "EIP-2200 at Phoenix. EIP-1283 is NOT active on this chain at any height.",
+      "slots": "0 to 3 hold the written values. 10 to 13 hold the gas each sequence consumed. 14 is the liveness marker.",
+      "sequences": "10 = 0 to 1; 11 = 0 to 1 to 2; 12 = 0 to 1 to 0; 13 = 0 over 0",
+      "unfilled-no-fork-name": "No expectation for ETC_Thanos: the generator's fork table has no name for them, so their rules cannot be selected. A tooling gap, not a claim that the case does not apply.",
+      "unfilled-not-a-state-rule": "No expectation for ETC_DAOFork, ETC_DAOWars, ETC_FrontierThawing, ETC_MESSOff, ETC_MESSOn: these change no state-transition rule, so a state fixture has nothing to assert about them. Covering them needs block-level or chain-selection tests."
+    },
+    "config": {
+      "chainid": "0x3d"
+    },
+    "env": {
+      "currentCoinbase": "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+      "currentNumber": "0x1263d54",
+      "currentTimestamp": "0x65bd0a80",
+      "currentGasLimit": "0x7a1200",
+      "currentDifficulty": "0x0f4240"
+    },
+    "pre": {
+      "0x0000000000000000000000000000000000001000": {
+        "balance": "0x00",
+        "nonce": "0x00",
+        "code": "0x5a60016000555a9003600a555a600160015560026001555a9003600b555a600160025560006002555a9003600c555a60006003555a9003600d556001600e55",
+        "storage": {}
+      },
+      "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+        "balance": "0x3635c9adc5dea00000",
+        "nonce": "0x00",
+        "code": "0x",
+        "storage": {}
+      }
+    },
+    "transaction": {
+      "nonce": "0x00",
+      "sender": "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
+      "to": "0x0000000000000000000000000000000000001000",
+      "gasPrice": "0x3b9aca00",
+      "gasLimit": [
+        "0x7a120"
+      ],
+      "value": [
+        "0x00"
+      ],
+      "data": [
+        "0x"
+      ]
+    },
+    "post": {
+      "ETC_Frontier": [
+        {
+          "hash": "0x8645e3e716fa6246bc5c16492ed8b83daf3e29de43f237c763439272c4cf610f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf866f86480843b9aca008307a12094000000000000000000000000000000000000100080801ca0989dbb367e2e76dc7ca19bcbd87a7ccbaa6048cf11b9128875795d4208d8076ea018b03b906781d486c2823516ab8651dfab3f76bda33df2c2794ec158a91a6ff7",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": false
+        }
+      ],
+      "ETC_Homestead": [
+        {
+          "hash": "0x8645e3e716fa6246bc5c16492ed8b83daf3e29de43f237c763439272c4cf610f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf866f86480843b9aca008307a12094000000000000000000000000000000000000100080801ca0989dbb367e2e76dc7ca19bcbd87a7ccbaa6048cf11b9128875795d4208d8076ea018b03b906781d486c2823516ab8651dfab3f76bda33df2c2794ec158a91a6ff7",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": false
+        }
+      ],
+      "ETC_GasReprice": [
+        {
+          "hash": "0x8645e3e716fa6246bc5c16492ed8b83daf3e29de43f237c763439272c4cf610f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf866f86480843b9aca008307a12094000000000000000000000000000000000000100080801ca0989dbb367e2e76dc7ca19bcbd87a7ccbaa6048cf11b9128875795d4208d8076ea018b03b906781d486c2823516ab8651dfab3f76bda33df2c2794ec158a91a6ff7",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": false
+        }
+      ],
+      "ETC_DieHard": [
+        {
+          "hash": "0x8645e3e716fa6246bc5c16492ed8b83daf3e29de43f237c763439272c4cf610f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Gotham": [
+        {
+          "hash": "0x8645e3e716fa6246bc5c16492ed8b83daf3e29de43f237c763439272c4cf610f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_DefuseDifficultyBomb": [
+        {
+          "hash": "0x8645e3e716fa6246bc5c16492ed8b83daf3e29de43f237c763439272c4cf610f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Atlantis": [
+        {
+          "hash": "0x8645e3e716fa6246bc5c16492ed8b83daf3e29de43f237c763439272c4cf610f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Agharta": [
+        {
+          "hash": "0x8645e3e716fa6246bc5c16492ed8b83daf3e29de43f237c763439272c4cf610f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Phoenix": [
+        {
+          "hash": "0xa3e46c096b87f60ca6e9d5d2944ed8bac69d802829c57526b610d364ade9b154",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Magneto": [
+        {
+          "hash": "0x70d8d7e67babb33182b2f9f272b7ded620cf5afe25b66a729b4a9bb0692d05ab",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Mystique": [
+        {
+          "hash": "0x70d8d7e67babb33182b2f9f272b7ded620cf5afe25b66a729b4a9bb0692d05ab",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Spiral": [
+        {
+          "hash": "0x70d8d7e67babb33182b2f9f272b7ded620cf5afe25b66a729b4a9bb0692d05ab",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ]
+    }
+  }
+}
