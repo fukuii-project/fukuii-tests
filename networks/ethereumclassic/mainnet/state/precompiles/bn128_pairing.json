@@ -1,0 +1,213 @@
+{
+  "bn128PairingPrecompileAcrossUpgrades": {
+    "_info": {
+      "comment": "The alt_bn128 pairing check, called with an EMPTY pair list -- which is valid and defined to return true, so the probe needs no curve points and the output word is 1 rather than something that has to be recomputed to be checked. Absent through Defuse. From Atlantis the call costs 100,776 gas, almost all of it the precompile's flat base of 100,000. EIP-1108 cuts that base to 45,000 at Phoenix, which is the LARGEST ABSOLUTE REPRICING anywhere in this schedule: 55,000 gas from one rule, against 34,000 for scalar multiplication and 350 for addition. The pairing check is also the operation that makes the other two worth having, so its cost is what governs whether the family is usable at all.",
+      "oracle": "core-geth production, evm t8n at each upgrade's rules, chain id 61",
+      "oracle-version": "v1.12.21-unstable",
+      "generated": "2026-08-23",
+      "signing": "txbytes carries the signed transaction; the signing key is a filling input, not a fixture field, and the harness reads `sender`.",
+      "slots": "0 = the reading. 1 = liveness marker. 2 = gas consumed, where measured.",
+      "eips": "EIP-212 at Atlantis (the specification numbers this one 197); EIP-1108 at Phoenix",
+      "empty-input": "a zero-length pair list is a valid call returning true",
+      "unfilled-no-fork-name": "No expectation for ETC_Thanos: the generator's fork table has no name for them, so their rules cannot be selected. A tooling gap, not a claim that the case does not apply.",
+      "unfilled-not-a-state-rule": "No expectation for ETC_DAOFork, ETC_DAOWars, ETC_FrontierThawing, ETC_MESSOff, ETC_MESSOn: these change no state-transition rule, so a state fixture has nothing to assert about them. Covering them needs block-level or chain-selection tests."
+    },
+    "config": {
+      "chainid": "0x3d"
+    },
+    "env": {
+      "currentCoinbase": "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+      "currentNumber": "0x1263d54",
+      "currentTimestamp": "0x65bd0a80",
+      "currentGasLimit": "0x7a1200",
+      "currentDifficulty": "0x0f4240"
+    },
+    "pre": {
+      "0x0000000000000000000000000000000000001000": {
+        "balance": "0x00",
+        "nonce": "0x00",
+        "code": "0x5a6020610200600060006000600862030d40f1505a9003600255610200516000556001600155",
+        "storage": {}
+      },
+      "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+        "balance": "0x3635c9adc5dea00000",
+        "nonce": "0x00",
+        "code": "0x",
+        "storage": {}
+      }
+    },
+    "transaction": {
+      "nonce": "0x00",
+      "sender": "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
+      "to": "0x0000000000000000000000000000000000001000",
+      "gasPrice": "0x3b9aca00",
+      "gasLimit": [
+        "0xf4240"
+      ],
+      "value": [
+        "0x00"
+      ],
+      "data": [
+        "0x"
+      ]
+    },
+    "post": {
+      "ETC_Frontier": [
+        {
+          "hash": "0x262b00a3a331435067c37f357d742365341705a5b68b8a17e765b9253c829d19",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf866f86480843b9aca00830f424094000000000000000000000000000000000000100080801ba0b7e5d26f732af820262e6f3232e22e75e17b5cfdc6829c9a814df456d0df679ea05e757f1d7ddcb53c414a569e4daccc5d2fad9f9a761356130990823a94943590",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": false
+        }
+      ],
+      "ETC_Homestead": [
+        {
+          "hash": "0x262b00a3a331435067c37f357d742365341705a5b68b8a17e765b9253c829d19",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf866f86480843b9aca00830f424094000000000000000000000000000000000000100080801ba0b7e5d26f732af820262e6f3232e22e75e17b5cfdc6829c9a814df456d0df679ea05e757f1d7ddcb53c414a569e4daccc5d2fad9f9a761356130990823a94943590",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": false
+        }
+      ],
+      "ETC_GasReprice": [
+        {
+          "hash": "0x37bb21aa53da634b22165b01fb765a2040836964f107486eb44968aaa6fe9129",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf866f86480843b9aca00830f424094000000000000000000000000000000000000100080801ba0b7e5d26f732af820262e6f3232e22e75e17b5cfdc6829c9a814df456d0df679ea05e757f1d7ddcb53c414a569e4daccc5d2fad9f9a761356130990823a94943590",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": false
+        }
+      ],
+      "ETC_DieHard": [
+        {
+          "hash": "0x37bb21aa53da634b22165b01fb765a2040836964f107486eb44968aaa6fe9129",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830f42409400000000000000000000000000000000000010008080819ea02d66f1874959457710b8ea42115d433901e2dd3ee1ac2fcc78c22829ccfe08f3a0333b8ed67fd6aa047c7444da5a8dd773e3c08819f85f09a3009c73f772e44781",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Gotham": [
+        {
+          "hash": "0x37bb21aa53da634b22165b01fb765a2040836964f107486eb44968aaa6fe9129",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830f42409400000000000000000000000000000000000010008080819ea02d66f1874959457710b8ea42115d433901e2dd3ee1ac2fcc78c22829ccfe08f3a0333b8ed67fd6aa047c7444da5a8dd773e3c08819f85f09a3009c73f772e44781",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_DefuseDifficultyBomb": [
+        {
+          "hash": "0x37bb21aa53da634b22165b01fb765a2040836964f107486eb44968aaa6fe9129",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830f42409400000000000000000000000000000000000010008080819ea02d66f1874959457710b8ea42115d433901e2dd3ee1ac2fcc78c22829ccfe08f3a0333b8ed67fd6aa047c7444da5a8dd773e3c08819f85f09a3009c73f772e44781",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Atlantis": [
+        {
+          "hash": "0xa6a224260ec893fbd2289b74b471eb4b850836bb7a5e0133fecfea759d94315b",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830f42409400000000000000000000000000000000000010008080819ea02d66f1874959457710b8ea42115d433901e2dd3ee1ac2fcc78c22829ccfe08f3a0333b8ed67fd6aa047c7444da5a8dd773e3c08819f85f09a3009c73f772e44781",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Agharta": [
+        {
+          "hash": "0xa6a224260ec893fbd2289b74b471eb4b850836bb7a5e0133fecfea759d94315b",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830f42409400000000000000000000000000000000000010008080819ea02d66f1874959457710b8ea42115d433901e2dd3ee1ac2fcc78c22829ccfe08f3a0333b8ed67fd6aa047c7444da5a8dd773e3c08819f85f09a3009c73f772e44781",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Phoenix": [
+        {
+          "hash": "0x9b7414bf2a9b943d3ffc2cef0ec3b54f5b96b2aa0c3b432b8f876f6fc2de7274",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830f42409400000000000000000000000000000000000010008080819ea02d66f1874959457710b8ea42115d433901e2dd3ee1ac2fcc78c22829ccfe08f3a0333b8ed67fd6aa047c7444da5a8dd773e3c08819f85f09a3009c73f772e44781",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Magneto": [
+        {
+          "hash": "0x2b3e0584e2b3551004aab7650a9b736a1b403578462dfcd39a518519adee687f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830f42409400000000000000000000000000000000000010008080819ea02d66f1874959457710b8ea42115d433901e2dd3ee1ac2fcc78c22829ccfe08f3a0333b8ed67fd6aa047c7444da5a8dd773e3c08819f85f09a3009c73f772e44781",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Mystique": [
+        {
+          "hash": "0x2b3e0584e2b3551004aab7650a9b736a1b403578462dfcd39a518519adee687f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830f42409400000000000000000000000000000000000010008080819ea02d66f1874959457710b8ea42115d433901e2dd3ee1ac2fcc78c22829ccfe08f3a0333b8ed67fd6aa047c7444da5a8dd773e3c08819f85f09a3009c73f772e44781",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Spiral": [
+        {
+          "hash": "0x2b3e0584e2b3551004aab7650a9b736a1b403578462dfcd39a518519adee687f",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf867f86580843b9aca00830f42409400000000000000000000000000000000000010008080819ea02d66f1874959457710b8ea42115d433901e2dd3ee1ac2fcc78c22829ccfe08f3a0333b8ed67fd6aa047c7444da5a8dd773e3c08819f85f09a3009c73f772e44781",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ]
+    }
+  }
+}
