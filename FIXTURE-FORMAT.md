@@ -18,9 +18,9 @@ Verified against the readers and the fixtures on **2026-08-24**.
 
 ---
 
-## Read this first: only two of the five shapes have a reader today
+## Read this first: only three of the six shapes have a reader today
 
-This matters more than anything else in the file, and taking the five as equally settled is the
+This matters more than anything else in the file, and taking the six as equally settled is the
 mistake to avoid.
 
 | shape | directory | parsed today by | status |
@@ -30,17 +30,18 @@ mistake to avoid.
 | fork identifier | `forkid/` | *nothing yet* | **specified here**, by this repository |
 | block-level | `blocks/` | *nothing yet* | **specified here**, by this repository |
 | chain selection | `chainselection/` | *nothing yet* | **specified here**, by this repository |
+| proof of work | `pow/` | `fukuii-cli`, `PoWFixture.scala` | **an existing format, extended here** — see the shape |
 
-The first two are **descriptions of a format that already exists**: get them wrong and your
-harness disagrees with a corpus of tens of thousands of published files. Fix your reader.
+Three are **descriptions of formats that already exist**: get them wrong and your harness
+disagrees with a corpus of tens of thousands of published files. Fix your reader.
 
-The last three are **proposals with one publisher and no consumer**. No upstream corpus has ever
+The other three are **proposals with one publisher and no consumer**. No upstream corpus has ever
 carried them, because no upstream corpus tests these rules — Ethereum has no era emission, no
 declined fork to exclude from a checksum, and no reorg-defense rule. If one of these shapes is
 awkward in your language, that is worth reporting rather than working around: nothing has
 hardened them yet.
 
-**Do not infer a shape by pattern-matching a neighbouring file.** The five nest differently and
+**Do not infer a shape by pattern-matching a neighbouring file.** The six nest differently and
 none of them is guessable from another. Confirm a new one by round-tripping a fixture through a
 reader with a deliberately corrupted value, and check that the reader *rejects* it — a reader that
 cannot report a negative is not reading.
@@ -685,6 +686,109 @@ needs a chain-level runner. See "What is not covered" below.
 
 ---
 
+## Shape 6 — proof-of-work epoch vectors (`pow/`)
+
+The published `PoWTests` tier is a **flat map from case name to case**, with no fork level and no
+state anywhere in it: there is no fork to resolve, because a seal's algorithm belongs to the engine
+and no fork selects one. `_info` is skipped as everywhere else.
+
+```jsonc
+{
+  "<case name>": {
+    "header":      "f901f3a0…",      // the whole sealed header as RLP
+    "nonce":       "4242424242424242",
+    "mixHash":     "58f759ed…",
+    "seed":        "00000000…",
+    "result":      "dd47fd2d…",
+    "header_hash": "2a8de2ad…",      // the seal hash: the header minus its last two elements
+    "cache_hash":  "35ded12e…",
+    "cache_size":  16776896,          // A JSON NUMBER, not a string
+    "full_size":   1073739904         // likewise
+  }
+}
+```
+
+Two things about that tier catch a reader out, and both are properties of the published data:
+
+- **Its hex carries no `0x` prefix**, alone among every tier here. A reader tolerant of both is
+  fine; one that requires the prefix skips every case.
+- **`cache_size` and `full_size` are JSON numbers** where every other field in the file is a hex
+  string. A reader reaching for the string path gets a decode failure per case, which counts as a
+  skip and therefore as neither agreement nor divergence.
+
+The intermediates are why the tier is worth more than its case count: a case states the seed, the
+cache size, the dataset size and the seal hash beside the answer, so a divergence lands on the step
+that caused it rather than on the digest at the end.
+
+### And the tier covers epoch 0, and nothing else
+
+Two cases, both Ethereum's, both at the first epoch — `cache_size` 16776896 and `full_size`
+1073739904 in both. It confirms the base of the schedule and says nothing whatever about any epoch
+above the first, and therefore nothing about **ECIP-1099**, which is this chain's only change to
+proof-of-work and the one activation in its mainnet configuration that no other fixture here
+reaches.
+
+### The extension: `pow/etchash_epoch_schedule.json`
+
+A sealed header cannot be authored, because it requires a mined nonce. The **epoch-derived
+quantities** can be, and they are exactly what ECIP-1099 changes — each is a pure function of the
+block number, verifiable by hand:
+
+```jsonc
+{
+  "etchashEpochSchedule": {
+    "_info": { … },
+    "activationBlock":      "11700000",
+    "epochLengthBefore":    "30000",
+    "epochLengthFrom":      "60000",
+    "seedIterationDivisor": "30000",
+    "vectors": [
+      { "block":            "11700000",
+        "epochLength":      "60000",
+        "epoch":            "195",
+        "epochStartBlock":  "11700001",
+        "seedHash":         "0x…",
+        "seedIterations":   "390",
+        "cacheSizeBytes":   "…",
+        "datasetSizeBytes": "…",
+        "note":             "…" }
+    ]
+  }
+}
+```
+
+Field names follow the published tier where it has one: `seedHash` is its `seed`, `cacheSizeBytes`
+its `cache_size`, `datasetSizeBytes` its `full_size`. Everything is a **decimal string** here
+rather than a JSON number, for consistency with every other shape this repository authors.
+
+```
+epochLength(n)   = 60000 if n >= 11_700_000 else 30000
+epoch(n)         = n // epochLength(n)
+epochStart(e, L) = e * L + 1
+cacheSize(e)     = 2**24 + 2**17 * e - 64   reduced by 128 while (size // 64)  is not prime
+datasetSize(e)   = 2**30 + 2**23 * e - 128  reduced by 256 while (size // 128) is not prime
+```
+
+**At the activation the epoch length doubles, so the epoch number HALVES** — 389 to 195 — and the
+dataset requirement falls back to what it was at roughly half the height. That is the entire point
+of the proposal, and a client that keeps the old length computes epoch 390 there and asks for a
+dataset nobody else is using. It does not diverge subtly: it rejects every block after the
+activation.
+
+> ### The seed's iteration count does NOT use the epoch length
+>
+> ```
+> seed(e, L) = keccak256 applied  (epochStart(e, L) // 30000)  times to 32 zero bytes
+> ```
+>
+> The divisor is the **default** epoch length, 30000, whatever length is actually in force — and it
+> is not the epoch number either. Across the activation that gives **389** iterations for epoch 389
+> and **390** for epoch 195, so the two seeds differ and no epoch reuses another's.
+>
+> An implementation that divided by the length in force would compute 195 iterations for the first
+> post-activation epoch and **collide with a seed already used at block 5,850,000**. `seedIterations`
+> is published beside each seed so a consumer failing this lands on the step, not on the digest.
+
 ## What a MISSING expectation means, per shape
 
 **This is the question a harness gets wrong most expensively**, because every wrong answer is
@@ -890,6 +994,10 @@ coverage for the rule's:
   `.local/plans/10-rule-coverage-audit.md`: before Atlantis a receipt carries `root` holding an
   intermediate state root; from Atlantis that field is empty and `receiptsRoot` changes with the
   encoding. **Block-level work.** Adding a field for it here would invent format no reader reads.
+- **A sealed header from this chain.** `pow/` asserts the epoch schedule that decides *which*
+  dataset a seal is verified against. It does not assert that a client rejects a seal validated
+  against the wrong one — that needs a mined nonce, which is a mining problem rather than an
+  authoring one.
 - **Access-list pre-warming, in `fukuii-cli` specifically.** The fixture asserts it; that consumer
   does not carry an access list into execution. A consumer gap, recorded above.
 
