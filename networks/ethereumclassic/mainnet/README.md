@@ -11,7 +11,7 @@ state/        state-transition fixtures    post keyed by upgrade
   storage/      reads, writes, refunds
   accounts/     creation, clearing, code limits
 difficulty/   difficulty fixtures          a different generator reads these
-blocks/       block-level fixtures         rewards and uncles, and required headers
+blocks/       block-level fixtures         emission, ommer credits, required headers
 forkid/       fork-identifier vectors
 chainselection/  reorg-defense vectors     which of two chains a node prefers
 pow/          proof-of-work epoch vectors  which dataset a seal is verified against

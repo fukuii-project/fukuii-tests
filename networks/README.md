@@ -23,7 +23,7 @@ networks/ethereumclassic/mainnet/
     storage/          reads, writes, refunds
     accounts/         creation, clearing, code limits
   difficulty/       difficulty fixtures           a different generator, a different reader
-  blocks/           block-level fixtures          rewards, uncles, required headers
+  blocks/           block-level fixtures          emission, ommer credits, required headers
   forkid/           fork-identifier vectors
   chainselection/   reorg-defense vectors         which of two chains a node prefers
   pow/              proof-of-work epoch vectors   which dataset a seal is verified against
@@ -67,10 +67,10 @@ already exist and are shared with the vendored corpora. Which is which is stated
 `../FIXTURE-FORMAT.md`, and treating the six as equally settled is the mistake it exists to
 prevent.
 
-**A type directory is not necessarily one schema.** `blocks/` holds two files that share no field
-beyond `_info` — one says what a block pays, the other what a header at a height must be. The
-single outer key names the schema, and a harness dispatches on it rather than assuming a directory
-is homogeneous.
+**A type directory is not necessarily one schema.** `blocks/` holds three files that share no
+field beyond `_info` — what a block pays, what a header at a height must be, and what a block
+shape credits to whom. The single outer key names the schema, and a harness dispatches on it
+rather than assuming a directory is homogeneous.
 
 **Only two of the six types are keyed by upgrade at all** -- state and difficulty -- and that is a
 property of the subjects rather than an inconsistency. An identifier is a checksum over the *whole* schedule evaluated at a

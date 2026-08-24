@@ -489,12 +489,12 @@ in this schedule is covered by nothing else in the suite for exactly that reason
 **Specified here.** Block-level rules are functions of height, with no per-upgrade expectation to
 carry, so this shape is indexed by block number rather than keyed by upgrade.
 
-> **`blocks/` holds more than one schema, and the outer name is what says which.** This is true of
+> **`blocks/` holds THREE schemas, and the outer name is what says which.** This is true of
 > all three repository-specified types and it is a real difference from `state/` and `difficulty/`,
 > where every file in a directory has the same shape. A type directory here groups files by the
 > **reader code path** they need, and each file's single outer key names its own schema —
-> `eraEmissionSchedule` and `requiredBlockHeaders` are both block-level and share no fields beyond
-> `_info`. A harness dispatches on that outer name; it must not assume a directory is homogeneous.
+> `eraEmissionSchedule`, `requiredBlockHeaders` and `ommerPaymentVectors` are all block-level and
+> share no fields beyond `_info`. A harness dispatches on that outer name; it must not assume a directory is homogeneous.
 
 ### `eraEmissionSchedule` — what a block pays
 
@@ -614,6 +614,53 @@ chain actually carries across Ethereum's DAO block range, and `mustCarryMarker: 
 a client has to satisfy: a client that ported Ethereum's DAO header validator unchanged requires
 the marker, rejects all ten of these blocks, and cannot sync past 1,920,000 — a failure that
 presents as a corrupt database rather than as a misconfigured fork.
+
+### `ommerPaymentVectors` — what a block shape credits, and to whom
+
+```jsonc
+{
+  "ommerPaymentVectors": {
+    "_info": { … },
+    "eraLength": "5000000", "maxOmmersPerBlock": "2",
+    "validOmmerDistances": ["1","2","3","4","5","6"],
+    "vectors": [
+      { "name":      "era_boundary_first_block_of_era_1",
+        "grounding": "observed",                         // or "computed"
+        "block":     { "number": "5000001", "coinbase": "0x…" },
+        "ommers":    [ { "number": "5000000", "distance": "1", "coinbase": "0x…" } ],
+        "expectedCredits": { "0x<address>": "<wei>" },   // KEYED BY ADDRESS, VALUES ARE TOTALS
+        "derivedIntermediates": { "era": "1", "winnerReward": "…",
+                                  "includerBonusPerOmmer": "…", "ommerRewards": ["…"] },
+        "observed":  { "transactionsInBlock": "6", "includerCreditIsExact": false, "note": "…" },
+        "note":      "…" }
+    ]
+  }
+}
+```
+
+A harness builds the block, applies the reward rules, and compares the balance delta of every
+address in `expectedCredits`.
+
+**`expectedCredits` is keyed by address and its values are TOTALS.** An address receiving two
+payments in one block appears **once**, holding their sum. That is not a convenience of the file
+format — the client credits with an add rather than a write, and an ommer's miner may also be the
+including block's miner. One vector exists solely to separate those readings, and both wrong
+answers it distinguishes appear as legitimate values elsewhere in the file.
+
+`grounding` says whether a vector is a real mainnet block (`observed`) or a constructed shape
+(`computed`, with obviously synthetic addresses). For an observed vector,
+**`observed.includerCreditIsExact` says which side of the block to trust**: transaction fees land
+in the includer's balance and nowhere else, so an ommer miner's credit is exact whether or not the
+block carried transactions, while the includer's is exact only at zero.
+
+`derivedIntermediates` is what a correct harness computes on the way — published so a failing
+consumer lands on the step. A harness that reads those fields instead of deriving them asserts
+nothing.
+
+**This file is payments; admissibility is `eraEmissionSchedule`'s.** Whether an ommer may be
+included at all — at most two, within seven ancestors, not already included — is validation rather
+than emission. The two have to agree or a client mints currency no other client mints, which is why
+both are stated rather than one inferred from the other.
 
 ## Shape 5 — chain-selection vectors (`chainselection/`)
 
@@ -1030,9 +1077,10 @@ against; at Olympia there is not yet.
 Stated so that a harness author does not go looking, and so a reader does not mistake the suite's
 coverage for the rule's:
 
-- **A block-level runner.** `blocks/` asserts the emission *values*. Nothing asserts that a client
-  **credits** them when it mines a block. The transition tool cannot supply this: its reward
-  option is one flat value applied uniformly and never consults an era schedule.
+- **A block-level runner.** `blocks/ommer_payment_vectors.json` now states which address receives
+  what for a given block shape, so the DATA a runner needs exists — but nothing executes it. The
+  transition tool cannot: its reward option is one flat value applied uniformly and never consults
+  an era schedule.
 - **A chain-selection runner.** `chainselection/` asserts the decision and the derivation of its
   inputs. Presenting a client with two real competing chains needs a runner.
 - **Receipts.** A `post` entry carries a state root, a logs hash and the signed transaction, and
