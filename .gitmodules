@@ -30,9 +30,6 @@
 
 # etclabscore pinned LegacyTests at an older ref than ethereum/tests does. That is
 # provenance, not duplication -- it records what that corpus itself referenced.
-[submodule "archive/etclabscore/tests/LegacyTests"]
-	path = archive/etclabscore/tests/LegacyTests
-	url = https://github.com/ethereum/legacytests
 
 # The modern spec-test lineage. execution-spec-tests was ARCHIVED 2026-07-02 and
 # its code migrated to execution-specs, which now also publishes the fixture
@@ -51,44 +48,7 @@
 [submodule "upstream/ethereum/execution-spec-tests"]
 	path = upstream/ethereum/execution-spec-tests
 	url = https://github.com/ethereum/execution-spec-tests
-
-# ---------------------------------------------------------------------------
-# Gitlinks that arrived INSIDE the vendored client trees, 2026-08-24.
-#
-# Each vendored repository carries its own .gitmodules, but git reads only the
-# one at the repository root -- so without these entries every reference below
-# is a dangling mode-160000 gitlink and `git submodule status` fails for the
-# WHOLE repository, not just for these paths.
-#
-# `ignore = all` because the archive is frozen: these are recorded so the
-# references resolve and the tree is inspectable, not so they are fetched.
-# Nothing here needs to be initialised to use this suite.
-# ---------------------------------------------------------------------------
-[submodule "archive/besu-eth/besu-etc/ethereum/referencetests/src/reference-test/external-resources"]
-	path = archive/besu-eth/besu-etc/ethereum/referencetests/src/reference-test/external-resources
-	url = https://github.com/ethereum/tests.git
-	ignore = all
-[submodule "archive/ethereumproject/go-ethereum/tests/testData"]
-	path = archive/ethereumproject/go-ethereum/tests/testData
-	url = https://github.com/ethereum/tests.git
-	ignore = all
-[submodule "archive/ethereumproject/parity/ethcore/res/ethereum/tests"]
-	path = archive/ethereumproject/parity/ethcore/res/ethereum/tests
-	url = https://github.com/ethereum/tests.git
-	ignore = all
-[submodule "archive/multi-geth/multi-geth/tests/testdata"]
-	path = archive/multi-geth/multi-geth/tests/testdata
-	url = https://github.com/ethereum/tests
-	ignore = all
-[submodule "archive/openethereum/parity-ethereum-dao/ethcore/res/ethereum/tests"]
-	path = archive/openethereum/parity-ethereum-dao/ethcore/res/ethereum/tests
-	url = https://github.com/ethereum/tests.git
-	ignore = all
-[submodule "archive/openethereum/parity-ethereum/ethcore/res/ethereum/tests"]
-	path = archive/openethereum/parity-ethereum/ethcore/res/ethereum/tests
-	url = https://github.com/ethereum/tests.git
-	ignore = all
-[submodule "archive/openethereum/parity-ethereum/ethcore/res/wasm-tests"]
-	path = archive/openethereum/parity-ethereum/ethcore/res/wasm-tests
-	url = https://github.com/paritytech/wasm-tests
+[submodule "archive"]
+	path = archive
+	url = https://github.com/fukuii-project/archive-reference-material.git
 	ignore = all

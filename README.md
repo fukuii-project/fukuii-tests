@@ -13,13 +13,23 @@ Part of the [Fukuii project](https://github.com/fukuii-project).
 
 | Path | What |
 |---|---|
-| `archive/` | preserved copies of upstream material that is being deprecated or deleted — **frozen** |
+| `archive/` | preserved copies of upstream material being deprecated or deleted — **a submodule, frozen, not fetched by default** |
 | `upstream/` | live upstream repositories, pinned as submodules and not fetched by default |
 | `proposals/` | tests for a single EIP or ECIP, independent of any network |
 | `networks/` | tests scoped to a network or one of its upgrades |
 
 `archive/` and `upstream/` are inherited; `proposals/` and `networks/` are this project's own
-work. Nothing under `archive/` is edited — see [AGENTS.md](AGENTS.md) for why, and for how the
+work.
+
+**A plain clone gives you the fixtures and nothing else, which is the point.** Both inherited
+trees are submodules and neither is fetched unless you ask:
+
+```bash
+git clone https://github.com/fukuii-project/fukuii-tests.git   # under a megabyte
+git submodule update --init archive                            # the archived client lineage, 1.8 GB
+```
+
+Nothing under `archive/` is edited — see [AGENTS.md](AGENTS.md) for why, and for how the
 freeze is checked.
 
 ## License

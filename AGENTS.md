@@ -44,7 +44,7 @@ for a bucket that means different things in different places.
 
 | directory | what it holds | posture |
 |---|---|---|
-| `archive/` | preserved copies of dying or deleted upstream material | **frozen — never edited** |
+| `archive/` | preserved copies of dying or deleted upstream material | **a submodule, and frozen** — see below |
 | `upstream/` | live upstreams, pinned as submodules, fetched | tracked |
 | `proposals/` | our tests for a single EIP or ECIP, network-agnostic | **authored** |
 | `networks/` | our tests scoped to a network or an upgrade | **authored** |
@@ -104,6 +104,29 @@ Not by habit. Ask what disappears if the upstream vanishes tomorrow:
 
 Each site records which was chosen and why. **Do not "correct" one into another.**
 
+### `archive/` is a SUBMODULE, and not initialised by default
+
+It points at **`fukuii-project/archive-reference-material`** — reference material this project
+archives, not an archive of this project's own material.
+
+**That split exists for the consumer.** Everything a client needs to run this suite is
+`networks/`, `proposals/` and the format specification: under a megabyte. The archived client
+lineage is 1.8 GB. Carrying both in one history meant a Java or C# implementer who wanted the
+fixtures cloned roughly seven hundred times more than they needed, and every future archive
+addition made that worse.
+
+```bash
+git clone …/fukuii-tests            # fixtures and docs. This is what a consumer wants.
+git submodule update --init archive # the archived client lineage, when you actually need it.
+```
+
+**A pin is not a copy, which is why the submodule points at a repository we own.** A gitlink is
+twenty bytes of SHA and nothing else — the parent repository cannot even resolve it. Pinning a
+third party means that if their repository is deleted the content is simply gone: GitHub does keep
+a public repository's forks alive when it is deleted, but the URL in `.gitmodules` is dead either
+way, and two of the corpora archived here have **zero forks**. Pointing at our own repository
+moves that risk onto us, where we can answer for it.
+
 ### The archive is frozen, and corrections land in the suite
 
 **Nothing under `archive/` is edited** — not to fix a label, not to satisfy a linter, not to
@@ -117,7 +140,9 @@ holding. Fixing it in place spends the artifact to save a rename.
 **Check the freeze by tree hash, not by diff.** `git subtree` relocates a corpus under a prefix,
 so `git diff <ref>..HEAD -- <path>` reports every file as added and looks alarming while proving
 nothing. Compare `git rev-parse '<ref>^{tree}'` against
-`git rev-parse 'HEAD:archive/<org>/<repo>'`; two identical hashes is the whole proof.
+`git rev-parse 'HEAD:<org>/<repo>'` **inside the archive submodule**; two identical hashes is the
+whole proof. Note the path no longer carries an `archive/` prefix — that prefix was the mount
+point, and inside the archive repository the organisation is the top level.
 
 **Gaps and inherited mistakes are answered in `proposals/` and `networks/` instead** — our tests,
 our names, mapped. A reader can then see both what was inherited and what this project asserts,
@@ -178,7 +203,8 @@ Settled once, so it is not re-decided per commit:
 
 - **Wiring, config, and docs go straight to `main`.** Trivially revertible, and CI reports
   status without blocking.
-- **Fixture work branches first** — anything under `archive/`, `proposals/`, or `networks/`.
+- **Fixture work branches first** — anything under `proposals/` or `networks/`. Archive work
+  happens in `archive-reference-material` and lands here only as a submodule bump.
   A bad vector misleads conformance runs, so it gets an isolated history before it lands.
 - **Branches are local and never pushed.** Fast-forward onto `main` when the work is done;
   `main` is the only branch that goes to the remote.
