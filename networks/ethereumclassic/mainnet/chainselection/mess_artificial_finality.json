@@ -1,16 +1,19 @@
 {
   "messArtificialFinality": {
     "_info": {
-      "comment": "Chain-selection defense: whether a proposed reorganization is accepted. This is the only rule in the schedule that decides between two competing chains rather than computing anything about one, which is why it needs its own directory. It is expressible as vectors because the decision is a pure function of three scalars -- how long ago the two chains parted, and each chain's total difficulty since that point. No state, no transactions, no block bodies. WINDOW: active from 11,380,000 up to but NOT including 19,250,000, so the rule switches off exactly at Spiral. The boundary is asymmetric -- inclusive at the start, exclusive at the end -- and both edges are in the vectors because either could be off by one without the other showing it. CURVE: the required advantage rises with the age of the split and is capped, so a reorg is free at zero age and needs thirty-one times the local chain's difficulty once the split is about seven hours old. The cap matters as much as the curve: past it the requirement stops growing, so an attacker gains nothing by waiting longer. DECISION: rejection is strict, got < want, so a proposal matching the threshold EXACTLY is accepted. The vectors pin that at three points by pairing an exact match with the value one below it, because an implementation using a non-strict comparison passes every test that does not sit on the boundary.",
-      "oracle": "Computed independently from ECIP-1100 and cross-checked against the production client's own curve vectors, which agree on all seven points they cover. The curve is (3x^2 - 2x^3/xcap) * height / xcap^2 + 128 with x capped at 25132, height 3840, and integer division at each step -- the ordering of those divisions is part of the rule, not an implementation detail, because they truncate.",
-      "implementations": "Three were read: the production client, and this project's Besu and Scala work. All three agree on the curve and on the window. The production client enforces the window in an unobvious place -- a generic enablement helper that special-cases this rule by matching the getter's function NAME at runtime through reflection, rather than at the call site, which is why the reorg path appears not to check deactivation at all. Renaming that getter would silently disable the deactivation, which is a reason for this fixture to exist rather than an aside.",
-      "scope": "These assert the decision function. Asserting that a client actually declines to reorganize still needs a chain-level runner that can present two competing chains.",
-      "generated": "2026-08-23"
+      "comment": "Chain-selection defense: whether a proposed reorganization is accepted. This is the only rule in the schedule that decides between two competing chains rather than computing anything about one, which is why it needs its own directory. WINDOW: active from 11,380,000 up to but NOT including 19,250,000, so the rule switches off exactly at Spiral. The boundary is asymmetric -- inclusive at the start, exclusive at the end -- and both edges are in the vectors because either could be off by one without the other showing it. CURVE: the required advantage rises with the age of the split and is capped, so a reorg is free at zero age and needs thirty-one times the local chain's difficulty once the split is about seven hours old. The cap matters as much as the curve: past it the requirement stops growing, so an attacker gains nothing by waiting longer. DECISION: rejection is strict, got < want, so a proposal matching the threshold EXACTLY is accepted. The vectors pin that at four points by pairing an exact match with the value one below it, because an implementation using a non-strict comparison passes every test that does not sit on the boundary.",
+      "theCurvesXIsTheLOCALHeadsAge": "x is `local_head.timestamp - common_ancestor.timestamp`. It is NOT the proposed head's. This is the one thing in this rule that a careful implementer gets wrong, because the comment sitting directly above the production client's own code says `proposed.Time - commonAncestor.Time` while the line beneath it reads `current.Time - commonAncestor.Time`, and ECIP-1100 reproduces that stale comment verbatim in its non-normative listing of the same function. The ECIP's NORMATIVE pseudocode says `current.Time - commonAncestor.Time`, and all four implementations read on 2026-08-24 agree with it: the production client, this project's Besu overlay, its Nethermind overlay, and its Scala client. The client's own error message also prints the same quantity twice, once labelled `current.span` and once `proposed.span`, which is the second tell. decisionVectors carries all three timestamps rather than one derived delta so that a harness must choose, and two vectors marked DISCRIMINATOR make the two choices give opposite verdicts.",
+      "oracle": "Computed independently from ECIP-1100's pseudocode -- `CURVE_FUNCTION_DENOMINATOR + (3 * x**2 - 2 * x**3 // xcap) * height // xcap ** 2`, x capped at 25132, height 3840, integer division at each step in that order because the truncations are part of the rule. No value here is read back from any client. The implementation that produced these was calibrated first against two independent published point sets: the production client's own seven-point curve test, and the eleven points this fixture already carried. A control confirms the calibration discriminates -- the curve must rise between 1300 and 3900 seconds and must NOT move between 0 and 100.",
+      "implementations": "Four were read: the production client, and this project's Besu, Nethermind and Scala work. All four agree on the curve, on the window, and on which header's timestamp feeds the curve. The production client enforces the window in an unobvious place -- a generic enablement helper that special-cases this rule by matching the getter's function NAME at runtime through reflection, rather than at the call site, which is why the reorg path appears not to check deactivation at all. Renaming that getter would silently disable the deactivation, which is a reason for this fixture to exist rather than an aside. None of the four is an independent oracle: the two Parity-lineage clients were frozen before activation, multi-geth was frozen three months after it without implementing it, and besu-etc never did either, so no client outside this project's own work has ever implemented this rule. The compensation is arithmetic, not a second opinion -- the curve is closed-form and is recomputed here from the specification.",
+      "scope": "Three layers, and they are not the same claim. curveVectors asserts the polynomial. decisionVectors asserts the comparison, given the three scalars. subchainVectors asserts that a client DERIVES those three scalars correctly from two competing segments -- summing difficulty rather than counting blocks, measuring from the common ancestor rather than from genesis, and taking the age off the local head. What none of them reaches is a client actually declining to reorganize when handed two real chains; that needs a chain-level runner, and the two live tests in the production client's Go suite that cover it are recorded as harness-shaped rather than migrated. See ../../../../FIXTURE-FORMAT.md.",
+      "subchainVectorsAreNotBlockchainTests": "A segment entry carries a number, a timestamp and a difficulty and nothing else -- no parent hash, no state root, no nonce, no transactions. That is deliberate and it is the whole reason these are portable: the decision reads exactly those three fields from each header plus the common ancestor's total difficulty, so supplying more would invite a harness to validate the chain instead of the rule, and supplying real blocks would require proof-of-work every consumer would have to mine. `derivedIntermediates` is what a correct harness COMPUTES, published so that a failing consumer can see which step went wrong; a harness that reads those fields instead of deriving them asserts nothing.",
+      "generated": "2026-08-24"
     },
     "activationBlock": "11380000",
     "deactivationBlock": "19250000",
     "curveDenominator": "128",
     "curveXCap": "25132",
+    "curveAmplitude": "15",
     "curveHeight": "3840",
     "windowVectors": [
       {
@@ -52,124 +55,609 @@
     ],
     "curveVectors": [
       {
-        "secondsSinceCommonAncestor": "0",
+        "timeDeltaSeconds": "0",
         "curveNumerator": "128",
         "requiredMultipleOfLocalTd": "1.000000"
       },
       {
-        "secondsSinceCommonAncestor": "100",
+        "timeDeltaSeconds": "100",
         "curveNumerator": "128",
         "requiredMultipleOfLocalTd": "1.000000"
       },
       {
-        "secondsSinceCommonAncestor": "1300",
+        "timeDeltaSeconds": "1300",
         "curveNumerator": "157",
         "requiredMultipleOfLocalTd": "1.226562"
       },
       {
-        "secondsSinceCommonAncestor": "3900",
+        "timeDeltaSeconds": "3900",
         "curveNumerator": "376",
         "requiredMultipleOfLocalTd": "2.937500"
       },
       {
-        "secondsSinceCommonAncestor": "6500",
+        "timeDeltaSeconds": "6500",
         "curveNumerator": "765",
         "requiredMultipleOfLocalTd": "5.976562"
       },
       {
-        "secondsSinceCommonAncestor": "13000",
-        "curveNumerator": "2147",
-        "requiredMultipleOfLocalTd": "16.773438"
-      },
-      {
-        "secondsSinceCommonAncestor": "12566",
+        "timeDeltaSeconds": "12566",
         "curveNumerator": "2048",
         "requiredMultipleOfLocalTd": "16.000000"
       },
       {
-        "secondsSinceCommonAncestor": "25131",
+        "timeDeltaSeconds": "13000",
+        "curveNumerator": "2147",
+        "requiredMultipleOfLocalTd": "16.773438"
+      },
+      {
+        "timeDeltaSeconds": "25131",
         "curveNumerator": "3967",
         "requiredMultipleOfLocalTd": "30.992188"
       },
       {
-        "secondsSinceCommonAncestor": "25132",
+        "timeDeltaSeconds": "25132",
         "curveNumerator": "3968",
         "requiredMultipleOfLocalTd": "31.000000"
       },
       {
-        "secondsSinceCommonAncestor": "25133",
+        "timeDeltaSeconds": "25133",
         "curveNumerator": "3968",
         "requiredMultipleOfLocalTd": "31.000000"
       },
       {
-        "secondsSinceCommonAncestor": "100000",
+        "timeDeltaSeconds": "100000",
         "curveNumerator": "3968",
         "requiredMultipleOfLocalTd": "31.000000"
       }
     ],
     "decisionVectors": [
       {
-        "secondsSinceCommonAncestor": "0",
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1000000",
+        "proposedHeadTimestamp": "1000000",
         "localSubchainTd": "1000",
         "proposedSubchainTd": "1000",
         "rejected": false,
+        "timeDeltaSeconds": "0",
+        "curveNumerator": "128",
         "note": "equal difficulty and no age: accepted, because the comparison is strict"
       },
       {
-        "secondsSinceCommonAncestor": "0",
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1000000",
+        "proposedHeadTimestamp": "1000000",
         "localSubchainTd": "1000",
         "proposedSubchainTd": "999",
         "rejected": true,
+        "timeDeltaSeconds": "0",
+        "curveNumerator": "128",
         "note": "one less than local at zero age: rejected"
       },
       {
-        "secondsSinceCommonAncestor": "0",
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1000000",
+        "proposedHeadTimestamp": "1000000",
         "localSubchainTd": "1000",
         "proposedSubchainTd": "1001",
         "rejected": false,
+        "timeDeltaSeconds": "0",
+        "curveNumerator": "128",
         "note": "more than local at zero age: accepted"
       },
       {
-        "secondsSinceCommonAncestor": "12566",
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1012566",
+        "proposedHeadTimestamp": "1012566",
         "localSubchainTd": "1000",
         "proposedSubchainTd": "16000",
         "rejected": false,
+        "timeDeltaSeconds": "12566",
+        "curveNumerator": "2048",
         "note": "exactly sixteen times local at the curve midpoint: accepted"
       },
       {
-        "secondsSinceCommonAncestor": "12566",
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1012566",
+        "proposedHeadTimestamp": "1012566",
         "localSubchainTd": "1000",
         "proposedSubchainTd": "15999",
         "rejected": true,
+        "timeDeltaSeconds": "12566",
+        "curveNumerator": "2048",
         "note": "one below sixteen times local: rejected"
       },
       {
-        "secondsSinceCommonAncestor": "25132",
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1025132",
+        "proposedHeadTimestamp": "1025132",
         "localSubchainTd": "1000",
         "proposedSubchainTd": "31000",
         "rejected": false,
+        "timeDeltaSeconds": "25132",
+        "curveNumerator": "3968",
         "note": "exactly thirty-one times local at the cap: accepted"
       },
       {
-        "secondsSinceCommonAncestor": "25132",
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1025132",
+        "proposedHeadTimestamp": "1025132",
         "localSubchainTd": "1000",
         "proposedSubchainTd": "30999",
         "rejected": true,
+        "timeDeltaSeconds": "25132",
+        "curveNumerator": "3968",
         "note": "one below thirty-one times local: rejected"
       },
       {
-        "secondsSinceCommonAncestor": "100000",
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1100000",
+        "proposedHeadTimestamp": "1100000",
         "localSubchainTd": "1000",
         "proposedSubchainTd": "31000",
         "rejected": false,
+        "timeDeltaSeconds": "100000",
+        "curveNumerator": "3968",
         "note": "far past the cap, still thirty-one times: accepted, the curve is flat"
       },
       {
-        "secondsSinceCommonAncestor": "100000",
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1100000",
+        "proposedHeadTimestamp": "1100000",
         "localSubchainTd": "1000",
         "proposedSubchainTd": "30999",
         "rejected": true,
+        "timeDeltaSeconds": "100000",
+        "curveNumerator": "3968",
         "note": "far past the cap, one below: rejected"
+      },
+      {
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1025132",
+        "proposedHeadTimestamp": "1000100",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "16000",
+        "rejected": true,
+        "timeDeltaSeconds": "25132",
+        "curveNumerator": "3968",
+        "note": "DISCRIMINATOR. The two head timestamps disagree and the verdicts they produce are opposite. The curve's x is the LOCAL head's age since the common ancestor -- 25132 here, numerator 3968, so sixteen times local is not enough and the reorg is REJECTED. Reading the PROPOSED head's age instead gives 100, numerator 128, and the same numbers are accepted. A harness wired to the wrong header passes every other vector in this file and fails this one."
+      },
+      {
+        "commonAncestorTimestamp": "1000000",
+        "localHeadTimestamp": "1000100",
+        "proposedHeadTimestamp": "1025132",
+        "localSubchainTd": "1000",
+        "proposedSubchainTd": "16000",
+        "rejected": false,
+        "timeDeltaSeconds": "100",
+        "curveNumerator": "128",
+        "note": "DISCRIMINATOR, the other way round. Local head 100 seconds old, numerator 128, so sixteen times local is comfortably enough and the reorg is ACCEPTED. Reading the proposed head's age gives 25132 and numerator 3968, which would reject it. Both directions are pinned because a harness that swapped the two would otherwise fail only the vector above and could be 'fixed' by loosening the comparison rather than by reading the right header."
+      }
+    ],
+    "subchainVectors": [
+      {
+        "name": "young_split_heavier_proposal_accepted",
+        "commonAncestor": {
+          "number": "11500000",
+          "timestamp": "1000000",
+          "totalDifficulty": "1000000000"
+        },
+        "localSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1000025",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1000050",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1000075",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1000100",
+            "difficulty": "1000"
+          }
+        ],
+        "proposedSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1000025",
+            "difficulty": "1100"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1000050",
+            "difficulty": "1100"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1000075",
+            "difficulty": "1100"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1000100",
+            "difficulty": "1100"
+          }
+        ],
+        "rejected": false,
+        "derivedIntermediates": {
+          "timeDeltaSeconds": "100",
+          "curveNumerator": "128",
+          "localSubchainTd": "4000",
+          "proposedSubchainTd": "4400"
+        },
+        "note": "A split 100 seconds old. The curve is still at its floor, so any proposal with more accumulated difficulty wins and this one has ten percent more."
+      },
+      {
+        "name": "young_split_lighter_proposal_rejected",
+        "commonAncestor": {
+          "number": "11500000",
+          "timestamp": "1000000",
+          "totalDifficulty": "1000000000"
+        },
+        "localSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1000025",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1000050",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1000075",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1000100",
+            "difficulty": "1000"
+          }
+        ],
+        "proposedSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1000025",
+            "difficulty": "999"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1000050",
+            "difficulty": "999"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1000075",
+            "difficulty": "999"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1000100",
+            "difficulty": "999"
+          }
+        ],
+        "rejected": true,
+        "derivedIntermediates": {
+          "timeDeltaSeconds": "100",
+          "curveNumerator": "128",
+          "localSubchainTd": "4000",
+          "proposedSubchainTd": "3996"
+        },
+        "note": "The same split, one unit lighter in total. Rejected, and the margin is deliberately one unit: the comparison is strict on got < want, so a proposal that merely EQUALS the threshold is accepted and only one below it is refused."
+      },
+      {
+        "name": "proposal_longer_but_lighter_rejected",
+        "commonAncestor": {
+          "number": "11500000",
+          "timestamp": "1000000",
+          "totalDifficulty": "1000000000"
+        },
+        "localSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1000025",
+            "difficulty": "4000"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1000050",
+            "difficulty": "4000"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1000075",
+            "difficulty": "4000"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1000100",
+            "difficulty": "4000"
+          }
+        ],
+        "proposedSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1000008",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1000016",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1000024",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1000032",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500005",
+            "timestamp": "1000040",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500006",
+            "timestamp": "1000048",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500007",
+            "timestamp": "1000056",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500008",
+            "timestamp": "1000064",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500009",
+            "timestamp": "1000072",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500010",
+            "timestamp": "1000080",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500011",
+            "timestamp": "1000088",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500012",
+            "timestamp": "1000096",
+            "difficulty": "1000"
+          }
+        ],
+        "rejected": true,
+        "derivedIntermediates": {
+          "timeDeltaSeconds": "100",
+          "curveNumerator": "128",
+          "localSubchainTd": "16000",
+          "proposedSubchainTd": "12000"
+        },
+        "note": "Twelve proposed blocks against four local ones, and the proposal still loses: 12,000 against 16,000 of accumulated difficulty. Length is not the measure and never was -- a harness comparing segment LENGTHS rather than summing difficulty accepts this."
+      },
+      {
+        "name": "proposal_shorter_but_heavier_accepted",
+        "commonAncestor": {
+          "number": "11500000",
+          "timestamp": "1000000",
+          "totalDifficulty": "1000000000"
+        },
+        "localSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1000008",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1000016",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1000024",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1000032",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500005",
+            "timestamp": "1000040",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500006",
+            "timestamp": "1000048",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500007",
+            "timestamp": "1000056",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500008",
+            "timestamp": "1000064",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500009",
+            "timestamp": "1000072",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500010",
+            "timestamp": "1000080",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500011",
+            "timestamp": "1000088",
+            "difficulty": "1000"
+          },
+          {
+            "number": "11500012",
+            "timestamp": "1000096",
+            "difficulty": "1000"
+          }
+        ],
+        "proposedSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1000096",
+            "difficulty": "13000"
+          }
+        ],
+        "rejected": false,
+        "derivedIntermediates": {
+          "timeDeltaSeconds": "96",
+          "curveNumerator": "128",
+          "localSubchainTd": "12000",
+          "proposedSubchainTd": "13000"
+        },
+        "note": "One proposed block against twelve local ones, and the proposal wins: 13,000 against 12,000. The mirror of the case above, so neither can be satisfied by a rule about counts."
+      },
+      {
+        "name": "old_split_at_the_cap_exactly_thirty_one_times_accepted",
+        "commonAncestor": {
+          "number": "11500000",
+          "timestamp": "1000000",
+          "totalDifficulty": "1000000000"
+        },
+        "localSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1006283",
+            "difficulty": "250"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1012566",
+            "difficulty": "250"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1018849",
+            "difficulty": "250"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1025132",
+            "difficulty": "250"
+          }
+        ],
+        "proposedSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1006283",
+            "difficulty": "7750"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1012566",
+            "difficulty": "7750"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1018849",
+            "difficulty": "7750"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1025132",
+            "difficulty": "7750"
+          }
+        ],
+        "rejected": false,
+        "derivedIntermediates": {
+          "timeDeltaSeconds": "25132",
+          "curveNumerator": "3968",
+          "localSubchainTd": "1000",
+          "proposedSubchainTd": "31000"
+        },
+        "note": "The local head is 25,132 seconds past the ancestor, which is the cap, so the proposal needs exactly thirty-one times the local segment's difficulty: 31,000 against 1,000. It has precisely that and is accepted. This is also the vector that separates SUBCHAIN difficulty from ABSOLUTE total difficulty -- the common ancestor carries a billion, so a harness that compares the two chains' absolute totals computes a ratio of essentially one, falls far below a numerator of 3,968, and rejects."
+      },
+      {
+        "name": "old_split_one_below_the_threshold_rejected",
+        "commonAncestor": {
+          "number": "11500000",
+          "timestamp": "1000000",
+          "totalDifficulty": "1000000000"
+        },
+        "localSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1006283",
+            "difficulty": "250"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1012566",
+            "difficulty": "250"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1018849",
+            "difficulty": "250"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1025132",
+            "difficulty": "250"
+          }
+        ],
+        "proposedSegment": [
+          {
+            "number": "11500001",
+            "timestamp": "1006283",
+            "difficulty": "7750"
+          },
+          {
+            "number": "11500002",
+            "timestamp": "1012566",
+            "difficulty": "7750"
+          },
+          {
+            "number": "11500003",
+            "timestamp": "1018849",
+            "difficulty": "7750"
+          },
+          {
+            "number": "11500004",
+            "timestamp": "1025132",
+            "difficulty": "7749"
+          }
+        ],
+        "rejected": true,
+        "derivedIntermediates": {
+          "timeDeltaSeconds": "25132",
+          "curveNumerator": "3968",
+          "localSubchainTd": "1000",
+          "proposedSubchainTd": "30999"
+        },
+        "note": "The same split one unit short of thirty-one times, and rejected. Paired with the vector above so the boundary is pinned from both sides rather than approached from one."
       }
     ]
   }
