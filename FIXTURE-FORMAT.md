@@ -1011,10 +1011,39 @@ already has.
 |---|---|---|
 | anything with an observable balance or state change | **the chain itself**, read from archive state | above every client, including the production one |
 | everything through Spiral | **core-geth production** | the answer. Where another client disagrees it is wrong until shown otherwise |
-| corroboration | **besu-etc** | a real second opinion with a known blind spot |
+| corroboration | **parity-ethereum**, **besu-etc** | genuinely independent lineages — see below |
 | the shared proof-of-work era | **go-ethereum-pow** (v1.10.26) | the EVM both chains ran, and nothing Ethereum Classic did differently |
 | Frontier and Homestead | **the pre-DAO pair** | the strongest oracle here: before the split there is no such thing as Ethereum's implementation as against this chain's |
 | Olympia | **none yet** | the overlays lag the redrafted specifications |
+
+### Independence is a property of the LINEAGE, and it is checkable
+
+Not of the name. Establish it mechanically, with `git rev-list --max-parents=0 HEAD`:
+
+| client | root commit | language |
+|---|---|---|
+| core-geth | `5db3335dc` | Go |
+| **multi-geth** | **`5db3335dc`** | Go — **the same root. One lineage under two names, not a second opinion.** |
+| parity-ethereum / openethereum | `f7b618cec` | Rust |
+| besu-etc | `7dfc2e408` | Java |
+
+**This project's own overlays are NEVER an independent oracle**, whatever they are named after.
+The Besu, Nethermind and Scala implementations in `work/repos/` were written from the production
+client and the specification by the same maintainer as the client under certification, so their
+agreement establishes that one reader read the specification the same way twice. Check before
+citing one: a file present in a fork and absent from its upstream is ours. `git ls-tree -r
+upstream/master | grep -c <file>` against a control that must be non-zero settles it in one
+command — and the control is not optional, since a zero from a broken search looks identical to a
+zero from a real absence.
+
+That rule cost something to learn: this suite cited its own Nethermind overlay as a "second
+independent implementation" of ECIP-1010 for one commit, while stating the correct rule two
+directories over.
+
+**Search identifiers AND concepts, because naming differs across lineages.** A token search for
+`ecip1010` finds nothing in besu-etc; the rule lives in `ClassicDifficultyCalculators` under
+Besu's own vocabulary. A zero from one token set is a search result, not a finding — the same
+trap as `grep -i mess` matching "message", arriving from the opposite direction.
 
 **The point of a second implementation is disagreement.** Two clients agreeing raises confidence;
 two disagreeing is a finding to resolve *before* a fixture is published, never a number to choose
@@ -1024,6 +1053,13 @@ between.
 clients that compute Homestead's adjustment by different expressions — one in signed arithmetic as
 a single formula, the other branching because its unsigned type cannot hold the negative term —
 agreeing is much stronger evidence than two clients sharing a lineage agreeing.
+
+The difficulty bomb is the worked example, and it is the strongest oracle claim in this suite:
+three lineages state ECIP-1010 three ways — a reference point frozen then reduced by the window's
+length; a start/end **pair** whose resume delay is *derived* as `(continue - pause) / period`; and
+three named calculators carrying no reference point at all. Because the second derives what the
+first states, **a shared transcription of one constant cannot explain their agreement** — which is
+exactly what two implementations of the same shape can never rule out.
 
 **Match the oracle to the era.** A client that never ran a rule is not a witness to it. The two
 Parity-lineage clients were frozen before this chain's reorg-defense rule activated; multi-geth
