@@ -6,7 +6,7 @@
       "oracle": "Computed independently from ECIP-1017 and cross-checked against the production client's own reward vectors: eleven block numbers for the winner reward and eleven for the ommer reward, all agreeing. The ommer test there draws its distance at random, so it exercises the formula without pinning any particular distance; these vectors pin all six.",
       "scope": "Emission values, not block-level state transitions. Asserting that a mined block credits these amounts still needs a block-level runner, which the transition tool cannot supply: its reward flag is one flat value applied uniformly and never consults the era schedule.",
       "generated": "2026-08-23",
-      "observedGrounding": "Every value in this fixture is confirmed against mainnet, not only against a client. Six zero-transaction zero-ommer blocks give an exact static reward per era; ten boundary-adjacent blocks confirm the reduction lands after the boundary rather than on it; three ommer-bearing blocks confirm both reward formulas and the includer bonus. See observedMainnet."
+      "observedGrounding": "Every value in this fixture is confirmed against mainnet, not only against a client. Forty-two zero-transaction zero-ommer blocks give an exact static reward, sampled ACROSS each era rather than once per era so that a reward drifting WITHIN an era would show; eight boundary-adjacent blocks confirm the reduction lands after the boundary rather than on it; and seven ommer-bearing blocks confirm the reward formula at ALL SIX valid distances in era 0 and at one distance in era 1, which is what turns the era-1 flattening from a computed claim into an observed one. See observedMainnet."
     },
     "eraLength": "5000000",
     "activationBlock": "5000000",
@@ -492,12 +492,68 @@
     ],
     "observedMainnet": {
       "method": "Miner balance delta across a single block, read from archive state at the block and its parent. This is the chain's own record rather than any client's computation, so it settles disagreements between implementations instead of adding another opinion to them.",
-      "source": "an archive node serving eth_getBalance at historical heights, 2026-08-23",
+      "source": "an archive node serving eth_getBalance at historical heights; sweeps of 2026-08-23 and 2026-08-24",
       "emptyBlockBaselines": {
-        "note": "Zero transactions and zero ommers, so the delta IS the static reward with no fee component and nothing else to subtract. One per era, and every one matches the computed schedule exactly.",
+        "note": "Zero transactions and zero ommers, so the delta IS the static reward with no fee component and nothing else to subtract. Sampled ACROSS each era rather than once per era, at eight points spread from two percent to ninety-nine percent of the era's span, because one block per era proves the reward is right at six heights and says nothing about whether it drifts within one. Every sample matches the computed schedule exactly. Era 5 carries fewer samples than the others and that is not a gap: it extends to block 30,000,000 and the chain has not reached it, so most of its probe points are in the future -- which makes this the one part of the fixture that gains coverage by the passage of time rather than by anyone editing it.",
+        "perEraSampleCount": {
+          "0": "9",
+          "1": "8",
+          "2": "8",
+          "3": "8",
+          "4": "8",
+          "5": "1"
+        },
         "blocks": [
           {
+            "block": "100000",
+            "era": "0",
+            "observedDeltaWei": "5000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "750003",
+            "era": "0",
+            "observedDeltaWei": "5000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "1500009",
+            "era": "0",
+            "observedDeltaWei": "5000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "2250004",
+            "era": "0",
+            "observedDeltaWei": "5000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "3000000",
+            "era": "0",
+            "observedDeltaWei": "5000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "3750002",
+            "era": "0",
+            "observedDeltaWei": "5000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "4500002",
+            "era": "0",
+            "observedDeltaWei": "5000000000000000000",
+            "matchesComputed": true
+          },
+          {
             "block": "4900002",
+            "era": "0",
+            "observedDeltaWei": "5000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "4950001",
             "era": "0",
             "observedDeltaWei": "5000000000000000000",
             "matchesComputed": true
@@ -509,7 +565,91 @@
             "matchesComputed": true
           },
           {
+            "block": "5750000",
+            "era": "1",
+            "observedDeltaWei": "4000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "6500001",
+            "era": "1",
+            "observedDeltaWei": "4000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "7250000",
+            "era": "1",
+            "observedDeltaWei": "4000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "8000000",
+            "era": "1",
+            "observedDeltaWei": "4000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "8750001",
+            "era": "1",
+            "observedDeltaWei": "4000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "9500001",
+            "era": "1",
+            "observedDeltaWei": "4000000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "9950001",
+            "era": "1",
+            "observedDeltaWei": "4000000000000000000",
+            "matchesComputed": true
+          },
+          {
             "block": "10100000",
+            "era": "2",
+            "observedDeltaWei": "3200000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "10750001",
+            "era": "2",
+            "observedDeltaWei": "3200000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "11500000",
+            "era": "2",
+            "observedDeltaWei": "3200000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "12250000",
+            "era": "2",
+            "observedDeltaWei": "3200000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "13000005",
+            "era": "2",
+            "observedDeltaWei": "3200000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "13750002",
+            "era": "2",
+            "observedDeltaWei": "3200000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "14500000",
+            "era": "2",
+            "observedDeltaWei": "3200000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "14950007",
             "era": "2",
             "observedDeltaWei": "3200000000000000000",
             "matchesComputed": true
@@ -521,7 +661,91 @@
             "matchesComputed": true
           },
           {
+            "block": "15750001",
+            "era": "3",
+            "observedDeltaWei": "2560000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "16500000",
+            "era": "3",
+            "observedDeltaWei": "2560000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "17250000",
+            "era": "3",
+            "observedDeltaWei": "2560000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "18000000",
+            "era": "3",
+            "observedDeltaWei": "2560000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "18750000",
+            "era": "3",
+            "observedDeltaWei": "2560000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "19500013",
+            "era": "3",
+            "observedDeltaWei": "2560000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "19950000",
+            "era": "3",
+            "observedDeltaWei": "2560000000000000000",
+            "matchesComputed": true
+          },
+          {
             "block": "20100003",
+            "era": "4",
+            "observedDeltaWei": "2048000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "20750000",
+            "era": "4",
+            "observedDeltaWei": "2048000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "21500000",
+            "era": "4",
+            "observedDeltaWei": "2048000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "22250002",
+            "era": "4",
+            "observedDeltaWei": "2048000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "23000001",
+            "era": "4",
+            "observedDeltaWei": "2048000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "23750000",
+            "era": "4",
+            "observedDeltaWei": "2048000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "24500000",
+            "era": "4",
+            "observedDeltaWei": "2048000000000000000",
+            "matchesComputed": true
+          },
+          {
+            "block": "24950000",
             "era": "4",
             "observedDeltaWei": "2048000000000000000",
             "matchesComputed": true
@@ -584,31 +808,92 @@
         ]
       },
       "ommerPayments": {
-        "note": "Observed ommer payouts, with the ommer's own height resolved from its hash rather than inferred from the amount, which would be circular.",
+        "note": "Observed ommer payouts, with the ommer's own height resolved from its hash rather than inferred from the amount, which would be circular -- an ommer's reward IMPLIES its distance under the era-0 formula, so reading the distance off the reward and then declaring the reward correct proves nothing. Every row below carries a resolved ommerHeight and distance = block - ommerHeight. Three further confounds are excluded and each has to be, because a balance delta is only one payment when nothing else pays that address in that block: every block here carries exactly ONE ommer, the ommer's miner is NOT the includer, and transactionsInBlock says whether a fee term is present in the includer's delta. The first sweep for these hit two of those confounds -- a block where the ommer's miner was also the includer, and one with two ommers -- and both read as a reward formula being wrong when nothing was wrong but the measurement.",
+        "allSixDistancesObserved": true,
         "blocks": [
+          {
+            "block": "1000356",
+            "era": "0",
+            "ommerHeight": "1000353",
+            "distance": "3",
+            "ommerRewardWei": "3125000000000000000",
+            "includerDeltaWei": "5156250000000000000",
+            "includerBonusWei": "156250000000000000",
+            "transactionsInBlock": "0",
+            "ommerMinerIsNotIncluder": true,
+            "note": "distance three, and the first observation of it anywhere in this suite. Zero transactions, so the includer's delta is the base reward plus the bonus with no fee term at all: five eighths of five to the ommer's miner, 5.15625 to the includer."
+          },
+          {
+            "block": "1000501",
+            "era": "0",
+            "ommerHeight": "1000497",
+            "distance": "4",
+            "ommerRewardWei": "2500000000000000000",
+            "includerDeltaWei": "5156250000000000000",
+            "includerBonusWei": "156250000000000000",
+            "transactionsInBlock": "0",
+            "ommerMinerIsNotIncluder": true,
+            "note": "distance four, zero transactions. Four eighths of five."
+          },
+          {
+            "block": "1001792",
+            "era": "0",
+            "ommerHeight": "1001787",
+            "distance": "5",
+            "ommerRewardWei": "1875000000000000000",
+            "includerDeltaWei": "5156250000000000000",
+            "includerBonusWei": "156250000000000000",
+            "transactionsInBlock": "0",
+            "ommerMinerIsNotIncluder": true,
+            "note": "distance five, zero transactions. Three eighths of five."
+          },
+          {
+            "block": "1200179",
+            "era": "0",
+            "ommerHeight": "1200173",
+            "distance": "6",
+            "ommerRewardWei": "1250000000000000000",
+            "includerDeltaWei": "5156250000000000000",
+            "includerBonusWei": "156250000000000000",
+            "transactionsInBlock": "0",
+            "ommerMinerIsNotIncluder": true,
+            "note": "distance six, zero transactions -- the greatest distance the ancestor window admits, and the smallest era-0 ommer reward that exists. Two eighths of five."
+          },
+          {
+            "block": "3000012",
+            "era": "0",
+            "ommerHeight": "3000010",
+            "distance": "2",
+            "ommerRewardWei": "3750000000000000000",
+            "includerDeltaWei": "5156973260000000000",
+            "includerBonusWei": "156250000000000000",
+            "transactionsInBlock": "1",
+            "ommerMinerIsNotIncluder": true,
+            "note": "distance two. The block carries one transaction, so the includer's delta exceeds the base plus bonus by exactly that transaction's fee; the ommer miner's delta carries no fee term and is exact."
+          },
           {
             "block": "4500004",
             "era": "0",
             "ommerHeight": "4500003",
             "distance": "1",
             "ommerRewardWei": "4375000000000000000",
+            "includerDeltaWei": "5156250000000000000",
             "includerBonusWei": "156250000000000000",
-            "note": "era 0 pays on recency: seven eighths of five at distance one"
-          },
-          {
-            "block": "3000012",
-            "era": "0",
-            "distance": "2",
-            "ommerRewardWei": "3750000000000000000",
-            "includerBonusWei": "156250000000000000",
-            "note": "six eighths of five at distance two"
+            "transactionsInBlock": "0",
+            "ommerMinerIsNotIncluder": true,
+            "note": "distance one, zero transactions, so both deltas are exact. Seven eighths of five."
           },
           {
             "block": "6000003",
             "era": "1",
+            "ommerHeight": "5999999",
+            "distance": "4",
             "ommerRewardWei": "125000000000000000",
+            "includerDeltaWei": "4192002516400000000",
             "includerBonusWei": "125000000000000000",
-            "note": "era 1 pays a flat thirty-second regardless of distance, and the ommer miner and the includer are paid the same amount -- which is what the rule says it intends"
+            "transactionsInBlock": "16",
+            "ommerMinerIsNotIncluder": true,
+            "note": "ERA 1 AT DISTANCE FOUR, and the pair to make of it is with block 1,000,501 above -- the same distance, in era 0, paying 2.5 ETC against this block's 0.125. That is the rule change observed rather than computed: from era 1 the ommer's miner is paid a flat thirty-second of the base reward whatever the distance, and the same amount the includer is paid for including it. The includer's delta here carries the fees of sixteen transactions."
           }
         ]
       },
@@ -616,6 +901,12 @@
         "summary": "A widely used block explorer reports the reduced reward AT each era boundary rather than after it, understating four blocks in this chain's history: 5,000,000, 10,000,000, 15,000,000 and 20,000,000.",
         "evidence": "At block 5,000,000 it reports 4.002214544 where chain state shows a delta of 5.002214544 -- exactly one ETC less, with a byte-identical fee component, which identifies the error as the era selection and not the fee accounting. Both its v1 and v2 endpoints return the same wrong figure, so it is in the reward logic rather than a legacy endpoint.",
         "verdict": "The specification, the production client, the Parity-lineage client and the chain's own state all agree on the later boundary. The explorer is the only source that disagrees, and it is wrong. Recorded here because an explorer is what most people check, so a fixture asserting the correct value is the thing that survives the disagreement."
+      },
+      "chainHead": {
+        "observed": "25209171",
+        "era": "5",
+        "checkedOn": "2026-08-24",
+        "note": "Era 5 pays 1.6384 ETC and runs to block 30,000,000. This is the one figure in the suite that goes stale by the passage of time rather than by anyone changing anything: when the head crosses 30,000,000 a sixth era begins and the vectors should gain one. Recorded so the check is a comparison rather than a rediscovery."
       }
     }
   }
