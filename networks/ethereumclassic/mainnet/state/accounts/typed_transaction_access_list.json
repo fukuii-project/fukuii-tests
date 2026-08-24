@@ -7,7 +7,7 @@
       "generated": "2026-08-23",
       "signing": "txbytes carries the signed transaction; the signing key is a filling input, not a fixture field, and the harness reads `sender`.",
       "control": "Index 0 is a legacy transaction, accepted at every upgrade. Index 1 shares index 2's envelope but carries no entries.",
-      "rejection-label": "TR_TypeNotSupported is taken from the corpus, which already uses it for an unrecognized envelope, rather than invented.",
+      "rejection-label": "Two names, bar-separated, because two vocabularies are in use and no single name is mapped by both. TransactionException.TYPE_NOT_SUPPORTED is the current spec-tests enum member -- \"Transaction type is not supported on this chain configuration\" -- and TransactionException.TYPE_1_TX_PRE_FORK is what the primary consumer maps onto its own refusal. A reader takes the intersection of the names stated here with the refusals it can produce, so naming both satisfies either. CORRECTED 2026-08-24: this entry previously stated the single name TR_TypeNotSupported and said it was taken from the corpus. It was not. The corpus label is TR_TypeNotSupportedBlob, blob-specific and used 24 times in one archived file; TR_TypeNotSupported with the suffix dropped appears in no corpus and in no client, so it mapped to nothing and every case carrying it diverged instead of passing -- an expectation that could not be met, which reads exactly like a rule the client got wrong.",
       "unfilled-typed-before-die-hard": "ETC_Frontier, ETC_Homestead and ETC_GasReprice carry an expectation for index 0 only. A fixture must carry the signed transaction, and under those upgrades' rules a typed envelope cannot be signed at all -- the signer predates replay protection and handles only the legacy form -- so there is no encoding to record. That is a limit of what this format can express, not a claim that a typed transaction would be valid there; at consensus it would fail to decode as a transaction. The rejection IS asserted from Die Hard onward, where the transaction can be built and is then refused.",
       "unfilled-no-fork-name": "No expectation for ETC_Thanos: the generator's fork table has no name for them, so their rules cannot be selected. A tooling gap, not a claim that the case does not apply.",
       "unfilled-not-a-state-rule": "No expectation for ETC_DAOFork, ETC_DAOWars, ETC_FrontierThawing, ETC_MESSOff, ETC_MESSOn: these change no state-transition rule, so a state fixture has nothing to assert about them. Covering them needs block-level or chain-selection tests."
@@ -125,7 +125,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 1,
             "gas": 0,
@@ -137,7 +137,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 2,
             "gas": 0,
@@ -162,7 +162,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 1,
             "gas": 0,
@@ -174,7 +174,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 2,
             "gas": 0,
@@ -199,7 +199,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 1,
             "gas": 0,
@@ -211,7 +211,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 2,
             "gas": 0,
@@ -236,7 +236,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 1,
             "gas": 0,
@@ -248,7 +248,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 2,
             "gas": 0,
@@ -273,7 +273,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 1,
             "gas": 0,
@@ -285,7 +285,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 2,
             "gas": 0,
@@ -310,7 +310,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 1,
             "gas": 0,
@@ -322,7 +322,7 @@
           "hash": "0x6f1c4a7d720393a3a5096671f860c849c9f78096e8463a31f74a274fc9f63aa1",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
           "txbytes": "0xc0",
-          "expectException": "TR_TypeNotSupported",
+          "expectException": "TransactionException.TYPE_NOT_SUPPORTED|TransactionException.TYPE_1_TX_PRE_FORK",
           "indexes": {
             "data": 2,
             "gas": 0,
