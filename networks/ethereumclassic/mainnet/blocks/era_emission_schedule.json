@@ -6,7 +6,8 @@
       "oracle": "Computed independently from ECIP-1017 and cross-checked against the production client's own reward vectors: eleven block numbers for the winner reward and eleven for the ommer reward, all agreeing. The ommer test there draws its distance at random, so it exercises the formula without pinning any particular distance; these vectors pin all six.",
       "scope": "Emission values, not block-level state transitions. Asserting that a mined block credits these amounts still needs a block-level runner, which the transition tool cannot supply: its reward flag is one flat value applied uniformly and never consults the era schedule.",
       "generated": "2026-08-23",
-      "observedGrounding": "Every value in this fixture is confirmed against mainnet, not only against a client. Forty-two zero-transaction zero-ommer blocks give an exact static reward, sampled ACROSS each era rather than once per era so that a reward drifting WITHIN an era would show; eight boundary-adjacent blocks confirm the reduction lands after the boundary rather than on it; and seven ommer-bearing blocks confirm the reward formula at ALL SIX valid distances in era 0 and at one distance in era 1, which is what turns the era-1 flattening from a computed claim into an observed one. See observedMainnet."
+      "observedGrounding": "Every value in this fixture is confirmed against mainnet, not only against a client. Forty-two zero-transaction zero-ommer blocks give an exact static reward, sampled ACROSS each era rather than once per era so that a reward drifting WITHIN an era would show; eight boundary-adjacent blocks confirm the reduction lands after the boundary rather than on it; and seven ommer-bearing blocks confirm the reward formula at ALL SIX valid distances in era 0 and at one distance in era 1, which is what turns the era-1 flattening from a computed claim into an observed one. See observedMainnet.",
+      "decayArithmetic": "The era reward is `5e18 * 4**era / 5**era` with a SINGLE truncating division at the end, not the reduction applied era by era. core-geth's GetBlockWinnerRewardByEra raises both the quotient and the divisor to the era and divides once; iterating truncates at every step. The two readings agree for every era through 20 and diverge from ERA 21 onward, by one wei at eras 21 to 23 and by two at era 24. Era 21 begins at block 105,000,001, so no chain has reached the difference and nothing observed can settle it -- which is exactly why it is pinned here rather than left to be discovered by whichever client gets there first. The era index itself is GetBlockEra's: remainder = (n-1) mod eraLength, base = n - remainder, era = base / eraLength, which is what puts the reduction at the boundary PLUS ONE."
     },
     "eraLength": "5000000",
     "activationBlock": "5000000",
@@ -488,6 +489,154 @@
         },
         "maxIssuance": "2304000000000000000",
         "maxIssuanceOverBaseReward": "1.125000"
+      },
+      {
+        "block": "25000001",
+        "era": "5",
+        "winnerBaseReward": "1638400000000000000",
+        "includerBonusPerUncle": "51200000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "51200000000000000",
+          "2": "51200000000000000",
+          "3": "51200000000000000",
+          "4": "51200000000000000",
+          "5": "51200000000000000",
+          "6": "51200000000000000"
+        },
+        "uncleRewardDependsOnDistance": false,
+        "totalIssuance": {
+          "noUncles": "1638400000000000000",
+          "oneUncleByDistance": {
+            "1": "1740800000000000000",
+            "2": "1740800000000000000",
+            "3": "1740800000000000000",
+            "4": "1740800000000000000",
+            "5": "1740800000000000000",
+            "6": "1740800000000000000"
+          },
+          "twoUnclesBothAtDistance": {
+            "1": "1843200000000000000",
+            "2": "1843200000000000000",
+            "3": "1843200000000000000",
+            "4": "1843200000000000000",
+            "5": "1843200000000000000",
+            "6": "1843200000000000000"
+          }
+        },
+        "maxIssuance": "1843200000000000000",
+        "maxIssuanceOverBaseReward": "1.125000",
+        "note": "era 5, the era this chain is in today. Grounded in observedMainnet."
+      },
+      {
+        "block": "105000001",
+        "era": "21",
+        "winnerBaseReward": "46116860184273879",
+        "includerBonusPerUncle": "1441151880758558",
+        "uncleMinerRewardByDistance": {
+          "1": "1441151880758558",
+          "2": "1441151880758558",
+          "3": "1441151880758558",
+          "4": "1441151880758558",
+          "5": "1441151880758558",
+          "6": "1441151880758558"
+        },
+        "uncleRewardDependsOnDistance": false,
+        "totalIssuance": {
+          "noUncles": "46116860184273879",
+          "oneUncleByDistance": {
+            "1": "48999163945790995",
+            "2": "48999163945790995",
+            "3": "48999163945790995",
+            "4": "48999163945790995",
+            "5": "48999163945790995",
+            "6": "48999163945790995"
+          },
+          "twoUnclesBothAtDistance": {
+            "1": "51881467707308111",
+            "2": "51881467707308111",
+            "3": "51881467707308111",
+            "4": "51881467707308111",
+            "5": "51881467707308111",
+            "6": "51881467707308111"
+          }
+        },
+        "maxIssuance": "51881467707308111",
+        "maxIssuanceOverBaseReward": "1.125000",
+        "note": "ERA 21, WHERE TWO PLAUSIBLE READINGS OF THE DECAY DIVERGE. The client computes base * 4**era / 5**era with a SINGLE truncating division. Iterating the reduction -- multiply by 4, divide by 5, twenty-one times -- truncates at every step and arrives one wei lower here. The two agree at every era this chain has reached, so nothing before this block can tell them apart."
+      },
+      {
+        "block": "110000001",
+        "era": "22",
+        "winnerBaseReward": "36893488147419103",
+        "includerBonusPerUncle": "1152921504606846",
+        "uncleMinerRewardByDistance": {
+          "1": "1152921504606846",
+          "2": "1152921504606846",
+          "3": "1152921504606846",
+          "4": "1152921504606846",
+          "5": "1152921504606846",
+          "6": "1152921504606846"
+        },
+        "uncleRewardDependsOnDistance": false,
+        "totalIssuance": {
+          "noUncles": "36893488147419103",
+          "oneUncleByDistance": {
+            "1": "39199331156632795",
+            "2": "39199331156632795",
+            "3": "39199331156632795",
+            "4": "39199331156632795",
+            "5": "39199331156632795",
+            "6": "39199331156632795"
+          },
+          "twoUnclesBothAtDistance": {
+            "1": "41505174165846487",
+            "2": "41505174165846487",
+            "3": "41505174165846487",
+            "4": "41505174165846487",
+            "5": "41505174165846487",
+            "6": "41505174165846487"
+          }
+        },
+        "maxIssuance": "41505174165846487",
+        "maxIssuanceOverBaseReward": "1.125000",
+        "note": "era 22. The divergence persists rather than being a one-off rounding coincidence."
+      },
+      {
+        "block": "120000001",
+        "era": "24",
+        "winnerBaseReward": "23611832414348226",
+        "includerBonusPerUncle": "737869762948382",
+        "uncleMinerRewardByDistance": {
+          "1": "737869762948382",
+          "2": "737869762948382",
+          "3": "737869762948382",
+          "4": "737869762948382",
+          "5": "737869762948382",
+          "6": "737869762948382"
+        },
+        "uncleRewardDependsOnDistance": false,
+        "totalIssuance": {
+          "noUncles": "23611832414348226",
+          "oneUncleByDistance": {
+            "1": "25087571940244990",
+            "2": "25087571940244990",
+            "3": "25087571940244990",
+            "4": "25087571940244990",
+            "5": "25087571940244990",
+            "6": "25087571940244990"
+          },
+          "twoUnclesBothAtDistance": {
+            "1": "26563311466141754",
+            "2": "26563311466141754",
+            "3": "26563311466141754",
+            "4": "26563311466141754",
+            "5": "26563311466141754",
+            "6": "26563311466141754"
+          }
+        },
+        "maxIssuance": "26563311466141754",
+        "maxIssuanceOverBaseReward": "1.125000",
+        "note": "era 24, where the gap is TWO wei rather than one -- so a client that patched the era-21 case with an off-by-one adjustment is still wrong here."
       }
     ],
     "observedMainnet": {
