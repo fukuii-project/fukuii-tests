@@ -1,0 +1,229 @@
+{
+  "sstoreOriginalNonZeroBranches": {
+    "_info": {
+      "comment": "The half of the SSTORE branch table that needs a slot which was ALREADY NON-ZERO when the transaction began. Every other state fixture in this suite declares empty pre-storage, so `original == 0` in all of them and four of the rule's branches were unreachable by construction -- not four oversights but one structural property of how the corpus was authored. Five slots, each pre-set to 9, each bracketed by its own gas reading.",
+      "eip": "EIP-2200 at Phoenix, EIP-2929 at Magneto, EIP-3529 at Mystique. All three reuse one branch table; only the constants and the cold/warm layer differ.",
+      "branches": "Named by the production client's own numbering in gasSStoreEIP2200 / makeGasSStoreFunc. Slot 1: 2.1.2, write existing slot. Slot 2: 2.1.2b then 2.2.1.1, delete then recreate -- the refund is added and then SUBTRACTED again. Slot 3: 2.1.2 then 2.2.1.2, change then delete while dirty. Slot 4: 2.1.2 then 2.2.2.2, change then reset to the original non-zero value. Slot 5: branch 1, a no-op write of the same value, which is a no-op ONLY from Phoenix -- before it, writing 9 over 9 still pays the reset price.",
+      "slots": "1 to 5 hold the written values. 0x11 to 0x15 hold the gas each sequence consumed. 0x1f is the liveness marker.",
+      "whyThisMattersForEIP3529": "EIP-3529's entire content is reducing the clearing refund from 15000 to 4800. That constant is consumed at THREE sites -- 2.1.2b, 2.2.1.1 and 2.2.1.2 -- and before this fixture only 2.1.2b was asserted, by sstore_clear_refund.json. A build that reduced the refund at that one site and left the other two at 15000 passed the whole suite. Slots 2 and 3 reach the other two.",
+      "stillNotAsserted": "The EIP-2200 reentrancy sentry -- SSTORE fails outright when 2300 or less gas remains -- is the reason EIP-2200 exists rather than EIP-1283, and no fixture here reaches it. It needs a call with bounded gas rather than a storage sequence, so it is separate work, named so it is not mistaken for covered.",
+      "oracle": "core-geth's own statetest runner, which is not the implementation under certification. Each expectation is the state root that runner computes for this body at that fork's rules, chain id 61.",
+      "oracle-version": "core-geth modernized 1.13.0-26975d6a. Production v1.12.21 cannot be used: its t8n fork table has no ETC_DieHard, ETC_Gotham or ETC_DefuseDifficultyBomb.",
+      "verification": "2026-08-25: 12/12 subtests pass under evm statetest. Scored against deliberately wrong builds; see wrongBuildScores.",
+      "boundaries": "Three, and they land where the rules say. Frontier through Agharta share one root -- legacy metering, which this chain kept while Ethereum briefly ran EIP-1283. Phoenix moves it (EIP-2200). Magneto moves it again (EIP-2929 cold access). Mystique moves it a third time (EIP-3529). Spiral does not move it, which is an assertion.",
+      "generated": "2026-08-25",
+      "signing": "txbytes carries the signed transaction. Legacy signature through Gas Reprice, replay-protected from Die Hard, matching this chain's own adoption of EIP-155.",
+      "unfilled-no-fork-name": "No expectation for ETC_Thanos: the generator's fork table has no name for it. A tooling gap, not a claim that the case does not apply.",
+      "unfilled-not-a-state-rule": "No expectation for ETC_DAOFork, ETC_DAOWars, ETC_FrontierThawing, ETC_MESSOff, ETC_MESSOn: these change no state-transition rule.",
+      "wrongBuildScores": {
+        "method": "A real client was patched and rebuilt, not reasoned about. EIP-3529's reduced clearing refund was applied at the clean-delete site (2.1.2b) and left at the old 15000 at the two dirty sites (2.2.1.1, 2.2.1.2) -- the precise defect this fixture was written to catch, and a plausible one, since a reader fixing 'the' refund constant naturally finds the first of three.",
+        "result": "This fixture catches it. THIRTY-FIVE of the suite's other state fixtures pass that build silently, including sstore_clear_refund.json, which asserts the one site the patch left correct.",
+        "howItFails": "Not as a root mismatch. The client PANICS: `Refund counter below zero (gas: 15000 > refund: 4800)` at operations_acl.go:74. Slot 2 deletes a slot (adding the correct 4800) and then recreates it (subtracting the wrong 15000), driving the refund counter negative. A client shipping this defect crashes on any transaction that does the same, which makes it consensus-critical rather than merely a mispriced operation.",
+        "whatThisDemonstrates": "Coverage is not discrimination. Before this fixture, every ledger in the repository recorded EIP-3529 as covered, and it was -- at one of the three sites its only constant is consumed. The other two were free to be arbitrarily wrong."
+      }
+    },
+    "config": {
+      "chainid": "0x3d"
+    },
+    "env": {
+      "currentCoinbase": "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+      "currentNumber": "0x1263d54",
+      "currentTimestamp": "0x65bd0a80",
+      "currentGasLimit": "0x7a1200",
+      "currentDifficulty": "0x0f4240"
+    },
+    "pre": {
+      "0x0000000000000000000000000000000000001000": {
+        "balance": "0x00",
+        "nonce": "0x00",
+        "code": "0x5a60076001555a90036011555a600060025560056002555a90036012555a600760035560006003555a90036013555a600760045560096004555a90036014555a60096005555a90036015556001601f55",
+        "storage": {
+          "0x0000000000000000000000000000000000000000000000000000000000000001": "0x0000000000000000000000000000000000000000000000000000000000000009",
+          "0x0000000000000000000000000000000000000000000000000000000000000002": "0x0000000000000000000000000000000000000000000000000000000000000009",
+          "0x0000000000000000000000000000000000000000000000000000000000000003": "0x0000000000000000000000000000000000000000000000000000000000000009",
+          "0x0000000000000000000000000000000000000000000000000000000000000004": "0x0000000000000000000000000000000000000000000000000000000000000009",
+          "0x0000000000000000000000000000000000000000000000000000000000000005": "0x0000000000000000000000000000000000000000000000000000000000000009"
+        }
+      },
+      "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+        "balance": "0x3635c9adc5dea00000",
+        "nonce": "0x00",
+        "code": "0x",
+        "storage": {}
+      }
+    },
+    "transaction": {
+      "nonce": "0x00",
+      "sender": "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
+      "to": "0x0000000000000000000000000000000000001000",
+      "gasPrice": "0x3b9aca00",
+      "gasLimit": [
+        "0x7a120"
+      ],
+      "value": [
+        "0x00"
+      ],
+      "data": [
+        "0x"
+      ]
+    },
+    "post": {
+      "ETC_Frontier": [
+        {
+          "hash": "0xe289bd4bd5d9e17a1e8ea3931592086515bcf4da184a0e38226b5945b2d2aefe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86480843b9aca008307a12094000000000000000000000000000000000000100080801ca0989dbb367e2e76dc7ca19bcbd87a7ccbaa6048cf11b9128875795d4208d8076ea018b03b906781d486c2823516ab8651dfab3f76bda33df2c2794ec158a91a6ff7",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": false
+        }
+      ],
+      "ETC_Homestead": [
+        {
+          "hash": "0xe289bd4bd5d9e17a1e8ea3931592086515bcf4da184a0e38226b5945b2d2aefe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86480843b9aca008307a12094000000000000000000000000000000000000100080801ca0989dbb367e2e76dc7ca19bcbd87a7ccbaa6048cf11b9128875795d4208d8076ea018b03b906781d486c2823516ab8651dfab3f76bda33df2c2794ec158a91a6ff7",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": false
+        }
+      ],
+      "ETC_GasReprice": [
+        {
+          "hash": "0xe289bd4bd5d9e17a1e8ea3931592086515bcf4da184a0e38226b5945b2d2aefe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86480843b9aca008307a12094000000000000000000000000000000000000100080801ca0989dbb367e2e76dc7ca19bcbd87a7ccbaa6048cf11b9128875795d4208d8076ea018b03b906781d486c2823516ab8651dfab3f76bda33df2c2794ec158a91a6ff7",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": false
+        }
+      ],
+      "ETC_DieHard": [
+        {
+          "hash": "0xe289bd4bd5d9e17a1e8ea3931592086515bcf4da184a0e38226b5945b2d2aefe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Gotham": [
+        {
+          "hash": "0xe289bd4bd5d9e17a1e8ea3931592086515bcf4da184a0e38226b5945b2d2aefe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_DefuseDifficultyBomb": [
+        {
+          "hash": "0xe289bd4bd5d9e17a1e8ea3931592086515bcf4da184a0e38226b5945b2d2aefe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Atlantis": [
+        {
+          "hash": "0xe289bd4bd5d9e17a1e8ea3931592086515bcf4da184a0e38226b5945b2d2aefe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Agharta": [
+        {
+          "hash": "0xe289bd4bd5d9e17a1e8ea3931592086515bcf4da184a0e38226b5945b2d2aefe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Phoenix": [
+        {
+          "hash": "0x63afb56ac43686b56912a6de6e6e62954bfa25c7857981fa045a23fe2713a244",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Magneto": [
+        {
+          "hash": "0x1076d480bcdfaddcc742f26e88939d95f06ec9181c417205ecc67548f3b653f7",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Mystique": [
+        {
+          "hash": "0xfd4bebbba3a7018b8c443b8c71f20447d7df85583ca52d1b525f59628b532976",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Spiral": [
+        {
+          "hash": "0xfd4bebbba3a7018b8c443b8c71f20447d7df85583ca52d1b525f59628b532976",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca008307a1209400000000000000000000000000000000000010008080819da04a0d499b9e087ee085d79d33e4ad4e0cb2b98f72acfcfc2f7fc261711bef773fa00573419f4dcd45b92a144f97b89fdf7e98409f58e17af60701de45f1670cf0a9",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ]
+    }
+  }
+}

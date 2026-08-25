@@ -101,6 +101,43 @@ post-state root is still sensitive to it — so the fixture asserts the root and
 what the root is standing in for. A reader who does not know why that root changed learns nothing
 from a bare hash.
 
+## The half of the SSTORE table that needs a slot which was already non-zero
+
+`net_storage_metering.json` runs four sequences and `sstore_set_cost.json` and
+`sstore_clear_refund.json` one each. Between them they reach five of the ten branches the
+production client's SSTORE gas function actually has.
+
+**The missing five shared one precondition, and it was a property of the whole corpus rather than
+of those fixtures.** Thirty-six of the thirty-seven state fixtures here declare empty pre-storage,
+so `original == 0` everywhere — and four of the rule's branches are only reachable when a slot was
+*already non-zero* when the transaction began. Not four oversights. One authoring habit, producing
+four gaps at once, which is why reading the fixtures one at a time would never have found it and a
+sweep of pre-state found it immediately.
+
+`sstore_original_nonzero_branches.json` is that half. Five slots, each pre-set, each with its own
+gas reading:
+
+| slot | sequence | branch, in the client's own numbering |
+|---|---|---|
+| 1 | write 7 | 2.1.2 — write existing slot |
+| 2 | write 0, then 5 | 2.1.2b then **2.2.1.1** — refund added, then *subtracted* again |
+| 3 | write 7, then 0 | 2.1.2 then **2.2.1.2** — delete while dirty |
+| 4 | write 7, then 9 | 2.1.2 then **2.2.2.2** — reset to the original non-zero value |
+| 5 | write 9 over 9 | branch 1, no-op — **and only from Phoenix**; before it, this still pays the reset price |
+
+**Three boundaries, and they land where the rules say**: Frontier through Agharta share one root,
+Phoenix moves it (EIP-2200), Magneto again (EIP-2929), Mystique a third time (EIP-3529). Spiral
+does not move it, which is an assertion.
+
+### Why the third boundary is the one that mattered
+
+**EIP-3529's entire content is reducing the clearing refund from 15000 to 4800, and that constant
+is consumed at three sites.** Before this fixture, exactly one of the three was asserted — the
+clean delete, by `sstore_clear_refund.json`. A build that reduced the refund there and left the
+other two at the old value passed the entire suite.
+
+That is the difference between covering a rule and covering its surface, in one concrete number.
+
 ## Opcode availability across the schedule
 
 Seven fixtures, one per opcode, each asserting where it becomes available. Every boundary was
