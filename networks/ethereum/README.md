@@ -40,6 +40,7 @@ adding anything here is one question:
 | `mainnet/forkid/` | fork identifiers across the full schedule, both block-based and timestamp-based |
 | `mainnet/blocks/` | the DAO irregular state change — an event rather than a rule |
 | `mainnet/consensus/` | the Merge, keyed to accumulated difficulty rather than to a height |
+| `sepolia/forkid/` | fork identifiers — one block-based boundary, and it is the Merge |
 
 ## Ethereum's schedule changes shape at the Merge
 
@@ -60,6 +61,23 @@ Worth listing, because a reader arriving from `../ethereumclassic/` will not hav
    "at what time" — it answers "when total difficulty crosses a threshold", and the reference client
    records no merge height at all.
 3. **An irregular state change.** A scripted mutation at one height that is not a rule.
+
+## Sepolia is not a scaled-down mainnet
+
+It runs the same rules and almost none of the same schedule. **Ten upgrades that mainnet reached
+over twelve million blocks are Sepolia's starting state** — Homestead through London all activate at
+block 0, and a zero contributes no entry to the fork-identifier checksum. So the network has exactly
+**one** block-based boundary, and it is the Merge.
+
+That inverts mainnet. There, the Merge is keyed to accumulated difficulty and produces **no**
+fork-identifier entry; here it is `MergeNetsplitBlock`, whose name ends in `Block`, and identifiers
+are gathered by reflection over exactly those names — so the same consensus transition **is** a
+boundary and the fork hash changes at it.
+
+**A client that learned the shape from mainnet looks for a difficulty threshold and finds a block;
+one that learned it here looks for a block and finds a threshold.** Neither is wrong about its own
+network, and that is what the roadmap means by a testnet expressing a mechanism differently from its
+mainnet.
 
 ## Sharing with Ethereum Classic is an assertion, never a directory
 

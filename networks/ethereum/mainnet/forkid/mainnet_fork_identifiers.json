@@ -1,21 +1,23 @@
 {
   "forkIdentifierEthereumMainnet": {
     "_info": {
-      "comment": "Fork identifiers for Ethereum mainnet. This is one of the few things a network needs that the upstream corpus structurally cannot supply: ethereum/tests keys every expectation on a fork NAME and is network-agnostic, so it says what Byzantium rules do and never says that Ethereum mainnet is at Byzantium from block 4,370,000. A fork identifier is exactly that second statement.",
-      "whyThisRepositoryAuthorsTHISAndNotEthereumsStateTests": "Ethereum's own corpus is alive, maintained, and vastly larger than anything authorable here, and it is the authority for the EVM. Re-authoring it would duplicate it badly and go stale. What it does not contain -- measured, not assumed -- is any fork-identifier vector and any network activation height. Those are network facts rather than rule facts, and they are what this directory holds.",
-      "bothForkKindsAppear": "Ethereum's schedule changes shape at the Merge. Boundaries through Gray Glacier are BLOCK numbers; Shanghai, Cancun and Prague are TIMESTAMPS, and EIP-6122 extends the checksum to accumulate them after the block-based ones. Every vector therefore carries both a head and a time. Ethereum Classic has no time-based fork, so this is a shape its files never exercise -- do not assume a reader written against them handles it.",
-      "theTwoHeightsThatCollapse": "Constantinople and Petersburg both activate at 7,280,000 and contribute ONE entry to the checksum, not two. EIP-155 and EIP-158 likewise share 2,675,000. A client that folds a duplicate height in twice produces a wrong identifier from that point on and will not peer.",
+      "comment": "Fork identifiers for Ethereum mainnet. One of the few things a network needs that the upstream corpus structurally cannot supply: ethereum/tests keys every expectation on a fork NAME and is network-agnostic, so it says what Byzantium rules do and never says that Ethereum mainnet is at Byzantium from block 4,370,000.",
+      "REBUILT_2026_08_25": "This file's first version stopped at Prague and reported forkNext=0 beyond it. THREE later timestamp forks were missing -- Osaka, BPO1 and BPO2 -- so every vector past Prague was wrong. The cause was the verification, not the arithmetic: the published table was TRANSCRIBED BY HAND and the transcription stopped at 28 of its 38 cases, so the check passed against the slice that had been copied. It is now parsed from the client's source, which cannot be truncated by whoever is reading.",
+      "bothForkKindsAppear": "Ethereum's schedule changes shape at the Merge. Boundaries through Gray Glacier are BLOCK numbers; Shanghai onward are TIMESTAMPS, and EIP-6122 accumulates them after the block-based ones. Every vector carries both a head and a time. Ethereum Classic has no time-based fork, so a reader written against that family has never met this.",
+      "theTwoHeightsThatCollapse": "Constantinople and Petersburg both activate at 7,280,000 and contribute ONE entry, not two. EIP-155 and EIP-158 likewise share 2,675,000. A client folding a duplicate height in twice produces a wrong identifier from that point and will not peer.",
+      "theMergeIsInvisibleHere": "No boundary between Gray Glacier and Shanghai. Mainnet's Merge is keyed to accumulated difficulty and sets no MergeNetsplitBlock, and identifiers are gathered by reflection over fields whose names end in Block or Time -- so a difficulty threshold cannot appear. Sepolia differs; see ../../sepolia/forkid/.",
       "divergenceFromEthereumClassic": {
-        "whyThisIsStatedAsAnAssertionAndNotAsSharedFILES": "The two networks share a genesis and every rule through Homestead, so it is tempting to factor the agreement into a common directory. That is deliberately not done: a shared directory cannot say shared BY WHOM, and becomes a grab bag the moment a third network joins. The agreement is recorded here as a claim naming both networks and the exact head at which it ends, which degrades correctly -- at a future divergence you delete a sentence with a reason rather than quietly moving a file.",
-        "identicalThrough": "head 1,149,999. Both networks compute 0xfc64ec04 with next=1,150,000, because they share Ethereum's genesis and neither has passed a fork.",
-        "firstDivergence": "head 1,150,000. The fork HASH still agrees at 0x97c2c34c -- both passed Homestead and nothing else -- but the NEXT differs: Ethereum expects the DAO fork at 1,920,000 and Ethereum Classic expects Die Hard at 2,500,000.",
-        "whatThatMeansInPractice": "The divergence is announced one fork before it happens. A node on either chain can tell the other apart at Homestead, before either has executed a block the other would reject. That is the fork identifier doing its job, and it is why the declined fork is visible in ../../ethereumclassic/mainnet/forkid/ as an absence rather than an entry."
+        "whyThisIsAnAssertionAndNotSharedFILES": "The two networks share a genesis and every rule through Homestead. A shared directory cannot say shared BY WHOM and becomes a grab bag the moment a third network joins, so the agreement is a claim naming both networks and the exact head where it ends -- which degrades correctly, as a deleted sentence with a reason rather than a silent file move.",
+        "identicalThrough": "head 1,149,999. Both compute 0xfc64ec04 with next=1,150,000.",
+        "firstDivergence": "head 1,150,000. The fork HASH still agrees at 0x97c2c34c -- both passed Homestead and nothing else -- but the NEXT differs: Ethereum expects the DAO fork at 1,920,000, Ethereum Classic expects Die Hard at 2,500,000.",
+        "whatThatMeansInPractice": "The divergence is announced one fork BEFORE it happens, so a node on either chain can tell the other apart at Homestead, before either has executed a block the other would reject."
       },
-      "oracle": "Two independent sources agreeing. Computed from EIP-2124 and EIP-6122, and cross-checked against go-ethereum's OWN published mainnet table in core/forkid/forkid_test.go, which agrees on all 28 cases it covers including the block-to-timestamp transition.",
+      "oracle": "Two independent sources agreeing. Computed from EIP-2124 and EIP-6122, and cross-checked against go-ethereum's OWN published table for this network, PARSED FROM ITS SOURCE rather than transcribed -- all 38 published cases reproduce.",
       "oracle-version": "go-ethereum, params/config.go MainnetChainConfig and core/forkid/forkid_test.go",
-      "useYourOwnGenesisHash": "As with every file of this shape: seed the checksum from the genesis hash YOUR client computes and treat the one recorded here as a cross-check. Taken the other way, every vector passes regardless of what genesis your client built.",
+      "useYourOwnGenesisHash": "Seed the checksum from the genesis hash YOUR client computes and treat the one here as a cross-check. Taken the other way every vector passes regardless of what genesis your client built.",
       "generated": "2026-08-25"
     },
+    "chainId": "1",
     "genesisHash": "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
     "forkBlocks": [
       "1150000",
@@ -34,7 +36,10 @@
     "forkTimestamps": [
       "1681338455",
       "1710338135",
-      "1746612311"
+      "1746612311",
+      "1764798551",
+      "1765290071",
+      "1767747671"
     ],
     "forkNames": {
       "1150000": "Homestead",
@@ -51,7 +56,10 @@
       "15050000": "Gray Glacier",
       "1681338455": "Shanghai",
       "1710338135": "Cancun",
-      "1746612311": "Prague"
+      "1746612311": "Prague",
+      "1764798551": "Osaka",
+      "1765290071": "BPO1",
+      "1767747671": "BPO2"
     },
     "vectors": [
       {
@@ -314,67 +322,130 @@
         "forkIdRlp": "0xca84f0afd0e38464373057"
       },
       {
-        "head": "20000000",
+        "head": "25050000",
         "time": "1681338454",
         "forkHash": "0xf0afd0e3",
         "forkNext": "1681338455",
         "forkIdRlp": "0xca84f0afd0e38464373057"
       },
       {
-        "head": "20000000",
+        "head": "25050000",
         "time": "1681338455",
         "forkHash": "0xdce96c2d",
         "forkNext": "1710338135",
         "forkIdRlp": "0xca84dce96c2d8465f1b057"
       },
       {
-        "head": "20000000",
+        "head": "25050000",
         "time": "1681338456",
         "forkHash": "0xdce96c2d",
         "forkNext": "1710338135",
         "forkIdRlp": "0xca84dce96c2d8465f1b057"
       },
       {
-        "head": "20000000",
+        "head": "25050000",
         "time": "1710338134",
         "forkHash": "0xdce96c2d",
         "forkNext": "1710338135",
         "forkIdRlp": "0xca84dce96c2d8465f1b057"
       },
       {
-        "head": "20000000",
+        "head": "25050000",
         "time": "1710338135",
         "forkHash": "0x9f3d2254",
         "forkNext": "1746612311",
         "forkIdRlp": "0xca849f3d225484681b3057"
       },
       {
-        "head": "20000000",
+        "head": "25050000",
         "time": "1710338136",
         "forkHash": "0x9f3d2254",
         "forkNext": "1746612311",
         "forkIdRlp": "0xca849f3d225484681b3057"
       },
       {
-        "head": "20000000",
+        "head": "25050000",
         "time": "1746612310",
         "forkHash": "0x9f3d2254",
         "forkNext": "1746612311",
         "forkIdRlp": "0xca849f3d225484681b3057"
       },
       {
-        "head": "20000000",
+        "head": "25050000",
         "time": "1746612311",
         "forkHash": "0xc376cf8b",
-        "forkNext": "0",
-        "forkIdRlp": "0xc684c376cf8b80"
+        "forkNext": "1764798551",
+        "forkIdRlp": "0xca84c376cf8b846930b057"
       },
       {
-        "head": "20000000",
+        "head": "25050000",
         "time": "1746612312",
         "forkHash": "0xc376cf8b",
+        "forkNext": "1764798551",
+        "forkIdRlp": "0xca84c376cf8b846930b057"
+      },
+      {
+        "head": "25050000",
+        "time": "1764798550",
+        "forkHash": "0xc376cf8b",
+        "forkNext": "1764798551",
+        "forkIdRlp": "0xca84c376cf8b846930b057"
+      },
+      {
+        "head": "25050000",
+        "time": "1764798551",
+        "forkHash": "0x5167e2a6",
+        "forkNext": "1765290071",
+        "forkIdRlp": "0xca845167e2a68469383057"
+      },
+      {
+        "head": "25050000",
+        "time": "1764798552",
+        "forkHash": "0x5167e2a6",
+        "forkNext": "1765290071",
+        "forkIdRlp": "0xca845167e2a68469383057"
+      },
+      {
+        "head": "25050000",
+        "time": "1765290070",
+        "forkHash": "0x5167e2a6",
+        "forkNext": "1765290071",
+        "forkIdRlp": "0xca845167e2a68469383057"
+      },
+      {
+        "head": "25050000",
+        "time": "1765290071",
+        "forkHash": "0xcba2a1c0",
+        "forkNext": "1767747671",
+        "forkIdRlp": "0xca84cba2a1c084695db057"
+      },
+      {
+        "head": "25050000",
+        "time": "1765290072",
+        "forkHash": "0xcba2a1c0",
+        "forkNext": "1767747671",
+        "forkIdRlp": "0xca84cba2a1c084695db057"
+      },
+      {
+        "head": "25050000",
+        "time": "1767747670",
+        "forkHash": "0xcba2a1c0",
+        "forkNext": "1767747671",
+        "forkIdRlp": "0xca84cba2a1c084695db057"
+      },
+      {
+        "head": "25050000",
+        "time": "1767747671",
+        "forkHash": "0x07c9462e",
         "forkNext": "0",
-        "forkIdRlp": "0xc684c376cf8b80"
+        "forkIdRlp": "0xc68407c9462e80"
+      },
+      {
+        "head": "25050000",
+        "time": "1767747672",
+        "forkHash": "0x07c9462e",
+        "forkNext": "0",
+        "forkIdRlp": "0xc68407c9462e80"
       }
     ]
   }

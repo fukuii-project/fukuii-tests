@@ -1,0 +1,193 @@
+{
+  "forkIdentifierSepolia": {
+    "_info": {
+      "comment": "Fork identifiers for Sepolia, Ethereum's proof-of-stake testnet. Chain id 11,155,111, its own genesis, and a schedule that is almost nothing like mainnet's despite running the same rules.",
+      "EVERYTHINGThroughLondonActivatesAtGENESIS": "Sepolia's configuration sets Homestead, Tangerine Whistle, Spurious Dragon, Byzantium, Constantinople, Petersburg, Istanbul, Muir Glacier, Berlin and London all to block 0. Ten upgrades that mainnet reached over twelve million blocks are, here, the starting state. A zero contributes NO entry to the checksum, so this network has exactly ONE block-based boundary.",
+      "thatOneBoundaryIsTheMERGE": "1,735,371, and it is the whole reason this file is interesting. Mainnet's Merge is keyed to accumulated difficulty and produces no fork-identifier entry at all. Sepolia's configuration sets MergeNetsplitBlock, whose NAME ends in Block, and identifiers are gathered by reflection over exactly those names -- so here the same consensus transition IS a boundary and the fork hash changes at it. The client's own published table labels that head 'First MergeNetsplit block'.",
+      "soANetworkAndItsTestnetExpressOneTransitionTwoWays": "A client that learned the shape from mainnet looks for a difficulty threshold and finds a block; one that learned it here looks for a block and finds a threshold. Neither is wrong about its own network. This is the case the family README means by 'a testnet may run a different consensus mechanism than its mainnet' -- or in this instance, express the same one differently.",
+      "noDAOForkHere": "Sepolia postdates it by years and its configuration carries no DAOForkBlock. The account-drain event asserted for mainnet has no counterpart on this network, and its absence is not an omission.",
+      "oracle": "Two independent sources agreeing. Computed from EIP-2124 and EIP-6122, and cross-checked against go-ethereum's OWN published table for this network, PARSED FROM ITS SOURCE rather than transcribed -- all 16 published cases reproduce.",
+      "oracle-version": "go-ethereum, params/config.go SepoliaChainConfig and core/forkid/forkid_test.go",
+      "useYourOwnGenesisHash": "Seed the checksum from the genesis hash YOUR client computes and treat the one here as a cross-check. Taken the other way every vector passes regardless of what genesis your client built.",
+      "generated": "2026-08-25"
+    },
+    "chainId": "11155111",
+    "genesisHash": "0x25a5cc106eea7138acab33231d7160d69cb777ee0c2c553fcddf5138993e6dd9",
+    "forkBlocks": [
+      "1735371"
+    ],
+    "forkTimestamps": [
+      "1677557088",
+      "1706655072",
+      "1741159776",
+      "1760427360",
+      "1761017184",
+      "1761607008"
+    ],
+    "forkNames": {
+      "1735371": "MergeNetsplit -- the Merge, expressed as a BLOCK on this network",
+      "1677557088": "Shanghai",
+      "1706655072": "Cancun",
+      "1741159776": "Prague",
+      "1760427360": "Osaka",
+      "1761017184": "BPO1",
+      "1761607008": "BPO2"
+    },
+    "vectors": [
+      {
+        "head": "0",
+        "time": "0",
+        "forkHash": "0xfe3366e7",
+        "forkNext": "1735371",
+        "forkIdRlp": "0xc984fe3366e7831a7acb"
+      },
+      {
+        "head": "1735370",
+        "time": "0",
+        "forkHash": "0xfe3366e7",
+        "forkNext": "1735371",
+        "forkIdRlp": "0xc984fe3366e7831a7acb"
+      },
+      {
+        "head": "1735371",
+        "time": "0",
+        "forkHash": "0xb96cbd13",
+        "forkNext": "1677557088",
+        "forkIdRlp": "0xca84b96cbd138463fd7d60"
+      },
+      {
+        "head": "1735372",
+        "time": "0",
+        "forkHash": "0xb96cbd13",
+        "forkNext": "1677557088",
+        "forkIdRlp": "0xca84b96cbd138463fd7d60"
+      },
+      {
+        "head": "11735371",
+        "time": "1677557087",
+        "forkHash": "0xb96cbd13",
+        "forkNext": "1677557088",
+        "forkIdRlp": "0xca84b96cbd138463fd7d60"
+      },
+      {
+        "head": "11735371",
+        "time": "1677557088",
+        "forkHash": "0xf7f9bc08",
+        "forkNext": "1706655072",
+        "forkIdRlp": "0xca84f7f9bc088465b97d60"
+      },
+      {
+        "head": "11735371",
+        "time": "1677557089",
+        "forkHash": "0xf7f9bc08",
+        "forkNext": "1706655072",
+        "forkIdRlp": "0xca84f7f9bc088465b97d60"
+      },
+      {
+        "head": "11735371",
+        "time": "1706655071",
+        "forkHash": "0xf7f9bc08",
+        "forkNext": "1706655072",
+        "forkIdRlp": "0xca84f7f9bc088465b97d60"
+      },
+      {
+        "head": "11735371",
+        "time": "1706655072",
+        "forkHash": "0x88cf81d9",
+        "forkNext": "1741159776",
+        "forkIdRlp": "0xca8488cf81d98467c7fd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1706655073",
+        "forkHash": "0x88cf81d9",
+        "forkNext": "1741159776",
+        "forkIdRlp": "0xca8488cf81d98467c7fd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1741159775",
+        "forkHash": "0x88cf81d9",
+        "forkNext": "1741159776",
+        "forkIdRlp": "0xca8488cf81d98467c7fd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1741159776",
+        "forkHash": "0xed88b5fd",
+        "forkNext": "1760427360",
+        "forkIdRlp": "0xca84ed88b5fd8468edfd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1741159777",
+        "forkHash": "0xed88b5fd",
+        "forkNext": "1760427360",
+        "forkIdRlp": "0xca84ed88b5fd8468edfd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1760427359",
+        "forkHash": "0xed88b5fd",
+        "forkNext": "1760427360",
+        "forkIdRlp": "0xca84ed88b5fd8468edfd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1760427360",
+        "forkHash": "0xe2ae4999",
+        "forkNext": "1761017184",
+        "forkIdRlp": "0xca84e2ae49998468f6fd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1760427361",
+        "forkHash": "0xe2ae4999",
+        "forkNext": "1761017184",
+        "forkIdRlp": "0xca84e2ae49998468f6fd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1761017183",
+        "forkHash": "0xe2ae4999",
+        "forkNext": "1761017184",
+        "forkIdRlp": "0xca84e2ae49998468f6fd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1761017184",
+        "forkHash": "0x56078a1e",
+        "forkNext": "1761607008",
+        "forkIdRlp": "0xca8456078a1e8468fffd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1761017185",
+        "forkHash": "0x56078a1e",
+        "forkNext": "1761607008",
+        "forkIdRlp": "0xca8456078a1e8468fffd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1761607007",
+        "forkHash": "0x56078a1e",
+        "forkNext": "1761607008",
+        "forkIdRlp": "0xca8456078a1e8468fffd60"
+      },
+      {
+        "head": "11735371",
+        "time": "1761607008",
+        "forkHash": "0x268956b6",
+        "forkNext": "0",
+        "forkIdRlp": "0xc684268956b680"
+      },
+      {
+        "head": "11735371",
+        "time": "1761607009",
+        "forkHash": "0x268956b6",
+        "forkNext": "0",
+        "forkIdRlp": "0xc684268956b680"
+      }
+    ]
+  }
+}
