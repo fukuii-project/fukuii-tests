@@ -18,28 +18,38 @@ Verified against the readers and the fixtures on **2026-08-24**.
 
 ---
 
-## Read this first: only three of the six shapes have a reader today
+## Read this first: the six shapes are not equally settled
 
-This matters more than anything else in the file, and taking the six as equally settled is the
-mistake to avoid.
+Taking them as equally hardened is the mistake to avoid. Two axes matter and they are independent:
+whether the format **pre-exists this repository**, and whether anything **reads it yet**.
 
-| shape | directory | parsed today by | status |
+| shape | directory | format | a reader exists |
 |---|---|---|---|
-| state | `state/` | `fukuii-cli`, `StateFixture.scala` | **an existing format**, shared with the Ethereum corpora |
-| difficulty | `difficulty/` | `fukuii-cli`, `DifficultyFixture.scala` | **an existing format**, shared with `DifficultyTests` |
-| fork identifier | `forkid/` | *nothing yet* | **specified here**, by this repository |
-| block-level | `blocks/` | *nothing yet* | **specified here**, by this repository |
-| chain selection | `chainselection/` | *nothing yet* | **specified here**, by this repository |
-| proof of work | `pow/` | `fukuii-cli`, `PoWFixture.scala` | **an existing format, extended here** — see the shape |
+| state | `state/` | **pre-existing** — geth's GeneralStateTest, shared with the Ethereum corpora | yes |
+| difficulty | `difficulty/` | **pre-existing** — shared with `DifficultyTests` | yes |
+| proof of work | `pow/` | **pre-existing, extended here** | yes |
+| block-level | `blocks/` | **specified here** | **partly — two of its four schemas** |
+| fork identifier | `forkid/` | **specified here** | not yet |
+| chain selection | `chainselection/` | **specified here** | not yet |
 
-Three are **descriptions of formats that already exist**: get them wrong and your harness
-disagrees with a corpus of tens of thousands of published files. Fix your reader.
+**Three formats pre-exist this repository**: get them wrong and your harness disagrees with a corpus
+of tens of thousands of published files. Fix your reader.
 
-The other three are **proposals with one publisher and no consumer**. No upstream corpus has ever
-carried them, because no upstream corpus tests these rules — Ethereum has no era emission, no
-declined fork to exclude from a checksum, and no reorg-defense rule. If one of these shapes is
-awkward in your language, that is worth reporting rather than working around: nothing has
-hardened them yet.
+**Three are specified here, with one publisher.** No upstream corpus carries them, because no
+upstream corpus tests these rules — Ethereum has no era emission, no declined fork to exclude from
+a checksum, and no reorg-defense rule. If one is awkward in your language, report it rather than
+work around it: nothing has hardened them yet.
+
+**`blocks/` is the one shape where "has a reader" is per-schema rather than per-directory.** It
+holds four schemas and they are unrelated to each other beyond `_info`; a consumer reading the
+emission vectors has done nothing toward reading the receipt-encoding ones. Establish which
+schemas your reader covers before treating the directory as supported.
+
+> **Do not name a specific file in the client here.** An earlier version of this table cited three
+> reader filenames and **all three had ceased to exist** — the client is under active development
+> and its test tree moves. Name the module and let the reader search it; a stale filename is worse
+> than none, because it reads as precise. This is the same rule this repository applies to
+> specifications: cite, never restate.
 
 **Do not infer a shape by pattern-matching a neighbouring file.** The six nest differently and
 none of them is guessable from another. Confirm a new one by round-tripping a fixture through a
