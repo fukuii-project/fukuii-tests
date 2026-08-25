@@ -1,0 +1,381 @@
+{
+  "forkIdentifierEthereumMainnet": {
+    "_info": {
+      "comment": "Fork identifiers for Ethereum mainnet. This is one of the few things a network needs that the upstream corpus structurally cannot supply: ethereum/tests keys every expectation on a fork NAME and is network-agnostic, so it says what Byzantium rules do and never says that Ethereum mainnet is at Byzantium from block 4,370,000. A fork identifier is exactly that second statement.",
+      "whyThisRepositoryAuthorsTHISAndNotEthereumsStateTests": "Ethereum's own corpus is alive, maintained, and vastly larger than anything authorable here, and it is the authority for the EVM. Re-authoring it would duplicate it badly and go stale. What it does not contain -- measured, not assumed -- is any fork-identifier vector and any network activation height. Those are network facts rather than rule facts, and they are what this directory holds.",
+      "bothForkKindsAppear": "Ethereum's schedule changes shape at the Merge. Boundaries through Gray Glacier are BLOCK numbers; Shanghai, Cancun and Prague are TIMESTAMPS, and EIP-6122 extends the checksum to accumulate them after the block-based ones. Every vector therefore carries both a head and a time. Ethereum Classic has no time-based fork, so this is a shape its files never exercise -- do not assume a reader written against them handles it.",
+      "theTwoHeightsThatCollapse": "Constantinople and Petersburg both activate at 7,280,000 and contribute ONE entry to the checksum, not two. EIP-155 and EIP-158 likewise share 2,675,000. A client that folds a duplicate height in twice produces a wrong identifier from that point on and will not peer.",
+      "divergenceFromEthereumClassic": {
+        "whyThisIsStatedAsAnAssertionAndNotAsSharedFILES": "The two networks share a genesis and every rule through Homestead, so it is tempting to factor the agreement into a common directory. That is deliberately not done: a shared directory cannot say shared BY WHOM, and becomes a grab bag the moment a third network joins. The agreement is recorded here as a claim naming both networks and the exact head at which it ends, which degrades correctly -- at a future divergence you delete a sentence with a reason rather than quietly moving a file.",
+        "identicalThrough": "head 1,149,999. Both networks compute 0xfc64ec04 with next=1,150,000, because they share Ethereum's genesis and neither has passed a fork.",
+        "firstDivergence": "head 1,150,000. The fork HASH still agrees at 0x97c2c34c -- both passed Homestead and nothing else -- but the NEXT differs: Ethereum expects the DAO fork at 1,920,000 and Ethereum Classic expects Die Hard at 2,500,000.",
+        "whatThatMeansInPractice": "The divergence is announced one fork before it happens. A node on either chain can tell the other apart at Homestead, before either has executed a block the other would reject. That is the fork identifier doing its job, and it is why the declined fork is visible in ../../ethereumclassic/mainnet/forkid/ as an absence rather than an entry."
+      },
+      "oracle": "Two independent sources agreeing. Computed from EIP-2124 and EIP-6122, and cross-checked against go-ethereum's OWN published mainnet table in core/forkid/forkid_test.go, which agrees on all 28 cases it covers including the block-to-timestamp transition.",
+      "oracle-version": "go-ethereum, params/config.go MainnetChainConfig and core/forkid/forkid_test.go",
+      "useYourOwnGenesisHash": "As with every file of this shape: seed the checksum from the genesis hash YOUR client computes and treat the one recorded here as a cross-check. Taken the other way, every vector passes regardless of what genesis your client built.",
+      "generated": "2026-08-25"
+    },
+    "genesisHash": "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
+    "forkBlocks": [
+      "1150000",
+      "1920000",
+      "2463000",
+      "2675000",
+      "4370000",
+      "7280000",
+      "9069000",
+      "9200000",
+      "12244000",
+      "12965000",
+      "13773000",
+      "15050000"
+    ],
+    "forkTimestamps": [
+      "1681338455",
+      "1710338135",
+      "1746612311"
+    ],
+    "forkNames": {
+      "1150000": "Homestead",
+      "1920000": "DAO Fork",
+      "2463000": "Tangerine Whistle",
+      "2675000": "Spurious Dragon",
+      "4370000": "Byzantium",
+      "7280000": "Constantinople and Petersburg (one height)",
+      "9069000": "Istanbul",
+      "9200000": "Muir Glacier",
+      "12244000": "Berlin",
+      "12965000": "London",
+      "13773000": "Arrow Glacier",
+      "15050000": "Gray Glacier",
+      "1681338455": "Shanghai",
+      "1710338135": "Cancun",
+      "1746612311": "Prague"
+    },
+    "vectors": [
+      {
+        "head": "0",
+        "time": "0",
+        "forkHash": "0xfc64ec04",
+        "forkNext": "1150000",
+        "forkIdRlp": "0xc984fc64ec0483118c30"
+      },
+      {
+        "head": "1149999",
+        "time": "0",
+        "forkHash": "0xfc64ec04",
+        "forkNext": "1150000",
+        "forkIdRlp": "0xc984fc64ec0483118c30"
+      },
+      {
+        "head": "1150000",
+        "time": "0",
+        "forkHash": "0x97c2c34c",
+        "forkNext": "1920000",
+        "forkIdRlp": "0xc98497c2c34c831d4c00"
+      },
+      {
+        "head": "1150001",
+        "time": "0",
+        "forkHash": "0x97c2c34c",
+        "forkNext": "1920000",
+        "forkIdRlp": "0xc98497c2c34c831d4c00"
+      },
+      {
+        "head": "1919999",
+        "time": "0",
+        "forkHash": "0x97c2c34c",
+        "forkNext": "1920000",
+        "forkIdRlp": "0xc98497c2c34c831d4c00"
+      },
+      {
+        "head": "1920000",
+        "time": "0",
+        "forkHash": "0x91d1f948",
+        "forkNext": "2463000",
+        "forkIdRlp": "0xc98491d1f94883259518"
+      },
+      {
+        "head": "1920001",
+        "time": "0",
+        "forkHash": "0x91d1f948",
+        "forkNext": "2463000",
+        "forkIdRlp": "0xc98491d1f94883259518"
+      },
+      {
+        "head": "2462999",
+        "time": "0",
+        "forkHash": "0x91d1f948",
+        "forkNext": "2463000",
+        "forkIdRlp": "0xc98491d1f94883259518"
+      },
+      {
+        "head": "2463000",
+        "time": "0",
+        "forkHash": "0x7a64da13",
+        "forkNext": "2675000",
+        "forkIdRlp": "0xc9847a64da138328d138"
+      },
+      {
+        "head": "2463001",
+        "time": "0",
+        "forkHash": "0x7a64da13",
+        "forkNext": "2675000",
+        "forkIdRlp": "0xc9847a64da138328d138"
+      },
+      {
+        "head": "2674999",
+        "time": "0",
+        "forkHash": "0x7a64da13",
+        "forkNext": "2675000",
+        "forkIdRlp": "0xc9847a64da138328d138"
+      },
+      {
+        "head": "2675000",
+        "time": "0",
+        "forkHash": "0x3edd5b10",
+        "forkNext": "4370000",
+        "forkIdRlp": "0xc9843edd5b108342ae50"
+      },
+      {
+        "head": "2675001",
+        "time": "0",
+        "forkHash": "0x3edd5b10",
+        "forkNext": "4370000",
+        "forkIdRlp": "0xc9843edd5b108342ae50"
+      },
+      {
+        "head": "4369999",
+        "time": "0",
+        "forkHash": "0x3edd5b10",
+        "forkNext": "4370000",
+        "forkIdRlp": "0xc9843edd5b108342ae50"
+      },
+      {
+        "head": "4370000",
+        "time": "0",
+        "forkHash": "0xa00bc324",
+        "forkNext": "7280000",
+        "forkIdRlp": "0xc984a00bc324836f1580"
+      },
+      {
+        "head": "4370001",
+        "time": "0",
+        "forkHash": "0xa00bc324",
+        "forkNext": "7280000",
+        "forkIdRlp": "0xc984a00bc324836f1580"
+      },
+      {
+        "head": "7279999",
+        "time": "0",
+        "forkHash": "0xa00bc324",
+        "forkNext": "7280000",
+        "forkIdRlp": "0xc984a00bc324836f1580"
+      },
+      {
+        "head": "7280000",
+        "time": "0",
+        "forkHash": "0x668db0af",
+        "forkNext": "9069000",
+        "forkIdRlp": "0xc984668db0af838a61c8"
+      },
+      {
+        "head": "7280001",
+        "time": "0",
+        "forkHash": "0x668db0af",
+        "forkNext": "9069000",
+        "forkIdRlp": "0xc984668db0af838a61c8"
+      },
+      {
+        "head": "9068999",
+        "time": "0",
+        "forkHash": "0x668db0af",
+        "forkNext": "9069000",
+        "forkIdRlp": "0xc984668db0af838a61c8"
+      },
+      {
+        "head": "9069000",
+        "time": "0",
+        "forkHash": "0x879d6e30",
+        "forkNext": "9200000",
+        "forkIdRlp": "0xc984879d6e30838c6180"
+      },
+      {
+        "head": "9069001",
+        "time": "0",
+        "forkHash": "0x879d6e30",
+        "forkNext": "9200000",
+        "forkIdRlp": "0xc984879d6e30838c6180"
+      },
+      {
+        "head": "9199999",
+        "time": "0",
+        "forkHash": "0x879d6e30",
+        "forkNext": "9200000",
+        "forkIdRlp": "0xc984879d6e30838c6180"
+      },
+      {
+        "head": "9200000",
+        "time": "0",
+        "forkHash": "0xe029e991",
+        "forkNext": "12244000",
+        "forkIdRlp": "0xc984e029e99183bad420"
+      },
+      {
+        "head": "9200001",
+        "time": "0",
+        "forkHash": "0xe029e991",
+        "forkNext": "12244000",
+        "forkIdRlp": "0xc984e029e99183bad420"
+      },
+      {
+        "head": "12243999",
+        "time": "0",
+        "forkHash": "0xe029e991",
+        "forkNext": "12244000",
+        "forkIdRlp": "0xc984e029e99183bad420"
+      },
+      {
+        "head": "12244000",
+        "time": "0",
+        "forkHash": "0x0eb440f6",
+        "forkNext": "12965000",
+        "forkIdRlp": "0xc9840eb440f683c5d488"
+      },
+      {
+        "head": "12244001",
+        "time": "0",
+        "forkHash": "0x0eb440f6",
+        "forkNext": "12965000",
+        "forkIdRlp": "0xc9840eb440f683c5d488"
+      },
+      {
+        "head": "12964999",
+        "time": "0",
+        "forkHash": "0x0eb440f6",
+        "forkNext": "12965000",
+        "forkIdRlp": "0xc9840eb440f683c5d488"
+      },
+      {
+        "head": "12965000",
+        "time": "0",
+        "forkHash": "0xb715077d",
+        "forkNext": "13773000",
+        "forkIdRlp": "0xc984b715077d83d228c8"
+      },
+      {
+        "head": "12965001",
+        "time": "0",
+        "forkHash": "0xb715077d",
+        "forkNext": "13773000",
+        "forkIdRlp": "0xc984b715077d83d228c8"
+      },
+      {
+        "head": "13772999",
+        "time": "0",
+        "forkHash": "0xb715077d",
+        "forkNext": "13773000",
+        "forkIdRlp": "0xc984b715077d83d228c8"
+      },
+      {
+        "head": "13773000",
+        "time": "0",
+        "forkHash": "0x20c327fc",
+        "forkNext": "15050000",
+        "forkIdRlp": "0xc98420c327fc83e5a510"
+      },
+      {
+        "head": "13773001",
+        "time": "0",
+        "forkHash": "0x20c327fc",
+        "forkNext": "15050000",
+        "forkIdRlp": "0xc98420c327fc83e5a510"
+      },
+      {
+        "head": "15049999",
+        "time": "0",
+        "forkHash": "0x20c327fc",
+        "forkNext": "15050000",
+        "forkIdRlp": "0xc98420c327fc83e5a510"
+      },
+      {
+        "head": "15050000",
+        "time": "0",
+        "forkHash": "0xf0afd0e3",
+        "forkNext": "1681338455",
+        "forkIdRlp": "0xca84f0afd0e38464373057"
+      },
+      {
+        "head": "15050001",
+        "time": "0",
+        "forkHash": "0xf0afd0e3",
+        "forkNext": "1681338455",
+        "forkIdRlp": "0xca84f0afd0e38464373057"
+      },
+      {
+        "head": "20000000",
+        "time": "1681338454",
+        "forkHash": "0xf0afd0e3",
+        "forkNext": "1681338455",
+        "forkIdRlp": "0xca84f0afd0e38464373057"
+      },
+      {
+        "head": "20000000",
+        "time": "1681338455",
+        "forkHash": "0xdce96c2d",
+        "forkNext": "1710338135",
+        "forkIdRlp": "0xca84dce96c2d8465f1b057"
+      },
+      {
+        "head": "20000000",
+        "time": "1681338456",
+        "forkHash": "0xdce96c2d",
+        "forkNext": "1710338135",
+        "forkIdRlp": "0xca84dce96c2d8465f1b057"
+      },
+      {
+        "head": "20000000",
+        "time": "1710338134",
+        "forkHash": "0xdce96c2d",
+        "forkNext": "1710338135",
+        "forkIdRlp": "0xca84dce96c2d8465f1b057"
+      },
+      {
+        "head": "20000000",
+        "time": "1710338135",
+        "forkHash": "0x9f3d2254",
+        "forkNext": "1746612311",
+        "forkIdRlp": "0xca849f3d225484681b3057"
+      },
+      {
+        "head": "20000000",
+        "time": "1710338136",
+        "forkHash": "0x9f3d2254",
+        "forkNext": "1746612311",
+        "forkIdRlp": "0xca849f3d225484681b3057"
+      },
+      {
+        "head": "20000000",
+        "time": "1746612310",
+        "forkHash": "0x9f3d2254",
+        "forkNext": "1746612311",
+        "forkIdRlp": "0xca849f3d225484681b3057"
+      },
+      {
+        "head": "20000000",
+        "time": "1746612311",
+        "forkHash": "0xc376cf8b",
+        "forkNext": "0",
+        "forkIdRlp": "0xc684c376cf8b80"
+      },
+      {
+        "head": "20000000",
+        "time": "1746612312",
+        "forkHash": "0xc376cf8b",
+        "forkNext": "0",
+        "forkIdRlp": "0xc684c376cf8b80"
+      }
+    ]
+  }
+}
