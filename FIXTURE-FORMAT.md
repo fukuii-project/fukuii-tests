@@ -491,12 +491,12 @@ in this schedule is covered by nothing else in the suite for exactly that reason
 **Specified here.** Block-level rules are functions of height, with no per-upgrade expectation to
 carry, so this shape is indexed by block number rather than keyed by upgrade.
 
-> **`blocks/` holds THREE schemas, and the outer name is what says which.** This is true of
+> **`blocks/` holds FOUR schemas, and the outer name is what says which.** This is true of
 > all three repository-specified types and it is a real difference from `state/` and `difficulty/`,
 > where every file in a directory has the same shape. A type directory here groups files by the
 > **reader code path** they need, and each file's single outer key names its own schema —
-> `eraEmissionSchedule`, `requiredBlockHeaders` and `ommerPaymentVectors` are all block-level and
-> share no fields beyond `_info`. A harness dispatches on that outer name; it must not assume a directory is homogeneous.
+> `eraEmissionSchedule`, `requiredBlockHeaders`, `ommerPaymentVectors` and
+> `receiptStatusEncoding` are all block-level and share no fields beyond `_info`. A harness dispatches on that outer name; it must not assume a directory is homogeneous.
 
 ### `eraEmissionSchedule` — what a block pays
 
@@ -663,6 +663,53 @@ nothing.
 included at all — at most two, within seven ancestors, not already included — is validation rather
 than emission. The two have to agree or a client mints currency no other client mints, which is why
 both are stated rather than one inferred from the other.
+
+### `receiptStatusEncoding` — what a receipt's first field is
+
+```jsonc
+{
+  "receiptStatusEncoding": {
+    "_info": { … },
+    "activationBlock":  "8772000",
+    "activationUpgrade": "ETC_Atlantis",
+    "emptyTrieRoot":    "0x56e81f17…",
+    "vectors": [
+      { "name":                 "boundary_post_one_successful_transaction",
+        "blockNumber":          "8772000",
+        "receiptCarriesStatus": true,              // the rule flag, stated not inferred
+        "receipts": [ { "firstFieldKind":    "status",      // or "postStateRoot"
+                        "firstField":        "1",           // or "0x<32 bytes>"
+                        "succeeded":         true,
+                        "cumulativeGasUsed": "21000",
+                        "logCount":          "0",
+                        "logsBloom":         "0x…" } ],
+        "encodedReceipts": [ "0x…" ],              // rlp of each receipt, in order
+        "receiptsRoot":    "0x…",
+        "note":            "…" }
+    ],
+    "observedMainnet": { … }
+  }
+}
+```
+
+A receipt encodes as `rlp([postStateOrStatus, cumulativeGasUsed, logsBloom, logs])` on **both**
+sides of the activation — only the first field changes, and everything derived from it. Before
+Atlantis it is a 32-byte intermediate post-state root, so a receipt cannot say whether its
+transaction succeeded; from Atlantis it is `1` or `0`.
+
+The `receiptsRoot` is a Merkle-Patricia root over `rlp(index) → encoded receipt`.
+
+**Vectors come in PAIRS** — the same execution at `8771999` and at `8772000`. Only the pair shows
+that nothing but the encoding moved: same gas, same logs, same outcome, different root. A client
+writing the wrong form produces a header no other node accepts.
+
+**`receiptCarriesStatus` is published rather than left implicit** so a harness can check its own
+schedule resolution against the fixture instead of inferring the rule from the answer it is trying
+to verify.
+
+**One vector must NOT move**: a block with no transactions has the empty-trie root either side of
+the boundary. A harness whose root changes there is deriving it from the rule rather than from the
+receipts.
 
 ## Shape 5 — chain-selection vectors (`chainselection/`)
 
@@ -1121,11 +1168,10 @@ coverage for the rule's:
   an era schedule.
 - **A chain-selection runner.** `chainselection/` asserts the decision and the derivation of its
   inputs. Presenting a client with two real competing chains needs a runner.
-- **Receipts.** A `post` entry carries a state root, a logs hash and the signed transaction, and
-  none of those reaches a receipt. The observable for the receipt-status change is this: before
-  Atlantis a receipt carries `root` holding an intermediate state root; from Atlantis that field is
-  empty and `receiptsRoot` changes with the encoding. **Block-level work.** Adding a field for it
-  here would invent format no reader reads.
+- ~~**Receipts.**~~ **Now covered** by `blocks/receipt_status_encoding.json`. A `post` entry
+  carries a state root, a logs hash and the signed transaction and none of those reaches a
+  receipt — so this was never a state-fixture gap but a missing block-level shape, and it is the
+  last activation in this chain's mainnet configuration to be closed.
 - **A sealed header from this chain.** `pow/` asserts the epoch schedule that decides *which*
   dataset a seal is verified against. It does not assert that a client rejects a seal validated
   against the wrong one — that needs a mined nonce, which is a mining problem rather than an

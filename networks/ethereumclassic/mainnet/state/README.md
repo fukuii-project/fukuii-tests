@@ -166,6 +166,24 @@ It is not a state-transition rule, so it belongs in a fork-identifier test rathe
 Recorded in this directory because the schedule is where someone will look for it, and because
 "no state expectation" should not read as "nothing to test".
 
+## One Atlantis rule is asserted from `blocks/`, not here
+
+EIP-658 changed what a receipt's first field *is* — a 32-byte intermediate post-state root before
+Atlantis, a status code from Atlantis onward. Every other Atlantis rule in that upgrade is asserted
+by a fixture in this directory. This one cannot be, and the reason is structural rather than a
+matter of effort:
+
+**A `post` entry carries a post-state root, a logs hash and the signed transaction. None of those
+reaches a receipt.** There is no field here that could hold the answer, and adding one would invent
+format no reader reads — a fixture that asserts nothing while making a ledger look complete.
+
+It is asserted in `../blocks/receipt_status_encoding.json` instead, where the receipts root a block
+header carries is the natural observable.
+
+**Recorded here because this is where someone will look for it**, and because "no state
+expectation" must not read as "not tested" — the same reason the declined DAO fork is described in
+this file and tested in `../forkid/`.
+
 ## The generator now reaches the early upgrades
 
 Die Hard, Gotham and Defuse Difficulty Bomb were unfillable until the fork table gained entries

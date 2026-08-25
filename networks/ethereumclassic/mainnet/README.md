@@ -11,7 +11,8 @@ state/        state-transition fixtures    post keyed by upgrade
   storage/      reads, writes, refunds
   accounts/     creation, clearing, code limits
 difficulty/   difficulty fixtures          a different generator reads these
-blocks/       block-level fixtures         emission, ommer credits, required headers
+blocks/       block-level fixtures         emission, ommer credits, required headers,
+                                           receipt encoding
 forkid/       fork-identifier vectors
 chainselection/  reorg-defense vectors     which of two chains a node prefers
 pow/          proof-of-work epoch vectors  which dataset a seal is verified against
@@ -44,10 +45,16 @@ reward and the bomb removal is difficulty behavior -- and beyond those, the reor
 chain-selection policy and Thanos is a proof-of-work rule. A perfect state suite leaves all four at
 zero, which is why the other four directories are not optional extras.
 
-**Every activation in the production client's mainnet configuration is now covered by something**,
+**Every activation in the production client's mainnet configuration is covered by an assertion**,
 and that claim is derived from the configuration field by field rather than from the EIP-shaped
-subset of it. The two that closed last were found exactly that way: `ECIP1099FBlock`, which no
-`EIP...Block` grep can see, and `RequireBlockHashes`, which is not an activation block at all.
+subset of it. Two were found exactly that way: `ECIP1099FBlock`, which no `EIP...Block` grep can
+see, and `RequireBlockHashes`, which is not an activation block at all.
+
+The last to close was EIP-658, and it closed for a different reason worth separating from those
+two. It was never *missed* — the rule ledger named it, identified its observable, and recorded that
+a state fixture could not carry it. What was missing was a place to put it. `blocks/` is that
+place, and the fixture landing there is what turns the ledger's last row from a classification into
+an assertion.
 
 ## Adding a fixture
 
