@@ -1,0 +1,176 @@
+{
+  "forkIdentifierHolesky": {
+    "_info": {
+      "comment": "Fork identifiers for Holesky, a proof-of-stake testnet that was NEVER proof-of-work. Its terminal total difficulty is exactly zero, which the reference client reads as merged at genesis.",
+      "thisNetworkHasZeroBlockBasedBoundaries": "Every fork here is a timestamp. Ethereum mainnet is block-based then timestamp-based, Sepolia has exactly one block boundary and it is the Merge, and Ethereum Classic is block-based throughout with no timestamp fork at all. This is the fourth shape and the simplest: a schedule with no block dimension whatsoever.",
+      "mergedAtGenesisIsTheTHIRDBranch": "../sepolia/consensus/ records the three-way predicate the client uses for post-merge status. Holesky answers through the branch neither mainnet nor Sepolia uses: a terminal total difficulty of exactly zero. There was no proof-of-work phase to end.",
+      "genesisTimestampFiltersTheSchedule": "A fork identifier accumulates only timestamps STRICTLY GREATER than the genesis block's own timestamp -- the reference client drops the rest as 'forks before genesis'. This network's genesis timestamp is 1695902100. No declared fork is dropped on this network, so the filter is inert here -- but it is not inert everywhere; see ../hoodi/, where a fork declared at timestamp 0 is removed by it.",
+      "oracle": "Two independent sources agreeing. Computed from EIP-2124 and EIP-6122, and cross-checked against go-ethereum's OWN published table for this network, PARSED FROM ITS SOURCE rather than transcribed -- all 14 published cases reproduce.",
+      "oracle-version": "go-ethereum, params/config.go HoleskyChainConfig, core/genesis.go and core/forkid/forkid_test.go",
+      "useYourOwnGenesisHash": "Seed from the genesis hash YOUR client computes; the one here is a cross-check. Taken the other way every vector passes regardless of what genesis was built.",
+      "generated": "2026-08-25"
+    },
+    "chainId": "17000",
+    "genesisHash": "0xb5f7f912443c940f21fd611f12828d75b534364ed9e95ca4e307729a4661bde4",
+    "genesisTimestamp": "1695902100",
+    "forkBlocks": [],
+    "forkTimestamps": [
+      "1696000704",
+      "1707305664",
+      "1740434112",
+      "1759308480",
+      "1759800000",
+      "1760389824"
+    ],
+    "forkNames": {
+      "1696000704": "Shanghai",
+      "1707305664": "Cancun",
+      "1740434112": "Prague",
+      "1759308480": "Osaka",
+      "1759800000": "BPO1",
+      "1760389824": "BPO2"
+    },
+    "vectors": [
+      {
+        "head": "0",
+        "time": "0",
+        "forkHash": "0xc61a6098",
+        "forkNext": "1696000704",
+        "forkIdRlp": "0xca84c61a6098846516eac0"
+      },
+      {
+        "head": "0",
+        "time": "1695902100",
+        "forkHash": "0xc61a6098",
+        "forkNext": "1696000704",
+        "forkIdRlp": "0xca84c61a6098846516eac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1696000703",
+        "forkHash": "0xc61a6098",
+        "forkNext": "1696000704",
+        "forkIdRlp": "0xca84c61a6098846516eac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1696000704",
+        "forkHash": "0xfd4f016b",
+        "forkNext": "1707305664",
+        "forkIdRlp": "0xca84fd4f016b8465c36ac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1696000705",
+        "forkHash": "0xfd4f016b",
+        "forkNext": "1707305664",
+        "forkIdRlp": "0xca84fd4f016b8465c36ac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1707305663",
+        "forkHash": "0xfd4f016b",
+        "forkNext": "1707305664",
+        "forkIdRlp": "0xca84fd4f016b8465c36ac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1707305664",
+        "forkHash": "0x9b192ad0",
+        "forkNext": "1740434112",
+        "forkIdRlp": "0xca849b192ad08467bceac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1707305665",
+        "forkHash": "0x9b192ad0",
+        "forkNext": "1740434112",
+        "forkIdRlp": "0xca849b192ad08467bceac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1740434111",
+        "forkHash": "0x9b192ad0",
+        "forkNext": "1740434112",
+        "forkIdRlp": "0xca849b192ad08467bceac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1740434112",
+        "forkHash": "0xdfbd9bed",
+        "forkNext": "1759308480",
+        "forkIdRlp": "0xca84dfbd9bed8468dceac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1740434113",
+        "forkHash": "0xdfbd9bed",
+        "forkNext": "1759308480",
+        "forkIdRlp": "0xca84dfbd9bed8468dceac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1759308479",
+        "forkHash": "0xdfbd9bed",
+        "forkNext": "1759308480",
+        "forkIdRlp": "0xca84dfbd9bed8468dceac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1759308480",
+        "forkHash": "0x783def52",
+        "forkNext": "1759800000",
+        "forkIdRlp": "0xca84783def528468e46ac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1759308481",
+        "forkHash": "0x783def52",
+        "forkNext": "1759800000",
+        "forkIdRlp": "0xca84783def528468e46ac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1759799999",
+        "forkHash": "0x783def52",
+        "forkNext": "1759800000",
+        "forkIdRlp": "0xca84783def528468e46ac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1759800000",
+        "forkHash": "0xa280a45c",
+        "forkNext": "1760389824",
+        "forkIdRlp": "0xca84a280a45c8468ed6ac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1759800001",
+        "forkHash": "0xa280a45c",
+        "forkNext": "1760389824",
+        "forkIdRlp": "0xca84a280a45c8468ed6ac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1760389823",
+        "forkHash": "0xa280a45c",
+        "forkNext": "1760389824",
+        "forkIdRlp": "0xca84a280a45c8468ed6ac0"
+      },
+      {
+        "head": "1000000",
+        "time": "1760389824",
+        "forkHash": "0x9bc6cb31",
+        "forkNext": "0",
+        "forkIdRlp": "0xc6849bc6cb3180"
+      },
+      {
+        "head": "1000000",
+        "time": "1760389825",
+        "forkHash": "0x9bc6cb31",
+        "forkNext": "0",
+        "forkIdRlp": "0xc6849bc6cb3180"
+      }
+    ]
+  }
+}

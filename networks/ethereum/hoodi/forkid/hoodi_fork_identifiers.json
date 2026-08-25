@@ -1,0 +1,131 @@
+{
+  "forkIdentifierHoodi": {
+    "_info": {
+      "comment": "Fork identifiers for Hoodi, a proof-of-stake testnet merged at genesis. It carries the one case in this family where the genesis-timestamp filter changes the answer.",
+      "aForkDeclaredAtTimestampZERO": "Hoodi's configuration declares a fork at timestamp 0. It contributes NOTHING to the checksum: the reference client drops every fork time at or below the genesis timestamp, and this network's genesis is 1,742,212,800. A client that accumulates each declared timestamp without that filter produces a wrong identifier at the very first vector and will not peer. No other network in this family exercises it.",
+      "thisNetworkHasZeroBlockBasedBoundaries": "Like Holesky, every fork here is a timestamp and there is no block dimension at all.",
+      "mergedAtGenesis": "Terminal total difficulty of exactly zero, and a MergeNetsplitBlock of zero which is likewise dropped as the genesis ruleset. There was no proof-of-work phase.",
+      "genesisTimestampFiltersTheSchedule": "A fork identifier accumulates only timestamps STRICTLY GREATER than the genesis block's own timestamp -- the reference client drops the rest as 'forks before genesis'. This network's genesis timestamp is 1742212800. That filter is load-bearing here: the configuration declares a fork at timestamp 0, which is dropped, so a client that accumulates every declared timestamp produces a wrong identifier from the very first vector.",
+      "oracle": "Two independent sources agreeing. Computed from EIP-2124 and EIP-6122, and cross-checked against go-ethereum's OWN published table for this network, PARSED FROM ITS SOURCE rather than transcribed -- all 10 published cases reproduce.",
+      "oracle-version": "go-ethereum, params/config.go HoodiChainConfig, core/genesis.go and core/forkid/forkid_test.go",
+      "useYourOwnGenesisHash": "Seed from the genesis hash YOUR client computes; the one here is a cross-check. Taken the other way every vector passes regardless of what genesis was built.",
+      "generated": "2026-08-25"
+    },
+    "chainId": "560048",
+    "genesisHash": "0xbbe312868b376a3001692a646dd2d7d1e4406380dfd86b98aa8a34d1557c971b",
+    "genesisTimestamp": "1742212800",
+    "forkBlocks": [],
+    "forkTimestamps": [
+      "1742999832",
+      "1761677592",
+      "1762365720",
+      "1762955544"
+    ],
+    "forkNames": {
+      "1742999832": "Shanghai-era set",
+      "1761677592": "Osaka",
+      "1762365720": "BPO1",
+      "1762955544": "BPO2"
+    },
+    "vectors": [
+      {
+        "head": "0",
+        "time": "0",
+        "forkHash": "0xbef71d30",
+        "forkNext": "1742999832",
+        "forkIdRlp": "0xca84bef71d308467e41118"
+      },
+      {
+        "head": "0",
+        "time": "1742212800",
+        "forkHash": "0xbef71d30",
+        "forkNext": "1742999832",
+        "forkIdRlp": "0xca84bef71d308467e41118"
+      },
+      {
+        "head": "1000000",
+        "time": "1742999831",
+        "forkHash": "0xbef71d30",
+        "forkNext": "1742999832",
+        "forkIdRlp": "0xca84bef71d308467e41118"
+      },
+      {
+        "head": "1000000",
+        "time": "1742999832",
+        "forkHash": "0x0929e24e",
+        "forkNext": "1761677592",
+        "forkIdRlp": "0xca840929e24e8469011118"
+      },
+      {
+        "head": "1000000",
+        "time": "1742999833",
+        "forkHash": "0x0929e24e",
+        "forkNext": "1761677592",
+        "forkIdRlp": "0xca840929e24e8469011118"
+      },
+      {
+        "head": "1000000",
+        "time": "1761677591",
+        "forkHash": "0x0929e24e",
+        "forkNext": "1761677592",
+        "forkIdRlp": "0xca840929e24e8469011118"
+      },
+      {
+        "head": "1000000",
+        "time": "1761677592",
+        "forkHash": "0xe7e0e7ff",
+        "forkNext": "1762365720",
+        "forkIdRlp": "0xca84e7e0e7ff84690b9118"
+      },
+      {
+        "head": "1000000",
+        "time": "1761677593",
+        "forkHash": "0xe7e0e7ff",
+        "forkNext": "1762365720",
+        "forkIdRlp": "0xca84e7e0e7ff84690b9118"
+      },
+      {
+        "head": "1000000",
+        "time": "1762365719",
+        "forkHash": "0xe7e0e7ff",
+        "forkNext": "1762365720",
+        "forkIdRlp": "0xca84e7e0e7ff84690b9118"
+      },
+      {
+        "head": "1000000",
+        "time": "1762365720",
+        "forkHash": "0x3893353e",
+        "forkNext": "1762955544",
+        "forkIdRlp": "0xca843893353e8469149118"
+      },
+      {
+        "head": "1000000",
+        "time": "1762365721",
+        "forkHash": "0x3893353e",
+        "forkNext": "1762955544",
+        "forkIdRlp": "0xca843893353e8469149118"
+      },
+      {
+        "head": "1000000",
+        "time": "1762955543",
+        "forkHash": "0x3893353e",
+        "forkNext": "1762955544",
+        "forkIdRlp": "0xca843893353e8469149118"
+      },
+      {
+        "head": "1000000",
+        "time": "1762955544",
+        "forkHash": "0x23aa1351",
+        "forkNext": "0",
+        "forkIdRlp": "0xc68423aa135180"
+      },
+      {
+        "head": "1000000",
+        "time": "1762955545",
+        "forkHash": "0x23aa1351",
+        "forkNext": "0",
+        "forkIdRlp": "0xc68423aa135180"
+      }
+    ]
+  }
+}

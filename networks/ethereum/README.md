@@ -42,6 +42,8 @@ adding anything here is one question:
 | `mainnet/consensus/` | the Merge, keyed to accumulated difficulty rather than to a height |
 | `sepolia/forkid/` | fork identifiers — one block-based boundary, and it is the Merge |
 | `sepolia/consensus/` | the Merge expressed as a block, and the three-branch predicate |
+| `holesky/forkid/` | a schedule with no block dimension at all |
+| `hoodi/forkid/` | the same, plus the one case where the genesis-timestamp filter bites |
 
 ## Ethereum's schedule changes shape at the Merge
 
@@ -79,6 +81,27 @@ boundary and the fork hash changes at it.
 one that learned it here looks for a block and finds a threshold.** Neither is wrong about its own
 network, and that is what the roadmap means by a testnet expressing a mechanism differently from its
 mainnet.
+
+## Four schedule shapes, one per network
+
+| network | shape |
+|---|---|
+| Ethereum Classic (both networks) | block-based throughout, **no timestamp fork at all** |
+| Ethereum mainnet | block-based, then timestamp-based from Shanghai |
+| Sepolia | **one** block boundary — the Merge — then timestamps |
+| Holesky, Hoodi | timestamps only, **no block dimension whatsoever** |
+
+A reader who has only met one of these has not met the shape of the problem.
+
+### The genesis-timestamp filter, which only Hoodi exercises
+
+A fork identifier accumulates only timestamps **strictly greater than the genesis block's own
+timestamp** — the reference client drops the rest as *forks before genesis*. On three of these four
+networks nothing is dropped and the filter is invisible.
+
+**Hoodi declares a fork at timestamp 0.** It contributes nothing, and a client that accumulates
+every declared timestamp produces a wrong identifier at its very first vector and will not peer.
+That is the whole reason Hoodi is worth carrying.
 
 ## One predicate, three branches, and every network answers through a different one
 
