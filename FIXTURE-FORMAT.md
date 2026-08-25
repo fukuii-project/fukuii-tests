@@ -1122,10 +1122,10 @@ coverage for the rule's:
 - **A chain-selection runner.** `chainselection/` asserts the decision and the derivation of its
   inputs. Presenting a client with two real competing chains needs a runner.
 - **Receipts.** A `post` entry carries a state root, a logs hash and the signed transaction, and
-  none of those reaches a receipt. The observable for the receipt-status change is recorded in
-  `.local/plans/10-rule-coverage-audit.md`: before Atlantis a receipt carries `root` holding an
-  intermediate state root; from Atlantis that field is empty and `receiptsRoot` changes with the
-  encoding. **Block-level work.** Adding a field for it here would invent format no reader reads.
+  none of those reaches a receipt. The observable for the receipt-status change is this: before
+  Atlantis a receipt carries `root` holding an intermediate state root; from Atlantis that field is
+  empty and `receiptsRoot` changes with the encoding. **Block-level work.** Adding a field for it
+  here would invent format no reader reads.
 - **A sealed header from this chain.** `pow/` asserts the epoch schedule that decides *which*
   dataset a seal is verified against. It does not assert that a client rejects a seal validated
   against the wrong one — that needs a mined nonce, which is a mining problem rather than an
