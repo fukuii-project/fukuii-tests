@@ -2,7 +2,7 @@
 # The logic lives once in fukuii-project/.github; bump the SHA below to pick up a change there.
 # Add this repo's own build/test job below the `checks` job as needed.
 #
-# NOTE (supply-chain, sentinel, 2026-08-21): pinned per Rule 7 (supply-chain-security.md) rather
+# NOTE (supply-chain review, 2026-08-21): pinned to an immutable commit rather
 # than @main — fukuii-project/.github's main has no branch protection and no tags (verified live
 # via the GitHub API), so an unpinned ref here would let anyone with push access to that repo
 # change what every seeded repo's CI runs, unreviewed. To bump: resolve the new SHA

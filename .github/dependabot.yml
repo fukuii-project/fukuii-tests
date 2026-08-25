@@ -51,7 +51,8 @@ updates:
   #   cooldown: { default-days: 7, semver-major-days: 21 }
   #
   # No semver-major-days here either: Docker's SemVer-bump column is also "not
-  # supported" in that same table (sentinel, 2026-08-21) — default-days only.
+  # supported" in that same table (verified against the options reference, 2026-08-21) —
+  # default-days only.
   #
   # - package-ecosystem: "docker"
   #   directory: "/"
