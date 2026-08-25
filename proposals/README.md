@@ -6,26 +6,38 @@
 ```
 proposals/
   eip/
+    eip-225/            Clique proof-of-authority
+      consensus/
   ecip/
 ```
 
-## This directory is empty today, and the reason is structural
+## What has to be true before a fixture belongs here
 
-**No fixture has yet turned out to be proposal-scoped**, and that is worth stating rather than
-leaving a reader to wonder whether something is missing.
+**No chain id, and no network's upgrade labels** — a rule delta and its observable effect, nothing
+else. That test is why this directory stood empty while `networks/` filled up, and it is still the
+test.
 
-Everything authored so far depends on a specific network. A state fixture carries a chain id and a
-`post` map keyed by **one family's upgrade labels**, so `ETC_Phoenix` is not a thing Ethereum has;
-a fork identifier is a checksum over one network's whole schedule; emission, the difficulty bomb and
-the reorg defense are Ethereum Classic's alone. None of those is a delta on a rule set in isolation.
+Everything authored before EIP-225 depends on a specific network. A state fixture carries a chain id
+and a `post` map keyed by **one family's** upgrade labels, so `ETC_Phoenix` is not a thing Ethereum
+has; a fork identifier is a checksum over one network's whole schedule; emission, the difficulty
+bomb and the reorg defense are Ethereum Classic's alone. None of those is a delta on a rule set in
+isolation.
 
-**A genuinely proposal-scoped fixture would have to carry no chain id and no network's label set** —
-just a rule delta and its observable effect. That is expressible in the format and nothing here has
-needed it yet. When one does, this is where it goes.
+**EIP-225 is the first that is.** Clique's authorized signer set is a pure function of the header
+chain — no chain id reaches the rule, no upgrade schedules it, and the same vectors hold on every
+network that runs Clique. A fixture asserting *a particular Clique network's* genesis signer set or
+block period would not be: that is network-scoped and belongs in `../networks/`.
 
 The alternative — putting network-agnostic material under whichever network happened to need it
-first — is the failure this axis exists to prevent, so the directory stays and stays empty until
-something genuinely belongs in it.
+first — is the failure this axis exists to prevent. Nothing lands here to fill the directory; it
+lands here because it passed the test above.
+
+## Naming beneath a namespace
+
+`eip-225/` follows the convention the source corpus uses — `ethereum/EIPs` names its own files
+`eip-225.md` — per the rule in `../AGENTS.md` that a data tree follows the corpora's conventions
+rather than the client's type names. Beneath it, the **test type** is a directory exactly as under a
+network, because a harness resolves by type before it resolves by subject.
 
 ## Why proposals are their own axis
 
