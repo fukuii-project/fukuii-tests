@@ -39,6 +39,7 @@ adding anything here is one question:
 |---|---|
 | `mainnet/forkid/` | fork identifiers across the full schedule, both block-based and timestamp-based |
 | `mainnet/blocks/` | the DAO irregular state change — an event rather than a rule |
+| `mainnet/consensus/` | the Merge, keyed to accumulated difficulty rather than to a height |
 
 ## Ethereum's schedule changes shape at the Merge
 
@@ -48,6 +49,17 @@ block-based ones. Every vector here carries both a head and a time.
 
 **Ethereum Classic has no time-based fork**, so a reader written only against `../ethereumclassic/`
 has never met this case. That is worth knowing before assuming a shared reader works for both.
+
+## Three shapes here that Ethereum Classic has no equivalent of
+
+Worth listing, because a reader arriving from `../ethereumclassic/` will not have met any of them:
+
+1. **Timestamp-based fork boundaries.** Shanghai onward activate by time, and EIP-6122 accumulates
+   them into the fork identifier after the block-based ones.
+2. **A transition keyed to accumulated difficulty.** The Merge answers neither "at what block" nor
+   "at what time" — it answers "when total difficulty crosses a threshold", and the reference client
+   records no merge height at all.
+3. **An irregular state change.** A scripted mutation at one height that is not a rule.
 
 ## Sharing with Ethereum Classic is an assertion, never a directory
 

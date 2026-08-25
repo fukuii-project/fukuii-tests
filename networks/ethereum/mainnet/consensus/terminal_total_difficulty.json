@@ -1,0 +1,69 @@
+{
+  "terminalTotalDifficultyMainnet": {
+    "_info": {
+      "comment": "The Merge on Ethereum mainnet, which is the one transition in either family this project supports that is keyed to ACCUMULATED DIFFICULTY rather than to a height or a timestamp. Every other activation anywhere in networks/ answers 'at what block' or 'at what time'. This one answers neither, and a schedule that can only express those two cannot express it.",
+      "theRule": "A block is the terminal proof-of-work block when its PARENT's total difficulty is below the threshold and its OWN is at or above it. Both halves are required. Read from the reference client: parentTotalDiff < TTD && totalDiff >= TTD.",
+      "theThresholdIsNotAHeightAndTheClientRecordsNoHeight": "Checked rather than assumed: the mainnet merge block number appears nowhere in the reference client's source. It is not in the chain configuration because the transition is not defined by one -- the height at which mainnet actually crossed the threshold is an OBSERVED consequence, not a parameter, and a client that hard-codes one is encoding an outcome rather than the rule.",
+      "theParentConditionIsTheWholeDifficulty": "Dropping it leaves `totalDifficulty >= TTD`, which is true of every block after the merge rather than of the one block that crossed it. That is the defect this file exists to catch and it is the natural simplification -- the second comparison alone reads like the rule.",
+      "theMergeContributesNOForkIdentifierEntryOnMAINNET": "Verified against the reference client's own published table: mainnet runs Gray Glacier at 15,050,000 straight to the Shanghai timestamp with no boundary between them. Its configuration sets a terminal total difficulty and no MergeNetsplitBlock, and the identifier is gathered by reflection over fields whose names end in Block or Time -- so a difficulty threshold is invisible to it.",
+      "andSepoliaDIFFERSHere": "The same transition IS a fork-identifier boundary on Sepolia, whose configuration sets MergeNetsplitBlock to 1,735,371; the client's published Sepolia table labels that head 'First MergeNetsplit block' and the fork hash changes there. So a network and its own testnet express one consensus transition in two different ways, and a client that learned the shape from mainnet will not find it on Sepolia. Recorded here because the contrast is only visible when both are in view.",
+      "oracle": "go-ethereum: MainnetTerminalTotalDifficulty and IsTerminalPoWBlock in params/config.go, and the published mainnet and Sepolia tables in core/forkid/forkid_test.go.",
+      "oracle-version": "go-ethereum, params/config.go and core/forkid/forkid_test.go",
+      "wrongBuildScores": {
+        "method": "Scored 2026-08-25 by reimplementing the predicate and breaking it one comparison at a time. It is a pure function of two numbers, so no client patch is needed.",
+        "correct": "6/6",
+        "parentConditionDropped": "4/6 -- the defect this file exists for. Without it the predicate is `total >= TTD`, true of every block after the merge instead of the one that crossed it.",
+        "thresholdOffByOne": "4/6",
+        "secondComparisonGreaterThanNotGreaterOrEqual": "5/6 -- caught by the exactly-at case alone",
+        "firstComparisonLessOrEqualNotLessThan": "5/6 -- caught by the parent-already-at case alone"
+      },
+      "generated": "2026-08-25"
+    },
+    "terminalTotalDifficulty": "58750000000000000000000",
+    "mergeNetsplitBlock": null,
+    "vectors": [
+      {
+        "name": "far_below",
+        "parentTotalDifficulty": "58749000000000000000000",
+        "totalDifficulty": "58749900000000000000000",
+        "isTerminalPoWBlock": false,
+        "note": "Both sides below the threshold. Ordinary proof-of-work."
+      },
+      {
+        "name": "parent_one_below_current_exactly_at",
+        "parentTotalDifficulty": "58749999999999999999999",
+        "totalDifficulty": "58750000000000000000000",
+        "isTerminalPoWBlock": true,
+        "note": "The tightest true case. The parent is one unit short and this block reaches it exactly."
+      },
+      {
+        "name": "parent_below_current_above",
+        "parentTotalDifficulty": "58749999999000000000000",
+        "totalDifficulty": "58750000001000000000000",
+        "isTerminalPoWBlock": true,
+        "note": "The threshold is crossed within this block. It does not have to be landed on."
+      },
+      {
+        "name": "parent_exactly_at_current_above",
+        "parentTotalDifficulty": "58750000000000000000000",
+        "totalDifficulty": "58750000000000000000001",
+        "isTerminalPoWBlock": false,
+        "note": "The parent already reached it, so the transition happened earlier. This is the case a client gets wrong by dropping the parent condition."
+      },
+      {
+        "name": "both_far_above",
+        "parentTotalDifficulty": "58850000000000000000000",
+        "totalDifficulty": "58850001000000000000000",
+        "isTerminalPoWBlock": false,
+        "note": "Deep post-merge. Still false, and a client without the parent condition calls EVERY block here terminal."
+      },
+      {
+        "name": "parent_one_below_current_one_below",
+        "parentTotalDifficulty": "58749999999999999999998",
+        "totalDifficulty": "58749999999999999999999",
+        "isTerminalPoWBlock": false,
+        "note": "Approaching but not reaching."
+      }
+    ]
+  }
+}
