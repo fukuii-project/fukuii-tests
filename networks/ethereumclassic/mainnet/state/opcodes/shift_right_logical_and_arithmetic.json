@@ -3,13 +3,14 @@
     "_info": {
       "comment": "The two right shifts, applied to the same input so the only difference between them is the rule. Both take all-ones -- which is minus one read as a signed value -- and shift it right by one bit. The logical shift fills from the left with zero and yields 0x7fff...ff. The arithmetic shift extends the sign and yields all-ones again, because minus one shifted right arithmetically is still minus one. Pairing them is what makes the assertion about sign extension rather than about shifting: an implementation that wired the arithmetic shift to the logical one passes any test that checks only one of them, and on a positive input the two agree and would hide it. Both are absent through Atlantis, where the frame aborts on an invalid instruction and no slot is written including the liveness marker. The left shift is covered by its own fixture.",
       "oracle": "core-geth production, evm t8n at each upgrade's rules, chain id 61",
-      "oracle-version": "v1.12.21-unstable",
+      "oracle-version": "core-geth modernized 1.13.0-26975d6a. NOT v1.12.21, which this field previously named: production v1.12.21's t8n fork table has no ETC_DieHard, ETC_Gotham or ETC_DefuseDifficultyBomb, so it cannot address three of the twelve labels below and cannot be the sole generator. The modernized build's fork list is production's plus exactly those three.",
       "generated": "2026-08-23",
       "signing": "txbytes carries the signed transaction; the signing key is a filling input, not a fixture field, and the harness reads `sender`.",
       "eip": "EIP-145 at Agharta",
       "slots": "0 = logical shift, 1 = arithmetic shift, 2 = liveness",
       "unfilled-no-fork-name": "No expectation for ETC_Thanos: the generator's fork table has no name for them, so their rules cannot be selected. A tooling gap, not a claim that the case does not apply.",
-      "unfilled-not-a-state-rule": "No expectation for ETC_DAOFork, ETC_DAOWars, ETC_FrontierThawing, ETC_MESSOff, ETC_MESSOn: these change no state-transition rule, so a state fixture has nothing to assert about them. Covering them needs block-level or chain-selection tests."
+      "unfilled-not-a-state-rule": "No expectation for ETC_DAOFork, ETC_DAOWars, ETC_FrontierThawing, ETC_MESSOff, ETC_MESSOn: these change no state-transition rule, so a state fixture has nothing to assert about them. Covering them needs block-level or chain-selection tests.",
+      "verification": "2026-08-25: every expectation in this file was re-run through core-geth's OWN statetest runner (evm statetest) at the build named in oracle-version. This is a second-opinion check the suite had never had -- the roots here were previously only ever produced, never re-verified. Corpus-wide result: 531 of 546 subtests pass. The 15 that do not are every expectException case in the suite and they are NOT failures of these roots: geth's statetest builds its executed message from the `transaction` object's `sender` field and never validates a signature or an envelope, so it structurally cannot express 'this transaction is refused at this fork'. See FIXTURE-FORMAT.md, 'What the reference runner cannot check'."
     },
     "config": {
       "chainid": "0x3d"
@@ -55,7 +56,7 @@
         {
           "hash": "0xa01bc9fd90f0a0b4acbaa0d7cf44a0ea0c82e25086a1951c38dd00c5dd0a84d3",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf866f86480843b9aca00830186a094000000000000000000000000000000000000100080801ba01913dc0d413ed3e13f2e47a16f74d3dfd7bacec3004c29e242a6a05c63a26107a06839c8f4b2a96061a0fae8f6c4a0a584f8b0299c78f2a01702607650061f8e6b",
+          "txbytes": "0xf86480843b9aca00830186a094000000000000000000000000000000000000100080801ba01913dc0d413ed3e13f2e47a16f74d3dfd7bacec3004c29e242a6a05c63a26107a06839c8f4b2a96061a0fae8f6c4a0a584f8b0299c78f2a01702607650061f8e6b",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -68,7 +69,7 @@
         {
           "hash": "0xa01bc9fd90f0a0b4acbaa0d7cf44a0ea0c82e25086a1951c38dd00c5dd0a84d3",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf866f86480843b9aca00830186a094000000000000000000000000000000000000100080801ba01913dc0d413ed3e13f2e47a16f74d3dfd7bacec3004c29e242a6a05c63a26107a06839c8f4b2a96061a0fae8f6c4a0a584f8b0299c78f2a01702607650061f8e6b",
+          "txbytes": "0xf86480843b9aca00830186a094000000000000000000000000000000000000100080801ba01913dc0d413ed3e13f2e47a16f74d3dfd7bacec3004c29e242a6a05c63a26107a06839c8f4b2a96061a0fae8f6c4a0a584f8b0299c78f2a01702607650061f8e6b",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -81,7 +82,7 @@
         {
           "hash": "0xa01bc9fd90f0a0b4acbaa0d7cf44a0ea0c82e25086a1951c38dd00c5dd0a84d3",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf866f86480843b9aca00830186a094000000000000000000000000000000000000100080801ba01913dc0d413ed3e13f2e47a16f74d3dfd7bacec3004c29e242a6a05c63a26107a06839c8f4b2a96061a0fae8f6c4a0a584f8b0299c78f2a01702607650061f8e6b",
+          "txbytes": "0xf86480843b9aca00830186a094000000000000000000000000000000000000100080801ba01913dc0d413ed3e13f2e47a16f74d3dfd7bacec3004c29e242a6a05c63a26107a06839c8f4b2a96061a0fae8f6c4a0a584f8b0299c78f2a01702607650061f8e6b",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -94,7 +95,7 @@
         {
           "hash": "0xa01bc9fd90f0a0b4acbaa0d7cf44a0ea0c82e25086a1951c38dd00c5dd0a84d3",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -107,7 +108,7 @@
         {
           "hash": "0xa01bc9fd90f0a0b4acbaa0d7cf44a0ea0c82e25086a1951c38dd00c5dd0a84d3",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -120,7 +121,7 @@
         {
           "hash": "0xa01bc9fd90f0a0b4acbaa0d7cf44a0ea0c82e25086a1951c38dd00c5dd0a84d3",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -133,7 +134,7 @@
         {
           "hash": "0xa01bc9fd90f0a0b4acbaa0d7cf44a0ea0c82e25086a1951c38dd00c5dd0a84d3",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -146,7 +147,7 @@
         {
           "hash": "0x39a2146be7ccc0c9c2ede5cb2e566c38476e50f8e58ad4715d1e7bce171ef689",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -159,7 +160,7 @@
         {
           "hash": "0x39a2146be7ccc0c9c2ede5cb2e566c38476e50f8e58ad4715d1e7bce171ef689",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -172,7 +173,7 @@
         {
           "hash": "0x45ea3e2298c8ace77ee7443c9e72e6cccf5c588ca3c82c61a36cd3de9c266c4a",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -185,7 +186,7 @@
         {
           "hash": "0x45ea3e2298c8ace77ee7443c9e72e6cccf5c588ca3c82c61a36cd3de9c266c4a",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
           "indexes": {
             "data": 0,
             "gas": 0,
@@ -198,7 +199,7 @@
         {
           "hash": "0x45ea3e2298c8ace77ee7443c9e72e6cccf5c588ca3c82c61a36cd3de9c266c4a",
           "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
-          "txbytes": "0xf867f86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008080819da0e7b4cece15b3924bf399d2582c2e2fd143661735d51ab730ff2faf8e40a12feaa06a2bab1da7d250250e2598d09e05dbd01ea783fb1fc1d9b86f6d067c9448a55f",
           "indexes": {
             "data": 0,
             "gas": 0,

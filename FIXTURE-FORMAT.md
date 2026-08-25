@@ -1157,6 +1157,85 @@ against; at Olympia there is not yet.
 
 ---
 
+## Running `state/` against the reference client, and what that does NOT check
+
+**Every fixture in `state/` is directly runnable by core-geth's own state-test runner.** The shape
+in this document *is* geth's GeneralStateTest shape, so no conversion is needed:
+
+```bash
+evm statetest networks/ethereumclassic/mainnet/state/gas/sload_cost.json
+```
+
+**Corpus-wide result, 2026-08-25: 531 of 546 subtests pass.** This was the suite's first
+second-opinion check of any kind — until then the roots had only ever been *produced*, never
+re-verified against anything.
+
+### Two adjustments a geth-family runner needs
+
+**One is ours to state, one is the runner's limit.**
+
+**1. Three labels are not in any core-geth fork table.** `ETC_Frontier`, `ETC_Homestead` and
+`ETC_GasReprice` are this project's names for upgrades core-geth addresses generically, because
+before Die Hard this chain and Ethereum ran the same rules:
+
+| our label | what a geth-family runner calls it |
+|---|---|
+| `ETC_Frontier` | `Frontier` |
+| `ETC_Homestead` | `Homestead` |
+| `ETC_GasReprice` | `EIP150` |
+
+They are equivalent here and not merely approximated: the divergences that would make the naming
+matter — a chain identifier reaching the EVM, replay protection — do not exist at those heights.
+`CHAINID` does not arrive until Phoenix.
+
+**Three further labels go the other way and only ONE build has them.** `ETC_DieHard`, `ETC_Gotham`
+and `ETC_DefuseDifficultyBomb` are absent from production core-geth's fork table entirely; the
+modernized build's list is production's plus exactly those three. **So the three upgrades whose
+expectations no second build can even address are the three that most look settled**, and every
+fixture's `oracle-version` says so explicitly rather than leaving it to be re-derived.
+
+### What the reference runner cannot check
+
+**All 15 non-passing subtests are every `expectException` case in the suite, and none of them is a
+wrong root.** The cause is structural and worth knowing before anyone reports them as failures:
+
+> geth's state-test runner builds the message it executes from the `transaction` object's `sender`
+> field. It never validates a signature and never decodes an envelope. `txbytes` is used only to
+> confirm the bytes decode and a sender is recoverable — with `LatestSigner`, which accepts every
+> form at every fork.
+
+So the runner cannot express *"this transaction is refused at this height"*, which is exactly what
+those 15 assert — a replay-protected transaction before Die Hard, and a typed envelope before
+Magneto. A real client refuses both. The runner never asks.
+
+**This is the boundary of the check, not a caveat on it.** 531 roots are confirmed by an
+implementation that is not the one under certification. The other 15 need a consumer that decodes
+`txbytes` as the authority, which is what this document already requires of one.
+
+### `txbytes` was malformed corpus-wide until 2026-08-25
+
+Recorded because the defect is invisible by inspection and disabled every check above.
+
+Every `txbytes` in `state/` held `rlp([tx])` — the transaction wrapped in a one-element RLP list —
+where the contract is the transaction's own binary encoding. **It still began `0xf8`, so it still
+passed the leading-byte type test this document describes**, and it was a well-formed RLP object.
+It simply was not a transaction, and `UnmarshalBinary` refuses it.
+
+The consequence was total: no client could consume any `txbytes` in the corpus, and the
+second-opinion run above was impossible for as long as it stood. 531 entries were unwrapped; 15
+held `0xc0`, an empty wrapper meaning *no transaction bytes*, and were removed rather than
+rewritten — the field is optional and absent is the honest encoding, where `0xc0` decodes to an
+empty list and reads as data.
+
+**No expectation moved.** The fix touched `txbytes` and nothing else; every `hash` and `logs` value
+is byte-identical across it, which is the check to run after any mechanical pass like this one.
+
+**The unwrap is not a plain header strip, and getting it wrong looks like it worked.** A legacy
+transaction sits inside the wrapper as a nested *list*, a typed one as a byte *string*. Removing
+the outer header alone yields the right answer for every legacy case and silently corrupts every
+typed one — the type byte goes with the header. Decode the wrapper as RLP and take its single
+element.
+
 ## What is not covered by any shape here
 
 Stated so that a harness author does not go looking, and so a reader does not mistake the suite's
