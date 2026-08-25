@@ -16,6 +16,16 @@
         "matchesVector": "boundary_post_one_successful_transaction",
         "whyThisCounts": "It is an independently-authored value from a DIFFERENT implementation in this chain's lineage, published in its own documentation rather than derived here. The three prior calibrations proved this implementation reproduces mainnet; this one proves the exact vector the fixture ships was already the right answer according to a client that is not the one under certification.",
         "whyOnlyThisSide": "That README documents a post-Byzantium transition tool, so it publishes only the status form. Nothing in the archive publishes a worked pre-EIP-658 receipts root, which is why the pre-activation side rests on real mainnet block 8,771,998 instead -- a stronger grounding, not a weaker one, because it is the chain itself."
+      },
+      "wrongBuildScores": {
+        "method": "Scored 2026-08-25 by reimplementing the receipt encoding and its trie root, then breaking the activation rule one way at a time. A receipt root is a pure function of the receipts, so no client patch is needed.",
+        "correct": "7/7",
+        "neverAdoptsEip658": "4/7 -- always writes a post-state root",
+        "adoptsItFromGenesis": "4/7 -- always writes a status",
+        "activatesOneBlockEarly": "4/7",
+        "activatesOneBlockLate": "4/7",
+        "writesStatus1RegardlessOfOutcome": "5/7 -- the sharpest of the five, and the failed-transaction pair is what catches it",
+        "note": "The no-transaction control contributes to every score by NOT moving: a harness deriving the root from the activation rule rather than from the receipts fails it under all five."
       }
     },
     "activationBlock": "8772000",

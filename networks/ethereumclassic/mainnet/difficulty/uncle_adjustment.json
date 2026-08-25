@@ -14,6 +14,17 @@
         "ETC_DAOFork": "Ethereum's irregular state change, declined by this chain",
         "ETC_MESSOn": "chain-selection policy, not a state-transition rule",
         "ETC_MESSOff": "chain-selection policy, not a state-transition rule"
+      },
+      "wrongBuildMethod": "Scored 2026-08-25 by reimplementing the adjustment rule from its specifications -- Frontier's step, EIP-2's graduated term, EIP-100's uncle numerator -- and then breaking that reimplementation one parameter at a time. No client was patched: the rule is a pure function of the parent's difficulty, the two timestamps and the uncle count, so a wrong implementation can be written directly. The correct reimplementation reproduces all 96 cases here, which makes it a second oracle for this file and not merely a scoring tool.",
+      "wrongBuildPairing": "READ THIS FIXTURE AND ITS SIBLING AS A PAIR -- neither is sufficient and the scores prove it rather than assert it. block_interval_adjustment is BLIND to EIP-100's uncle numerator being ignored (96/96, the defect invisible) while uncle_adjustment catches it at 72/96. uncle_adjustment is blind to the Frontier bound moving from 13 to 12, and to the clamp moving from -99 to -100, both of which block_interval_adjustment catches. Every defect tried is caught by at least one of the two, and three of the six are caught by exactly one.",
+      "wrongBuildScores": {
+        "correct": "96/96",
+        "eip100UncleNumeratorIgnored": "72/96 -- this is the defect this fixture exists for, and nothing else in the suite catches it",
+        "eip100DivisorLeftAtHomesteads10": "60/96",
+        "homesteadDivisorUsesEip100s9": "66/96",
+        "frontierBound13to12": "96/96 -- NOT caught here; the sibling's job",
+        "boundDivisor2048to1024": "22/96",
+        "clampMinus99toMinus100": "96/96 -- NOT caught here; the sibling's job"
       }
     },
     "ETC_Frontier": {

@@ -6,7 +6,16 @@
       "oracle": "Derived from ECIP-1099 and the ethash specification: epoch length 30,000 doubling to 60,000 at block 11,700,000; epoch = block // epochLength; epoch start = epoch*epochLength + 1; the seed as described above; cache size = 2^24 + 2^17*epoch - 64 reduced by 128 until the quotient by 64 is prime, and dataset size = 2^30 + 2^23*epoch - 128 reduced by 256 until the quotient by 128 is prime. No value is read back from a running client. The generator was calibrated first: keccak against the published digest of the empty string, and both size formulas against core-geth's own hardcoded size TABLES at nine epochs -- those tables are data rather than the formula, so agreement between them is a second statement of the same numbers and not a restatement of one. A control confirms the calibration discriminates: the formula at one epoch must not match the table entry for its neighbour. A third, wholly external check: the published PoWTests tier states cache_size 16776896 and full_size 1073739904 with a thirty-two-zero-byte seed, and this generator produces exactly those three at epoch 0. That tier covers epoch 0 AND NOTHING ELSE -- two cases, both Ethereum's, both at the first epoch -- so it confirms the base of the schedule and says nothing whatever about ECIP-1099 or about any epoch above the first, which is why this fixture exists.",
       "oracle-version": "ECIP-1099; algorithm cross-checked against core-geth v1.12.21-unstable at commit 4185df450",
       "scope": "These are the epoch-derived quantities and not a sealed header. A full proof-of-work case needs a mined nonce, which cannot be authored -- the published `PoWTests` tier carries two such cases and both are Ethereum's. Every field here is a pure function of the block number and is verifiable by hand. What this does NOT assert is that a client rejects a seal validated against the wrong dataset; that needs a sealed header from this chain, which is a mining problem rather than an authoring one. Field names follow the published tier where it has one: `seedHash` is its `seed`, `cacheSizeBytes` its `cache_size`, `datasetSizeBytes` its `full_size`.",
-      "generated": "2026-08-24"
+      "generated": "2026-08-24",
+      "wrongBuildScores": {
+        "method": "Scored 2026-08-25 by reimplementing ECIP-1099's schedule from the specification and breaking it one parameter at a time. The correct reimplementation reproduces all 16 vectors including every seed hash, which makes it a second oracle rather than only a scoring tool.",
+        "correct": "16/16",
+        "epochLengthNeverDoubles": "10/16",
+        "seedDivisorUsesTheEpochLength": "10/16 -- the defect seedContinuity already describes in prose, now measured. It is the natural simplification and it silently reuses a seed from millions of blocks earlier.",
+        "epochStartHasNoPlusOne": "0/16 -- every vector",
+        "epochComputedFromBlockMinusOne": "10/16",
+        "doublingHappensOneEpochLate": "13/16 -- the narrowest miss, and the three it catches are the vectors bracketing the activation"
+      }
     },
     "activationBlock": "11700000",
     "epochLengthBefore": "30000",
