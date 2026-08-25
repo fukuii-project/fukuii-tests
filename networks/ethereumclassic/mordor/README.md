@@ -48,6 +48,8 @@ the whole reason this directory exists rather than a `--network` flag on the mai
 | `pow/` | ECIP-1099 epoch schedule at Mordor's activation |
 | `state/` | the two rules that are genuinely Mordor's, not mainnet's with a different number |
 | `difficulty/` | that the bomb never existed here, asserted at every height where mainnet's did |
+| `chainselection/` | the ECBP-1100 window only -- the curve is mainnet's and is asserted there |
+| `blocks/required_block_headers.json` | the two hashes a Mordor client must require |
 
 **`difficulty/` asserts an absence, which is why it looks unlike mainnet's.** Mordor's
 `DisposalBlock` is 0 and its `ECIP1010PauseBlock` is null: the bomb never ran here. There is no
@@ -73,6 +75,12 @@ Two rules are genuinely Mordor's and both are here:
 - **`accounts/replay_protection.json`** — signatures bind to **63**, and a transaction signed for
   mainnet's 61 must be **refused**. Both networks share a signing key space, which is the situation
   EIP-155 exists for.
+
+**Add a fixture here only when the answer differs from mainnet's** — this applies to every
+directory, not only `state/`. `chainselection/` is the clearest case: Mordor's MESS curve, decision
+and subchain derivation are identical to mainnet's, so this network contributes only the **window**,
+which is the sole thing that differs. Restating the arithmetic would give it a second place to
+drift from.
 
 **Add a state fixture here only when the answer differs from mainnet's.** If it would not, the
 fixture belongs in `../mainnet/state/` and Mordor inherits its assurance by running the same rules.

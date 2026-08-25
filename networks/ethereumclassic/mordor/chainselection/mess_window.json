@@ -1,0 +1,63 @@
+{
+  "messWindowMordor": {
+    "_info": {
+      "comment": "Mordor's ECBP-1100 window, and ONLY the window. The curve, the comparison and the subchain derivation are identical to mainnet's and are asserted there; what differs on this network is when the bundled configuration turns the defense on. Re-stating the arithmetic here would duplicate ../../mainnet/chainselection/ and give a second place for it to drift.",
+      "MESSIsOPTIONALAndTheseBlocksAreADEFAULTNotAnActivation": "Carried from the mainnet file because it governs this one identically. ECBP-1100 is a local chain-selection POLICY, not a consensus rule. A node running with it switched off is not producing an invalid chain and is not non-conformant. Nothing in a block header records whether its producer had MESS on. These two numbers are the window in which the client's BUNDLED configuration enables it.",
+      "theWindow": "Active from 2,380,000 up to but NOT including 10,400,000 -- inclusive at the start, exclusive at the end. Read from the production client's MordorChainConfig: ECBP1100FBlock and ECBP1100DeactivateFBlock.",
+      "bothBoundsDifferFromMainnets": "Mainnet's window is 11,380,000 to 19,250,000. Neither bound is shared, and neither is derivable from the other -- mainnet's deactivation coincides with the Spiral hard fork and Mordor's does not. A client reusing mainnet's window on Mordor has the defense off for the whole of Mordor's real window and on for eight million blocks after it should have stopped.",
+      "whatAHarnessShouldAssert": "That the bundled default has MESS enabled at these heights and not at the others. Do NOT read `active` as 'a conformant node refuses reorgs here' -- that would fail a node which is merely configured differently. See ../../mainnet/chainselection/ and FIXTURE-FORMAT.md.",
+      "oracle": "The production client's MordorChainConfig, read field by field.",
+      "oracle-version": "core-geth production v1.12.21-unstable",
+      "generated": "2026-08-25"
+    },
+    "activationBlock": "2380000",
+    "deactivationBlock": "10400000",
+    "windowVectors": [
+      {
+        "block": "0",
+        "active": false,
+        "note": "genesis"
+      },
+      {
+        "block": "2379999",
+        "active": false,
+        "note": "one below"
+      },
+      {
+        "block": "2380000",
+        "active": true,
+        "note": "the first block of the window"
+      },
+      {
+        "block": "2380001",
+        "active": true,
+        "note": "one above"
+      },
+      {
+        "block": "5000000",
+        "active": true,
+        "note": "mid-window"
+      },
+      {
+        "block": "10399999",
+        "active": true,
+        "note": "the last block of the window"
+      },
+      {
+        "block": "10400000",
+        "active": false,
+        "note": "the deactivation block itself -- OUTSIDE, the bound is exclusive"
+      },
+      {
+        "block": "10400001",
+        "active": false,
+        "note": "one above"
+      },
+      {
+        "block": "20000000",
+        "active": false,
+        "note": "far beyond"
+      }
+    ]
+  }
+}

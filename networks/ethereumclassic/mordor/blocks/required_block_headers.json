@@ -1,0 +1,23 @@
+{
+  "requiredBlockHeadersMordor": {
+    "_info": {
+      "comment": "Two block hashes a Mordor client must require. A required hash is not a rule the EVM evaluates -- it is a refusal to accept any chain that disagrees with a known-good block, which is why it is configuration rather than computation and why this file, like its mainnet counterpart, carries no wrong-build score.",
+      "whyTHESEHeights": "840,013 and 840,014 are consecutive. Mordor's history contains a contested point there, and pinning two adjacent blocks refuses both a chain that diverges at the first and one that agrees at the first and diverges at the second.",
+      "bothDifferFromMainnets": "Mainnet requires 1,920,000 -- the block Ethereum applied its irregular state change at and this chain did not -- and 2,500,000. Mordor requires neither, and a client that carried mainnet's pair onto Mordor would be requiring hashes for blocks whose Mordor contents are unrelated, which refuses the real chain.",
+      "whyThereIsNoWrongBuildScoreHere": "Same reason as the mainnet file: this asserts a client's configuration, not the output of a computation, so there is no arithmetic to get wrong and no wrong implementation to write. A client either carries the required hashes or does not.",
+      "oracle": "The production client's MordorChainConfig RequireBlockHashes map, read directly.",
+      "oracle-version": "core-geth production v1.12.21-unstable",
+      "generated": "2026-08-25"
+    },
+    "requiredHashes": [
+      {
+        "block": "840013",
+        "hash": "0x2ceada2b191879b71a5bcf2241dd9bc50d6d953f1640e62f9c2cee941dc61c9d"
+      },
+      {
+        "block": "840014",
+        "hash": "0x8ec29dd692c8985b82410817bac232fc82805b746538d17bc924624fe74a0fcf"
+      }
+    ]
+  }
+}
