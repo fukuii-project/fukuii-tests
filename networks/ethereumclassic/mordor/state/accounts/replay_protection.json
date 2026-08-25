@@ -1,0 +1,208 @@
+{
+  "replayProtectionMordor": {
+    "_info": {
+      "comment": "Replay protection on Mordor binds to CHAIN 63. Index 0 is signed for 63 and must execute. Index 1 is byte-for-byte the same transaction signed for MAINNET's 61 and must be REFUSED -- not executed differently, refused. Every label carries both, because replay protection is active from Mordor's genesis and there is no era here where the rule is absent.",
+      "eip": "EIP-155, active from Mordor block 0. Unlike mainnet, Mordor has no pre-Die-Hard era in which a protected transaction is rejected for being protected; here the rejection is for naming the WRONG chain.",
+      "whyIndex1SharesIndex0sRootField": "The hash on index 1 is the root that WOULD hold had it executed, and it is not an expectation -- expectException governs. It is carried so a harness that wrongly accepts the transaction produces a visible, comparable value rather than an opaque mismatch. Read expectException first.",
+      "theRefusalIsObservableInTheREFERENCECLIENT": "Verified 2026-08-25: the production transition tool refuses index 1 with 'invalid chain id for signer: have 61 want 63'. This matters because geth's STATETEST runner could not show it -- that runner builds its message from the transaction object's sender and never validates a signature. The transition tool does. So this fixture is checkable against the reference implementation while its mainnet counterpart is not.",
+      "theDefectThisCatches": "A client that supports Mordor by reusing the mainnet code path and forgetting to change the signer's chain id. It would accept transactions replayed from mainnet, which is the exact attack EIP-155 exists to prevent, on the exact pair of chains that share a signing key space.",
+      "labelsNameRuleSetsNotMordorHeights": "The six labels are the EIP sets Mordor runs, named by the ETC upgrade that introduced each. Mordor has no pre-Atlantis rule set: its genesis already carries EIP-100, 140, 161, 170, 198, 211, 212, 213, 214 and 658.",
+      "generatedWithT8nNotStatetest": "Produced and checkable with `evm t8n --state.chainid 63`, NOT `evm statetest`, whose struct has no config field and would run this at chain id 61.",
+      "oracle": "core-geth's transition tool at each rule set with chain id 63.",
+      "oracle-version": "core-geth modernized 1.13.0-26975d6a",
+      "generated": "2026-08-25"
+    },
+    "config": {
+      "chainid": "0x3f"
+    },
+    "env": {
+      "currentCoinbase": "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+      "currentNumber": "0x1263d54",
+      "currentTimestamp": "0x65bd0a80",
+      "currentGasLimit": "0x7a1200",
+      "currentDifficulty": "0x0f4240"
+    },
+    "pre": {
+      "0x0000000000000000000000000000000000001000": {
+        "balance": "0x00",
+        "nonce": "0x00",
+        "code": "0x60016000556001600f55",
+        "storage": {}
+      },
+      "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+        "balance": "0x3635c9adc5dea00000",
+        "nonce": "0x00",
+        "code": "0x",
+        "storage": {}
+      }
+    },
+    "transaction": {
+      "nonce": "0x00",
+      "sender": "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
+      "to": "0x0000000000000000000000000000000000001000",
+      "gasPrice": "0x3b9aca00",
+      "gasLimit": [
+        "0x186a0"
+      ],
+      "value": [
+        "0x00"
+      ],
+      "data": [
+        "0x",
+        "0x00"
+      ]
+    },
+    "post": {
+      "ETC_Atlantis": [
+        {
+          "hash": "0x2060d3b42a72c20f5a9a9f4910c6cde7636dc27ec7967ec8dc68ec25295899e5",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        },
+        {
+          "hash": "0x2060d3b42a72c20f5a9a9f4910c6cde7636dc27ec7967ec8dc68ec25295899e5",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008000819da0e72ebdf0c6df152e43fbe5a135e34f464919e1f21680bdf67d716364bbb39d86a028b870170b0ff50ac10de3954a09e8c0e797603d75ad515b7e7f2e179d7d5d34",
+          "indexes": {
+            "data": 1,
+            "gas": 0,
+            "value": 0
+          },
+          "expectException": "TransactionException.INVALID_CHAIN_ID",
+          "replay-protected": true
+        }
+      ],
+      "ETC_Agharta": [
+        {
+          "hash": "0x2060d3b42a72c20f5a9a9f4910c6cde7636dc27ec7967ec8dc68ec25295899e5",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        },
+        {
+          "hash": "0x2060d3b42a72c20f5a9a9f4910c6cde7636dc27ec7967ec8dc68ec25295899e5",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008000819da0e72ebdf0c6df152e43fbe5a135e34f464919e1f21680bdf67d716364bbb39d86a028b870170b0ff50ac10de3954a09e8c0e797603d75ad515b7e7f2e179d7d5d34",
+          "indexes": {
+            "data": 1,
+            "gas": 0,
+            "value": 0
+          },
+          "expectException": "TransactionException.INVALID_CHAIN_ID",
+          "replay-protected": true
+        }
+      ],
+      "ETC_Phoenix": [
+        {
+          "hash": "0x2060d3b42a72c20f5a9a9f4910c6cde7636dc27ec7967ec8dc68ec25295899e5",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        },
+        {
+          "hash": "0x2060d3b42a72c20f5a9a9f4910c6cde7636dc27ec7967ec8dc68ec25295899e5",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008000819da0e72ebdf0c6df152e43fbe5a135e34f464919e1f21680bdf67d716364bbb39d86a028b870170b0ff50ac10de3954a09e8c0e797603d75ad515b7e7f2e179d7d5d34",
+          "indexes": {
+            "data": 1,
+            "gas": 0,
+            "value": 0
+          },
+          "expectException": "TransactionException.INVALID_CHAIN_ID",
+          "replay-protected": true
+        }
+      ],
+      "ETC_Magneto": [
+        {
+          "hash": "0x82245f2751d10c7a952f77fdd7790cd4beecd1fc82ee678249de0883750357ff",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        },
+        {
+          "hash": "0x82245f2751d10c7a952f77fdd7790cd4beecd1fc82ee678249de0883750357ff",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008000819da0e72ebdf0c6df152e43fbe5a135e34f464919e1f21680bdf67d716364bbb39d86a028b870170b0ff50ac10de3954a09e8c0e797603d75ad515b7e7f2e179d7d5d34",
+          "indexes": {
+            "data": 1,
+            "gas": 0,
+            "value": 0
+          },
+          "expectException": "TransactionException.INVALID_CHAIN_ID",
+          "replay-protected": true
+        }
+      ],
+      "ETC_Mystique": [
+        {
+          "hash": "0x82245f2751d10c7a952f77fdd7790cd4beecd1fc82ee678249de0883750357ff",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        },
+        {
+          "hash": "0x82245f2751d10c7a952f77fdd7790cd4beecd1fc82ee678249de0883750357ff",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008000819da0e72ebdf0c6df152e43fbe5a135e34f464919e1f21680bdf67d716364bbb39d86a028b870170b0ff50ac10de3954a09e8c0e797603d75ad515b7e7f2e179d7d5d34",
+          "indexes": {
+            "data": 1,
+            "gas": 0,
+            "value": 0
+          },
+          "expectException": "TransactionException.INVALID_CHAIN_ID",
+          "replay-protected": true
+        }
+      ],
+      "ETC_Spiral": [
+        {
+          "hash": "0x82245f2751d10c7a952f77fdd7790cd4beecd1fc82ee678249de0883750357ff",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        },
+        {
+          "hash": "0x82245f2751d10c7a952f77fdd7790cd4beecd1fc82ee678249de0883750357ff",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000010008000819da0e72ebdf0c6df152e43fbe5a135e34f464919e1f21680bdf67d716364bbb39d86a028b870170b0ff50ac10de3954a09e8c0e797603d75ad515b7e7f2e179d7d5d34",
+          "indexes": {
+            "data": 1,
+            "gas": 0,
+            "value": 0
+          },
+          "expectException": "TransactionException.INVALID_CHAIN_ID",
+          "replay-protected": true
+        }
+      ]
+    }
+  }
+}

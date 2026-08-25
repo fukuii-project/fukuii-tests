@@ -46,6 +46,7 @@ the whole reason this directory exists rather than a `--network` flag on the mai
 | `forkid/` | fork identifiers across Mordor's six fork blocks |
 | `blocks/` | ECIP-1017 emission at Mordor's era length |
 | `pow/` | ECIP-1099 epoch schedule at Mordor's activation |
+| `state/` | the two rules that are genuinely Mordor's, not mainnet's with a different number |
 
 **There is no `difficulty/bomb_*` fixture here, and its absence is an assertion in waiting rather
 than an omission.** Mordor's `DisposalBlock` is 0 and its `ECIP1010PauseBlock` is null: the
@@ -53,10 +54,29 @@ difficulty bomb never ran on this network. Mainnet's bomb fixture has no Mordor 
 rebase — the correct Mordor fixture would assert that **no bomb term is ever added at any height**,
 which is a different test with a different shape. Worth authoring; not yet authored.
 
-**There is no `state/` here yet.** Mordor's rule sets are the same EIP sets mainnet reaches, so
-state fixtures would largely restate `../mainnet/state/` with a different chain id — the exception
-being `chainid_opcode`, which must return **63**, and which is exactly the kind of value a copied
-fixture gets wrong. That is the first state fixture worth authoring here.
+**`state/` is deliberately small, and will stay that way.** Mordor runs the same EIP sets mainnet
+reaches, so a gas or opcode fixture here would be `../mainnet/state/`'s answer restated — the roots
+are identical, because gas costs are set by the rule set and not by which chain is running it. That
+was measured, not assumed: this directory's `chainid_opcode` has **byte-identical roots to
+mainnet's at the two labels before the opcode exists**, and differs only from Phoenix onward.
+
+Two rules are genuinely Mordor's and both are here:
+
+- **`opcodes/chainid_opcode.json`** — must return **63**. The one value a copied fixture gets wrong,
+  and it gets it wrong silently: same body, same rules, different number.
+- **`accounts/replay_protection.json`** — signatures bind to **63**, and a transaction signed for
+  mainnet's 61 must be **refused**. Both networks share a signing key space, which is the situation
+  EIP-155 exists for.
+
+**Add a state fixture here only when the answer differs from mainnet's.** If it would not, the
+fixture belongs in `../mainnet/state/` and Mordor inherits its assurance by running the same rules.
+
+### These fixtures cannot be checked with `evm statetest`
+
+geth's state-test struct has no `config` field, so that runner discards `config.chainid` and
+executes every `ETC_*` label at chain id **61** — it would certify these Mordor fixtures against
+mainnet's chain id and report success. Use `evm t8n --state.chainid 63`, which honors it. Both
+files say so in their own `_info`, and `FIXTURE-FORMAT.md` carries the general warning.
 
 ## Adding a fixture
 

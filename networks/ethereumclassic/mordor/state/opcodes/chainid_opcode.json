@@ -1,0 +1,134 @@
+{
+  "chainidOpcodeMordor": {
+    "_info": {
+      "comment": "What the chain-identifier opcode returns on Mordor: 63. This is the single value a fixture copied from mainnet gets wrong, and it is wrong SILENTLY -- the body is identical, the rules are identical, and only the number differs. The opcode does not exist before Phoenix, so the first two labels write nothing and that absence is an assertion.",
+      "eip": "EIP-1344 at Phoenix-equivalent rules (Mordor block 999983).",
+      "theDiscriminator": "Mainnet's equivalent fixture asserts 61. Ethereum's would assert 1. The rule sets are identical in all three cases; what differs is what the chain IS.",
+      "labelsNameRuleSetsNotMordorHeights": "The six labels below are the EIP sets Mordor runs, named by the ETC upgrade that introduced each. Mordor activates them at ITS OWN heights -- 0, 301243, 999983, 3985893, 5520000, 9957000 -- which appear in ../../forkid/ rather than here, because a state fixture asserts rules and not when they arrived. Mordor has NO pre-Atlantis rule set at all: its genesis already carries EIP-100, 140, 161, 170, 198, 211, 212, 213, 214 and 658, which is exactly what mainnet's Atlantis added. That truncated list is itself an assertion -- a client believing Mordor ever ran Frontier or Die Hard rules is wrong.",
+      "generatedWithT8nNotStatetest": "These were produced and must be checked with `evm t8n --state.chainid 63`, NOT with `evm statetest`. geth's state-test struct has no config field at all, so it runs every fixture at the ETC fork's own chain id of 61 and would silently certify the wrong network. See FIXTURE-FORMAT.md.",
+      "oracle": "core-geth's transition tool at each rule set with chain id 63, which is not the implementation under certification.",
+      "oracle-version": "core-geth modernized 1.13.0-26975d6a",
+      "generated": "2026-08-25",
+      "signing": "txbytes carries a transaction signed for CHAIN 63. Replay protection is active from Mordor's genesis, so every label is replay-protected and there is no legacy-signature era here as there is on mainnet."
+    },
+    "config": {
+      "chainid": "0x3f"
+    },
+    "env": {
+      "currentCoinbase": "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+      "currentNumber": "0x1263d54",
+      "currentTimestamp": "0x65bd0a80",
+      "currentGasLimit": "0x7a1200",
+      "currentDifficulty": "0x0f4240"
+    },
+    "pre": {
+      "0x0000000000000000000000000000000000001000": {
+        "balance": "0x00",
+        "nonce": "0x00",
+        "code": "0x46600055",
+        "storage": {}
+      },
+      "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+        "balance": "0x3635c9adc5dea00000",
+        "nonce": "0x00",
+        "code": "0x",
+        "storage": {}
+      }
+    },
+    "transaction": {
+      "nonce": "0x00",
+      "sender": "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
+      "to": "0x0000000000000000000000000000000000001000",
+      "gasPrice": "0x3b9aca00",
+      "gasLimit": [
+        "0x186a0"
+      ],
+      "value": [
+        "0x00"
+      ],
+      "data": [
+        "0x"
+      ]
+    },
+    "post": {
+      "ETC_Atlantis": [
+        {
+          "hash": "0xaf98889c0cfd60e3d6a55d999fba5ddb7e6037dd017ad3fdac9512cea9b6afbe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Agharta": [
+        {
+          "hash": "0xaf98889c0cfd60e3d6a55d999fba5ddb7e6037dd017ad3fdac9512cea9b6afbe",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Phoenix": [
+        {
+          "hash": "0xbd64ca2b698a6505f73966bef32406067a549b59fdaa36eedf4f0397e13e2bcb",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Magneto": [
+        {
+          "hash": "0x6112d3c8d1565254b37d85f2dfb20265a647b8fe613876dfef28aae2e31327c2",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Mystique": [
+        {
+          "hash": "0x6112d3c8d1565254b37d85f2dfb20265a647b8fe613876dfef28aae2e31327c2",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ],
+      "ETC_Spiral": [
+        {
+          "hash": "0x6112d3c8d1565254b37d85f2dfb20265a647b8fe613876dfef28aae2e31327c2",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf86580843b9aca00830186a0940000000000000000000000000000000000001000808081a2a0224c3d9ec641ebb20e21558f8da34fbb6b1f7851a11b3ea5d6dda6c088912de6a03188e5f32fbf398df86aaf609696f890d801b4708864275b76320cd6a505469d",
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "replay-protected": true
+        }
+      ]
+    }
+  }
+}

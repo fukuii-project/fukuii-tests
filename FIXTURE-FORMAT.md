@@ -1204,6 +1204,37 @@ modernized build's list is production's plus exactly those three. **So the three
 expectations no second build can even address are the three that most look settled**, and every
 fixture's `oracle-version` says so explicitly rather than leaving it to be re-derived.
 
+### `config.chainid` is NOT read by the reference runner — you must apply it yourself
+
+**A harness that ignores this certifies the wrong network and reports success.**
+
+geth's state-test struct has exactly six fields — `_info`, `env`, `pre`, `transaction`, `out`,
+`post`. There is **no `config` field of any kind**. A fixture's `config.chainid` is therefore
+silently discarded, and every test runs at whatever chain id the named fork's own configuration
+carries: **61 for every `ETC_*` label.**
+
+Measured 2026-08-25: a `CHAINID` fixture asserting **61** was handed `"config": {"chainid":
+"0x3f"}` (63) and **passed**. Nothing warned.
+
+**On mainnet this is harmless and that is exactly why it went unnoticed** — the `ETC_*` forks are
+chain 61, the fixtures assert 61, and the field merely restates what the runner already does. It
+becomes load-bearing the moment a fixture describes a different network on the same rule sets,
+which is what `networks/ethereumclassic/mordor/` does.
+
+**Consequences for a consumer:**
+
+- **Read `config.chainid` and apply it.** It is the fixture's statement of which chain these
+  expectations belong to, and no geth-family state-test runner will apply it for you.
+- **A fixture whose `config.chainid` disagrees with the chain id you are certifying is not a
+  fixture you can run.** Fail loudly rather than proceeding — a passing run against the wrong
+  chain id is worse than no run.
+- **Mordor's `state/` cannot be checked with `evm statetest` at all**, and its fixtures say so in
+  their own `_info`. Use `evm t8n --state.chainid 63`, which does honor a chain id; that is how
+  they were produced and how they round-trip.
+
+**The tell that this bit you**: a chain-identifier fixture that passes on two different networks.
+It should be impossible, and under this runner it is routine.
+
 ### What the reference runner cannot check
 
 **All 15 non-passing subtests are every `expectException` case in the suite, and none of them is a
