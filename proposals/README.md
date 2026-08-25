@@ -9,6 +9,24 @@ proposals/
   ecip/
 ```
 
+## This directory is empty today, and the reason is structural
+
+**No fixture has yet turned out to be proposal-scoped**, and that is worth stating rather than
+leaving a reader to wonder whether something is missing.
+
+Everything authored so far depends on a specific network. A state fixture carries a chain id and a
+`post` map keyed by **one family's upgrade labels**, so `ETC_Phoenix` is not a thing Ethereum has;
+a fork identifier is a checksum over one network's whole schedule; emission, the difficulty bomb and
+the reorg defense are Ethereum Classic's alone. None of those is a delta on a rule set in isolation.
+
+**A genuinely proposal-scoped fixture would have to carry no chain id and no network's label set** —
+just a rule delta and its observable effect. That is expressible in the format and nothing here has
+needed it yet. When one does, this is where it goes.
+
+The alternative — putting network-agnostic material under whichever network happened to need it
+first — is the failure this axis exists to prevent, so the directory stays and stays empty until
+something genuinely belongs in it.
+
 ## Why proposals are their own axis
 
 The client models a proposal as a **delta on the rule set** — `Component(id, delta: UpgradeRules

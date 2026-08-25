@@ -56,6 +56,25 @@ path should say which one it is.
 `proposals/` and `networks/` follow the client's own two axes, `chainspec/proposals/` and
 `chainspec/networks/<family>/<Network>`.
 
+### Two families, and they are NOT covered to the same depth
+
+`networks/` holds two families and deliberately unequal amounts of work:
+
+| family | upstream corpus | our standing | what we author |
+|---|---|---|---|
+| `ethereumclassic/` | unmaintained since 2023, deprecating | lead client maintainer | a complete suite |
+| `ethereum/` | alive and maintained | a consumer of rules decided elsewhere | only what upstream structurally cannot hold |
+
+**Do not "fill in" the Ethereum family by porting Ethereum Classic's fixtures across.** Ethereum's
+own corpus is pinned under `upstream/` and is the authority for the EVM; re-authoring it here would
+duplicate a far larger corpus, go stale as it moves, and carry no authority. The test for adding an
+Ethereum-family fixture is one question — *could the upstream corpus express this?* — and the
+measured answer for what it cannot is in `networks/ethereum/README.md`.
+
+**The reverse also holds.** Ethereum Classic's coverage is complete because nobody upstream will
+ever test ECIP-1017's emission, ECIP-1041's bomb removal, ECIP-1099's epoch change or ECIP-1100's
+reorg defense. Those have no Ethereum counterpart and no upstream home.
+
 ### The three layers, and which one a test belongs to
 
 The client composes rules in three layers. A test belongs to the layer whose facts it actually
@@ -199,8 +218,10 @@ tracked file in this repo without checking that the spec is published.
 
 ## Fork schedule vectors: verify against a client, never against the rendered spec
 
-`networks/ethereumclassic/` encodes Ethereum Classic's upgrade schedule, and the first build
-target is **everything through Spiral, the current mainnet tip**.
+`networks/ethereumclassic/` encodes Ethereum Classic's upgrade schedule. **Everything through
+Spiral, the current mainnet tip, is covered** — that was the first build target and it is met; every
+activation in the production client's mainnet configuration is now asserted by a fixture. Mordor is
+covered against its own configuration. The rule below governs anything added to either.
 
 **The published rendering of ECIP-1066 contains wrong activation blocks.** This is not a
 hypothetical: two entries in the public version are incorrect, one by an order of

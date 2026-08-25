@@ -1,7 +1,8 @@
 # `networks/` — tests scoped to a network
 
-**Fukuii's own work.** Organized as the client organizes it: `networks/<family>/<network>`,
-matching `chainspec`'s `networks/ethereumclassic/Mainnet`, `networks/ethereum/`, and so on.
+**Fukuii's own work.** Organized as the client organizes it: `networks/<family>/<network>`, mirroring
+the `networks/<family>/<Network>` tree in the client's `chainspec` module. Paths in that module are
+the client's, not this repository's — do not read one as a path here.
 
 ```
 networks/
@@ -9,6 +10,10 @@ networks/
     mainnet/
     mordor/
   ethereum/
+    mainnet/
+    sepolia/
+    holesky/
+    hoodi/
 ```
 
 ## One directory per test type, and no upgrade in a path
@@ -53,26 +58,28 @@ The two types in use nest differently, and neither is guessable:
 |---|---|
 | state | `{ <case>: { config, env, pre, transaction, post: { <upgrade>: [ … ] } } }` |
 | difficulty | `{ <outerName>: { _info, <upgrade>: { <case>: { … } } } }` |
-| fork identifier | `{ <outerName>: { _info, genesisHash, forkBlocks, declinedForkBlock, vectors } }` |
+| fork identifier | `{ <outerName>: { _info, genesisHash, forkBlocks, vectors } }` — plus `declinedForkBlock` on Ethereum Classic, and `chainId`, `forkTimestamps`, `genesisTimestamp` on Ethereum |
 | block-level | `{ <outerName>: { _info, … , vectors } }` — **more than one schema; see below** |
 | chain selection | `{ <outerName>: { _info, activationBlock, deactivationBlock, windowVectors, curveVectors, decisionVectors, subchainVectors } }` |
 | proof of work | `{ <outerName>: { _info, activationBlock, epochLength…, vectors } }` |
+| consensus | `{ <outerName>: { _info, terminalTotalDifficulty, …, vectors } }` — the Merge; Ethereum family only |
 
 **This table is a map, not the specification.** `../FIXTURE-FORMAT.md` is the contract — every
 field, its type, its units, and what a reader does when one is absent. Read that before writing a
 reader; this is only for finding the right section of it.
 
-**Three of the six types have no reader anywhere yet**, and the other three describe formats that
-already exist and are shared with the vendored corpora. Which is which is stated at the top of
-`../FIXTURE-FORMAT.md`, and treating the six as equally settled is the mistake it exists to
-prevent.
+**The types are not equally settled, and two axes decide it** — whether the format pre-exists this
+repository, and whether anything reads it yet. They are independent, and the current answer for each
+is at the top of `../FIXTURE-FORMAT.md`. Do not read a count from here: that table moves as the
+client grows, and this file is not where it is maintained. Treating the types as equally hardened is
+the mistake that document exists to prevent.
 
-**A type directory is not necessarily one schema.** `blocks/` holds three files that share no
-field beyond `_info` — what a block pays, what a header at a height must be, and what a block
-shape credits to whom. The single outer key names the schema, and a harness dispatches on it
-rather than assuming a directory is homogeneous.
+**A type directory is not necessarily one schema.** `blocks/` holds five files that share no field
+beyond `_info` — what a block pays, which ommer sets are legal, what a block shape credits to whom,
+what a header at a height must be, and what a receipt's first field is. The single outer key names
+the schema, and a harness dispatches on it rather than assuming a directory is homogeneous.
 
-**Only two of the six types are keyed by upgrade at all** -- state and difficulty -- and that is a
+**Only two types are keyed by upgrade at all** -- state and difficulty -- and that is a
 property of the subjects rather than an inconsistency. An identifier is a checksum over the *whole* schedule evaluated at a
 head, so it has no per-upgrade expectation to carry; the vector list is indexed by head block. It
 is also the one type here that can assert something about an upgrade changing no
@@ -86,6 +93,25 @@ the file as a map and hands each top-level *value* to its per-upgrade loop. Flat
 makes every field of every case look like an upgrade label. Confirm a new type's shape by
 round-tripping a fixture through a client that reads it, with a deliberately wrong value proving
 the reader rejects one -- not by pattern-matching an existing file.
+
+## Two families, two postures
+
+This directory does **not** hold a uniform amount of work per network, and the difference is a
+decision rather than a backlog:
+
+| family | upstream corpus | our standing | what we author |
+|---|---|---|---|
+| `ethereumclassic/` | unmaintained, deprecating | lead client maintainer | a complete suite |
+| `ethereum/` | alive and maintained | consumer of rules decided elsewhere | only what upstream structurally cannot hold |
+
+For the Ethereum family the test for adding anything is one question — *could the upstream corpus
+express this?* — and the answer is recorded in `ethereum/README.md` along with what upstream was
+measured to lack: no fork-identifier vectors, no network activation heights, no DAO event, no Merge.
+
+**Four different schedule shapes appear across these networks**, and a reader who has met only one
+has not met the shape of the problem: Ethereum Classic is block-based throughout with no timestamp
+fork at all; Ethereum mainnet is block-based then timestamp-based; Sepolia has exactly one block
+boundary and it is the Merge; Holesky and Hoodi have no block dimension whatsoever.
 
 ## What is network-scoped, and what is not
 
