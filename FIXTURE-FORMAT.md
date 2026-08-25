@@ -1249,6 +1249,36 @@ the outer header alone yields the right answer for every legacy case and silentl
 typed one — the type byte goes with the header. Decode the wrapper as RLP and take its single
 element.
 
+## Every `state/` fixture has been shown to fail a client that gets its rule wrong
+
+A fixture that passes a correct client has demonstrated nothing on its own — it may be pinning a
+value no rule depends on. The check that matters is the opposite one: **build a client with the
+rule removed and confirm the fixture fails.**
+
+**As of 2026-08-25, 39 of the 41 fixtures in `state/` have been scored that way** against
+deliberately-broken builds of the reference client, one defect per rule. Each fixture's `_info`
+records the defect it was scored against and the result, under `wrongBuildScores` where the score
+is specific enough to be worth naming.
+
+**The two exceptions are `replay_protection` and `typed_transaction_access_list`**, and they are
+unprovable by this method rather than unproven: they assert that a transaction is *refused*, and
+the reference runner never validates a signature or decodes an envelope (see "What the reference
+runner cannot check"). A consumer whose harness treats `txbytes` as the authority — which this
+document requires — can score them; that runner cannot.
+
+**Two results are worth carrying forward as reading advice, because both look like coverage gaps
+and are not:**
+
+- **A fixture can pin a value's magnitude without pinning the value.** `sstore_clear_refund` does
+  not detect a one-gas change to the refund it is named for, because a transaction's refund is
+  capped at a fraction of gas used and this body's refund exceeds the cap. It detects a third-sized
+  change at four upgrades. That is a property of capped refunds, not a weakness, and shrinking the
+  body until the cap stops binding would trade a mainnet-realistic case for an unobservable one.
+- **A rule with more than one activation site needs all of them broken.** SELFBALANCE is installed
+  by a function two call sites reach; disabling one leaves the opcode available and the resulting
+  "no fixture caught this" is an artifact of the patch, not a fact about the suite. Before trusting
+  a no-catch result, confirm the modified client actually behaves differently.
+
 ## What is not covered by any shape here
 
 Stated so that a harness author does not go looking, and so a reader does not mistake the suite's
