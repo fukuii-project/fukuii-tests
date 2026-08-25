@@ -194,6 +194,29 @@ inherits was asserted by nothing, in a suite that calls into contracts constantl
 A ledger counting fixtures-per-rule cannot see that. Only running a client that gets the rule wrong
 can.
 
+## A fixture can name its rule and still not test it
+
+`extcodehash_semantics.json` was written for EIP-1052's substance rather than its availability, and
+said so. It probed three targets: an account with code, an account holding a balance but no code,
+and an account that does not exist.
+
+**A client with the rule's central branch removed passed it, and passed all 39 other fixtures too.**
+
+The implementation branches on `Empty()` — zero balance, zero nonce, no code — returning zero for
+that case instead of the empty-string hash. Remove the branch and it returns `GetCodeHash`
+instead. For an account that **does not exist**, `GetCodeHash` is also zero. So the target chosen
+to represent "returns zero" gives the same answer whether the rule is implemented or not.
+
+The fixture now carries a fourth target: an account **present in state** with zero balance, zero
+nonce and no code. That is the only input that separates the two behaviors, and with it the fixture
+fails at all five upgrades where EXTCODEHASH exists.
+
+**This is the failure mode this directory already documents twice, arriving a third way.** The
+probe-stores-a-marker section records an instrument that could not report a negative; the
+empty-pre-storage section records a precondition no fixture established. This one is subtler than
+either: the instrument reports, the precondition is met, and the two branches simply agree on the
+input chosen. Reading the fixture cannot reveal it. Only running a build without the rule can.
+
 ## Two things the sequence surfaced that a single-upgrade fixture would not
 
 **The signature scheme changes mid-schedule.** This chain adopts replay protection at Die Hard,
