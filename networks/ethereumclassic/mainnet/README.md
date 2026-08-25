@@ -15,6 +15,7 @@ blocks/       block-level fixtures         emission, ommer credits, ommer validi
                                            required headers, receipt encoding
 forkid/       fork-identifier vectors
 chainselection/  reorg-defense vectors     which of two chains a node prefers
+                                           -- a POLICY, not a consensus rule; see the shape
 pow/          proof-of-work epoch vectors  which dataset a seal is verified against
 ```
 

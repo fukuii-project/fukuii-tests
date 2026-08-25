@@ -772,8 +772,9 @@ independently and should report them separately:
 ```
 
 **`windowVectors`** — is the rule in force at this height? The window is **inclusive at the start
-and exclusive at the end**: active from `activationBlock` up to but *not including*
-`deactivationBlock`. Both edges are covered because either could be off by one without the other
+and exclusive at the end**: the bundled default configuration enables it from `activationBlock` up
+to but *not including* `deactivationBlock`. Both edges are covered because either could be off by one
+without the other
 showing it.
 
 **`curveVectors`** — the polynomial alone, with no header attached to its input:
@@ -837,6 +838,35 @@ Presenting a client with two real competing chains and watching it decline to re
 needs a chain-level runner. See "What is not covered" below.
 
 ---
+
+### This shape is the one POLICY in the suite, not a consensus rule
+
+**Every other shape here asserts something a chain either does or is invalid. This one does not,
+and a harness that treats it the same way will fail correctly-configured nodes.**
+
+ECBP-1100 is a local chain-selection defense. A node running with it switched off produces a
+perfectly valid chain — it simply accepts reorganizations a defended node would refuse. **Nothing
+in a block header records whether its producer had MESS on**, which is the structural reason this
+can never be a consensus rule.
+
+Two consequences for a reader:
+
+- **`activationBlock` and `deactivationBlock` are the window in which the client's *bundled
+  configuration* turns it on.** They are not activations in the sense every other height in this
+  suite is. In the reference client all three of `--ecbp1100`, `--override.ecbp1100.deactivate` and
+  `--ecbp1100.nodisable` override them, and the client additionally has auto-shutoff mechanisms of
+  its own — so "inside the window" is not a prediction about any particular node.
+- **The gate has two layers and both must hold.** The configuration window must be open *and* the
+  runtime toggle must be on. The reference client documents the runtime layer as sitting *below*
+  the configuration: enabling it at runtime while the config has not activated it is a no-op, and
+  the enabled-status is tracked separately and described as "agnostic of feature activation by
+  chain configuration".
+
+**Assert the decision given the rule is in force; never assert that a node must refuse a
+reorganization.** The curve, the comparison and the subchain derivation are wrong whenever they run
+if they are wrong at all, and that is the useful thing to certify. `windowVectors`' `active` field
+means *the bundled default has it enabled at this height* — read as "a conformant node refuses
+reorgs here", it will fail a node that is merely configured differently.
 
 ## Shape 6 — proof-of-work epoch vectors (`pow/`)
 
