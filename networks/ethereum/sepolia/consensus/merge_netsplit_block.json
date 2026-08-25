@@ -1,0 +1,73 @@
+{
+  "mergeNetsplitBlockSepolia": {
+    "_info": {
+      "comment": "Sepolia's Merge, which is the mirror of mainnet's and is why the two files are worth reading together. Mainnet is keyed to accumulated difficulty and sets no MergeNetsplitBlock; Sepolia sets one, at 1,735,371, and it is this network's ONLY block-based fork-identifier boundary.",
+      "theNetworkHadAProofOfWorkPhase": "Unlike Holesky and Hoodi, whose terminal total difficulty is exactly zero and which are therefore merged at genesis, Sepolia mined before 1,735,371. Its terminal total difficulty is 17,000,000,000,000,000 -- roughly three million times smaller than mainnet's, which is what a short-lived testnet accumulates.",
+      "thePredicateIsADisjunctionOfTHREEBranches": "Read from the reference client: a network is post-merge when its terminal total difficulty is exactly zero, OR the block number has reached MergeNetsplitBlock, OR the timestamp has reached ShanghaiTime. Any one suffices. Every network this project targets answers through a DIFFERENT branch, which is why no single network reveals the shape.",
+      "whichBranchAnswersForEachNetwork": {
+        "sepolia": "MergeNetsplitBlock -- the block branch, asserted by the vectors below.",
+        "ethereum mainnet": "ShanghaiTime. It has no MergeNetsplitBlock and its terminal total difficulty is not zero, so the timestamp branch is the only one that can fire.",
+        "holesky and hoodi": "Terminal total difficulty of exactly zero -- merged at genesis, no proof-of-work phase at all."
+      },
+      "THISISNOTTheConsensusMergeTest": "Stated emphatically because the names invite the mistake and the consequence is large. Because mainnet answers only through the Shanghai branch, this predicate returns FALSE for every mainnet block between the real merge and Shanghai -- roughly seven months of genuinely post-merge chain. It is a configuration heuristic, not a consensus rule. The consensus question, which block is the terminal proof-of-work block, is decided from accumulated difficulty and is asserted in ../../mainnet/consensus/terminal_total_difficulty.json. A client using this predicate as the consensus test is wrong for that entire window.",
+      "oracle": "go-ethereum: SepoliaChainConfig in params/config.go, and IsPostMerge in the same file.",
+      "oracle-version": "go-ethereum, params/config.go",
+      "wrongBuildScores": {
+        "correct": "6/6",
+        "only the block branch (time branch dropped)": "5/6",
+        "only the time branch (block branch dropped)": "4/6",
+        "block comparison is > not >=": "5/6",
+        "netsplit block off by one": "5/6",
+        "method": "Scored 2026-08-25 by reimplementing the disjunction and removing one branch or shifting one bound at a time. It is a pure predicate over a block number and a timestamp, so no client patch is needed."
+      },
+      "generated": "2026-08-25"
+    },
+    "terminalTotalDifficulty": "17000000000000000",
+    "mergeNetsplitBlock": "1735371",
+    "shanghaiTime": "1677557088",
+    "vectors": [
+      {
+        "name": "genesis",
+        "blockNumber": "0",
+        "timestamp": "0",
+        "isPostMerge": false,
+        "note": "Sepolia had a proof-of-work phase. It is not merged at genesis, unlike Holesky and Hoodi."
+      },
+      {
+        "name": "one_below_the_netsplit_block",
+        "blockNumber": "1735370",
+        "timestamp": "0",
+        "isPostMerge": false,
+        "note": "The last block the block-branch refuses."
+      },
+      {
+        "name": "the_netsplit_block_itself",
+        "blockNumber": "1735371",
+        "timestamp": "0",
+        "isPostMerge": true,
+        "note": "The comparison is >=, so the boundary block is already post-merge."
+      },
+      {
+        "name": "one_above",
+        "blockNumber": "1735372",
+        "timestamp": "0",
+        "isPostMerge": true,
+        "note": "Unremarkable, and it is the control that makes the two above it mean something."
+      },
+      {
+        "name": "far_below_but_after_shanghai_time",
+        "blockNumber": "1000",
+        "timestamp": "1677557088",
+        "isPostMerge": true,
+        "note": "The THIRD branch fires alone. An impossible pairing on the real chain -- a low block with a late timestamp -- and it is the point: the predicate is a disjunction, so any branch alone suffices. A client implementing only the block branch answers False here."
+      },
+      {
+        "name": "far_above_and_after_shanghai",
+        "blockNumber": "5000000",
+        "timestamp": "1678557088",
+        "isPostMerge": true,
+        "note": "Both branches true. Deep post-merge."
+      }
+    ]
+  }
+}

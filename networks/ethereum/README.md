@@ -41,6 +41,7 @@ adding anything here is one question:
 | `mainnet/blocks/` | the DAO irregular state change — an event rather than a rule |
 | `mainnet/consensus/` | the Merge, keyed to accumulated difficulty rather than to a height |
 | `sepolia/forkid/` | fork identifiers — one block-based boundary, and it is the Merge |
+| `sepolia/consensus/` | the Merge expressed as a block, and the three-branch predicate |
 
 ## Ethereum's schedule changes shape at the Merge
 
@@ -78,6 +79,30 @@ boundary and the fork hash changes at it.
 one that learned it here looks for a block and finds a threshold.** Neither is wrong about its own
 network, and that is what the roadmap means by a testnet expressing a mechanism differently from its
 mainnet.
+
+## One predicate, three branches, and every network answers through a different one
+
+The reference client decides whether a network is post-merge with a three-way disjunction: the
+terminal total difficulty is exactly zero, **or** the block has reached `MergeNetsplitBlock`, **or**
+the timestamp has reached Shanghai. Any one suffices.
+
+| network | the branch that answers |
+|---|---|
+| Sepolia | `MergeNetsplitBlock` |
+| **Ethereum mainnet** | **`ShanghaiTime`** — it has no netsplit block and its TTD is not zero |
+| Holesky, Hoodi | TTD of exactly zero — merged at genesis, no proof-of-work phase |
+
+**No single network reveals that shape**, which is why the claim lives in a fixture rather than in
+one network's prose.
+
+### That predicate is not the consensus merge test, and the gap is seven months wide
+
+Because mainnet answers only through the Shanghai branch, it reports **not post-merge** for every
+mainnet block between the real merge and Shanghai. It is a configuration heuristic.
+
+The consensus question — *which block is the terminal proof-of-work block* — is decided from
+accumulated difficulty and is asserted in `mainnet/consensus/`. A client using the heuristic as the
+consensus test is wrong for that entire window.
 
 ## Sharing with Ethereum Classic is an assertion, never a directory
 
