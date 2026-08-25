@@ -135,6 +135,30 @@ a public repository's forks alive when it is deleted, but the URL in `.gitmodule
 way, and two of the corpora archived here have **zero forks**. Pointing at our own repository
 moves that risk onto us, where we can answer for it.
 
+### Archiving a corpus is not becoming its durable home
+
+**These are two different jobs and reading them as one produces a false custody claim**, so the
+distinction is stated here rather than inferred from the directory's existence.
+
+| | what it means | where it lives |
+|---|---|---|
+| **archiving** | a frozen mirror of what an upstream published, kept so a copy can be compared against the original | `archive/`, this repository's submodule |
+| **hosting** | being the maintained, durable home a corpus is fetched from and updated in | not this repository |
+
+`archive/` does the first. Its whole value is that it is **frozen** — the section below exists to
+keep it that way — and a frozen mirror is by construction not a living home for anything.
+
+**Which project holds the second role is recorded where that decision was made, and this file does
+not restate it.** That is the same rule this repository applies to specifications: a fact copied
+out of its source goes stale silently, and a custody claim that has gone stale is worse than a
+missing one because it names an org that may no longer be responsible. Read it from the client's
+own corpus documentation at the moment you need it; do not cache it here, and do not infer it from
+what `archive/` happens to contain.
+
+**The inference to avoid specifically:** this repository archiving `<org>/tests` does **not** mean
+it succeeded whatever effort previously undertook to host that corpus. Both can be true, either
+can be true, and the directory listing cannot tell them apart.
+
 ### The archive is frozen, and corrections land in the suite
 
 **Nothing under `archive/` is edited** — not to fix a label, not to satisfy a linter, not to

@@ -7,7 +7,18 @@
       "oracle": "core-geth production v1.12.21-unstable at commit 4185df450, read rather than run: params/mutations/rewards_classic.go's ecip1017BlockReward and GetBlockEra, and params/mutations/rewards.go's GetBlockWinnerRewardByEra, GetBlockWinnerRewardForUnclesByEra, GetBlockUncleRewardByEra and AccumulateRewards. Two details of that code are load-bearing and neither is in ECIP-1017's prose: the era reward is `5e18 * 4**era / 5**era` with a SINGLE truncating division rather than the reduction applied era by era, and the includer's bonus is the ERA-ADJUSTED winner reward divided by 32, truncating twice. Nine vectors are additionally grounded in chain state, which outranks the client.",
       "oracle-version": "core-geth v1.12.21-unstable @ 4185df450; observed mainnet 2026-08-24",
       "scope": "These are payments, not block validity. Whether an ommer is ADMISSIBLE -- at most two per block, within seven ancestors, not already included -- is validation rather than emission, and era_emission_schedule.json carries those invariants. They have to agree or a client mints currency no other client mints, which is why both are stated.",
-      "generated": "2026-08-24"
+      "generated": "2026-08-24",
+      "wrongBuildScores": {
+        "method": "Scored 2026-08-25 by reimplementing the credit rule from ECIP-1017 and breaking it one parameter at a time. The correct reimplementation reproduces all 18 vectors.",
+        "correct": "18/18",
+        "includerBonusDividedBy16": "1/18",
+        "ommerDenominator8to7": "8/18",
+        "era0OmmerFormulaUsedAtAllEras": "11/18",
+        "sameMinerOmmerReplacesRatherThanAdds": "17/18 -- caught by exactly one vector, the case where the ommer's miner is also the includer. That vector exists for this defect and nothing else here would notice it.",
+        "eraFromBlockWithoutTheMinusOne": "17/18 -- caught by exactly one vector, at an era boundary",
+        "truncatesEveryEraInsteadOfOnce": "18/18 -- NOT caught here, and deliberately not. See below."
+      },
+      "whatThisFileCannotSeeAndItsSiblingCan": "This file's vectors all sit in low eras, because its subject is WHO gets credited and HOW MUCH relative to the base reward -- distance, includer bonus, the same-miner case. It is therefore blind to how the base reward itself is computed at high eras: a client truncating the disinflation every era instead of once scores 18/18 here. era_emission_schedule.json catches that at 14/17, because it carries vectors past era 20 where the two readings diverge. Read the two together. Neither is redundant with the other and the scores show exactly where each is blind."
     },
     "eraLength": "5000000",
     "maxOmmersPerBlock": "2",

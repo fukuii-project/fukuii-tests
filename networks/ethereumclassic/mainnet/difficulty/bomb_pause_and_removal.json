@@ -19,7 +19,20 @@
         "ETC_MESSOn": "chain-selection policy, not a state-transition rule",
         "ETC_MESSOff": "chain-selection policy, not a state-transition rule"
       },
-      "generated": "2026-08-24"
+      "generated": "2026-08-24",
+      "wrongBuildScores": {
+        "method": "Scored 2026-08-25 by reimplementing the adjustment, the exponential clause, ECIP-1010's pause and ECIP-1041's removal from the specifications, then breaking that reimplementation one way at a time. The correct reimplementation reproduces all 192 cases, which makes it a second oracle for this file.",
+        "correct": "192/192",
+        "delayModel3000000": "12/192",
+        "noBombAtAll": "40/192",
+        "delayModel2000000": "56/192",
+        "ecip1010NeverImplemented": "121/192",
+        "bothRulesActiveAtEveryUpgrade": "151/192 -- see below",
+        "ecip1041NeverImplemented": "164/192",
+        "pauseWindowOneBlockShort": "183/192",
+        "removalOneBlockLate": "185/192"
+      },
+      "whichUPGRADESCarryTheRuleIsItselfPartOfTheRule": "A build can implement ECIP-1010 and ECIP-1041 correctly and still be wrong, by applying them at upgrades that never had them. This chain's labels through Gas Reprice run the bomb UNCHECKED -- no pause and no removal -- and Die Hard and Gotham have the pause but not the removal. A build ignoring that gating and applying both rules everywhere scores 151/192 here. That defect is invisible to any fixture holding one rule set: it is only detectable because this file evaluates the SAME sixteen heights under all twelve rule sets, so the same height is required to give different answers at different labels. It is also the shape a first reimplementation of this rule naturally gets wrong -- the one written to score this file did."
     },
     "ETC_Frontier": {
       "bomb_absent_below_first_period_n199999": {
