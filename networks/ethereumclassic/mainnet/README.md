@@ -11,8 +11,8 @@ state/        state-transition fixtures    post keyed by upgrade
   storage/      reads, writes, refunds
   accounts/     creation, clearing, code limits
 difficulty/   difficulty fixtures          a different generator reads these
-blocks/       block-level fixtures         emission, ommer credits, required headers,
-                                           receipt encoding
+blocks/       block-level fixtures         emission, ommer credits, ommer validity,
+                                           required headers, receipt encoding
 forkid/       fork-identifier vectors
 chainselection/  reorg-defense vectors     which of two chains a node prefers
 pow/          proof-of-work epoch vectors  which dataset a seal is verified against
@@ -55,6 +55,17 @@ two. It was never *missed* — the rule ledger named it, identified its observab
 a state fixture could not carry it. What was missing was a place to put it. `blocks/` is that
 place, and the fixture landing there is what turns the ledger's last row from a classification into
 an assertion.
+
+## A declared constant is not a test
+
+`maxOmmersPerBlock` and `validOmmerDistances` sat as declared fields in two fixtures and as vectors
+in none. Every vector in `blocks/ommer_payment_vectors.json` carries a legal ommer set, so a client
+that accepted three ommers, or one seven blocks back, was paid correctly for the sets it was shown
+and never asked about the sets it was not.
+
+`blocks/ommer_validity_rules.json` closes that. **The general form is worth carrying**: a constant
+declared in a fixture's header describes the rule, and only a vector that violates it tests the
+rule. When auditing, read the declared fields and ask which vector would fail if each were wrong.
 
 ## Adding a fixture
 

@@ -14,7 +14,10 @@
         "seedDivisorUsesTheEpochLength": "10/16 -- the defect seedContinuity already describes in prose, now measured. It is the natural simplification and it silently reuses a seed from millions of blocks earlier.",
         "epochStartHasNoPlusOne": "0/16 -- every vector",
         "epochComputedFromBlockMinusOne": "10/16",
-        "doublingHappensOneEpochLate": "13/16 -- the narrowest miss, and the three it catches are the vectors bracketing the activation"
+        "doublingHappensOneEpochLate": "13/16 -- the narrowest miss, and the three it catches are the vectors bracketing the activation",
+        "correctedToIncludeTheSizeFields": "The first scoring pass compared epochLength, epoch, epochStartBlock, seedIterations and seedHash and SKIPPED cacheSizeBytes and datasetSizeBytes, so its scores understated what this file asserts. Re-derived 2026-08-25: both size fields reproduce at 16/16 from the ethash sizing functions -- the largest prime multiple below an epoch-linear bound.",
+        "sizesComputedFromTheUndoubledEpoch": "10/16, and it is the sharpest Etchash defect available. A client can double the epoch LENGTH for scheduling and still size its cache and dataset from the old epoch number. Scheduling then looks correct, seeds look correct, and the DAG is the wrong size -- so every seal fails verification for a reason that points nowhere near the actual mistake. Only the size fields catch it.",
+        "sizesOffByOneEpoch": "0/16"
       }
     },
     "activationBlock": "11700000",

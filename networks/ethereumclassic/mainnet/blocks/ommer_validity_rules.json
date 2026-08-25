@@ -1,0 +1,173 @@
+{
+  "ommerValidityRules": {
+    "_info": {
+      "comment": "Which ommer sets a block may carry. This is a VALIDITY rule and is not the payment rule: ommer_payment_vectors.json says what a valid set is worth, and says nothing about which sets are valid. Both files declared maxOmmersPerBlock and validOmmerDistances; until this file, neither asserted them.",
+      "whyThisWasAGap": "The limits appeared as DECLARED FIELDS in two fixtures and as vectors in none. Every vector in the payment file carries a legal set -- at most two ommers, distances one through six -- so a client accepting three ommers, or an ommer seven blocks back, was paid correctly for the sets it was shown and never asked about the sets it was not. A declared constant that no vector exercises is documentation, not a test.",
+      "theFourRejectionClasses": "Named as the production client names them, because a harness reporting a different class has found a different bug: tooManyUncles, duplicateUncle, uncleIsAncestor, danglingUncle.",
+      "theWindowIsSevenAncestorsNotSixDistances": "The client gathers seven ancestors beginning at the parent, and an ommer is admitted when its PARENT is among them. That yields valid distances of one through six -- the two framings agree, and stating both is deliberate, because an implementer working from the distance list alone will get the boundary right and an implementer working from the ancestor count alone may be off by one.",
+      "distinctOmmersMaySHAREAHeight": "valid_two_ommers_both_at_distance_6 exists to separate two rules that a naive implementation merges. Two different blocks at the same height are a legal pair; the same block twice is not. A client deduplicating by height rather than by identity rejects a valid block.",
+      "shapeNote": "Ommers are identified by an opaque id rather than a hash, because the rule under test is arithmetic on heights and identity, not hashing. A harness supplies real headers; what it must preserve is the height relationship and which ids are equal.",
+      "consumerNote": "This is block-level and no reader consumes it yet, which is not a reason to defer authoring it -- three of the six shapes in this suite shipped before their readers.",
+      "oracle": "The production client's own uncle verification, read as source: maxUncles is 2 and the ancestor loop runs seven iterations from the parent. Error identifiers are quoted from it.",
+      "oracle-version": "core-geth production v1.12.21-unstable",
+      "generated": "2026-08-25",
+      "wrongBuildScores": {
+        "method": "Scored 2026-08-25 by reimplementing the validity predicate from the client's own uncle verification and breaking it one rule at a time.",
+        "correct": "8/8",
+        "noCountLimit": "7/8",
+        "countLimitOf3": "7/8",
+        "windowOneTooWideDistance7Allowed": "7/8",
+        "windowOneTooNarrowDistance6Refused": "7/8",
+        "dedupesByHeightNotIdentity": "7/8 -- caught by valid_two_ommers_both_at_distance_6, which exists for this and would otherwise look like filler",
+        "doesNotCheckAncestry": "7/8",
+        "everyDefectIsCaughtByExactlyONEVector": "That is the right shape here and not thin coverage. Each vector isolates one rule, so a failure names the rule directly instead of requiring a diff to interpret. It also means no vector is redundant: removing any one of the eight silently retires a rule."
+      }
+    },
+    "maxOmmersPerBlock": "2",
+    "validOmmerDistances": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "ancestorWindow": "7",
+    "vectors": [
+      {
+        "name": "valid_one_ommer_distance_1",
+        "blockNumber": "6000000",
+        "ommers": [
+          {
+            "number": "5999999",
+            "distance": "1",
+            "id": "A"
+          }
+        ],
+        "valid": true,
+        "note": "The ordinary case. One ommer, immediately behind the including block."
+      },
+      {
+        "name": "valid_two_ommers_distances_1_and_2",
+        "blockNumber": "6000000",
+        "ommers": [
+          {
+            "number": "5999999",
+            "distance": "1",
+            "id": "A"
+          },
+          {
+            "number": "5999998",
+            "distance": "2",
+            "id": "B"
+          }
+        ],
+        "valid": true,
+        "note": "The maximum permitted count, both inside the window."
+      },
+      {
+        "name": "valid_two_ommers_both_at_distance_6",
+        "blockNumber": "6000000",
+        "ommers": [
+          {
+            "number": "5999994",
+            "distance": "6",
+            "id": "A"
+          },
+          {
+            "number": "5999994",
+            "distance": "6",
+            "id": "B"
+          }
+        ],
+        "valid": true,
+        "note": "The far edge of the window. Two DISTINCT ommers may share a height; only identity is forbidden."
+      },
+      {
+        "name": "invalid_three_ommers",
+        "blockNumber": "6000000",
+        "ommers": [
+          {
+            "number": "5999999",
+            "distance": "1",
+            "id": "A"
+          },
+          {
+            "number": "5999998",
+            "distance": "2",
+            "id": "B"
+          },
+          {
+            "number": "5999997",
+            "distance": "3",
+            "id": "C"
+          }
+        ],
+        "valid": false,
+        "rejectionClass": "tooManyUncles",
+        "note": "Three ommers. The limit is two and this is the only vector that asserts it."
+      },
+      {
+        "name": "invalid_duplicate_ommer",
+        "blockNumber": "6000000",
+        "ommers": [
+          {
+            "number": "5999999",
+            "distance": "1",
+            "id": "A"
+          },
+          {
+            "number": "5999999",
+            "distance": "1",
+            "id": "A"
+          }
+        ],
+        "valid": false,
+        "rejectionClass": "duplicateUncle",
+        "note": "The SAME ommer twice. Distinguish from the two-at-distance-6 case above, which is valid: what is forbidden is identity, not a shared height."
+      },
+      {
+        "name": "invalid_ommer_is_an_ancestor",
+        "blockNumber": "6000000",
+        "ommers": [
+          {
+            "number": "5999999",
+            "distance": "1",
+            "id": "ANCESTOR"
+          }
+        ],
+        "valid": false,
+        "rejectionClass": "uncleIsAncestor",
+        "note": "A block from the canonical chain offered as an ommer. It is at a valid distance and would be paid; it must be refused."
+      },
+      {
+        "name": "invalid_distance_7_dangling",
+        "blockNumber": "6000000",
+        "ommers": [
+          {
+            "number": "5999993",
+            "distance": "7",
+            "id": "A"
+          }
+        ],
+        "valid": false,
+        "rejectionClass": "danglingUncle",
+        "note": "One block beyond the window. The client gathers seven ancestors starting at the parent, so an ommer's parent must lie within them -- which admits distances one through six and no more."
+      },
+      {
+        "name": "invalid_distance_0_self",
+        "blockNumber": "6000000",
+        "ommers": [
+          {
+            "number": "6000000",
+            "distance": "0",
+            "id": "A"
+          }
+        ],
+        "valid": false,
+        "rejectionClass": "uncleIsAncestor",
+        "note": "An ommer at the including block's own height. Distance zero is not in the valid set."
+      }
+    ]
+  }
+}
