@@ -38,6 +38,7 @@ adding anything here is one question:
 | directory | holds |
 |---|---|
 | `mainnet/forkid/` | fork identifiers across the full schedule, both block-based and timestamp-based |
+| `mainnet/blocks/` | the DAO irregular state change — an event rather than a rule |
 
 ## Ethereum's schedule changes shape at the Merge
 
