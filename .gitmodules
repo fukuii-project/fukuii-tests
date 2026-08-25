@@ -28,8 +28,11 @@
 	path = upstream/ethereum/hive
 	url = https://github.com/ethereum/hive
 
-# etclabscore pinned LegacyTests at an older ref than ethereum/tests does. That is
-# provenance, not duplication -- it records what that corpus itself referenced.
+# ethereum/legacytests is pinned TWICE against DIFFERENT refs, and that is
+# deliberate. The pin below is ours. The archive submodule pins the same upstream
+# again, inside etclabscore/tests, at whatever ref that corpus itself referenced --
+# provenance, not duplication. Read the ref from the archive's own .gitmodules
+# rather than from here, and do not "deduplicate" the two.
 
 # The modern spec-test lineage. execution-spec-tests was ARCHIVED 2026-07-02 and
 # its code migrated to execution-specs, which now also publishes the fixture

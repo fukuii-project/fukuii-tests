@@ -57,8 +57,10 @@ A corpus is declared to a client as a triple:
 ```
 
 The client reads **one directory**, and out of every fixture in it pulls the expectation for
-**one upgrade**. Covering twelve upgrades means reading the same directory twelve times under
-twelve labels.
+**one upgrade**. Covering a schedule therefore means reading the same directory once per upgrade,
+under one label each time — however many upgrades that schedule currently has. Read the count off
+the labels in a `post` map rather than from any prose; it grows when the chain activates an
+upgrade.
 
 Three consequences, all of which shape the layout:
 

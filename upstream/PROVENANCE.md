@@ -33,8 +33,9 @@ re-derive and verify that extraction.
 
 ## `legacytests` health, measured
 
-Not abandoned: 30 commits since 2021-10-06, activity rising (3/yr through 2023, 7 in 2024, 14 in
-2025), last commit the same day as `ethereum/tests` HEAD. Its README describes it as legacy tests
+Not abandoned, **measured 2026-08-21 and stated as a reading of that date rather than a standing
+claim**: 30 commits since 2021-10-06, activity rising (3/yr through 2023, 7 in 2024, 14 in 2025),
+last commit the same day as `ethereum/tests` HEAD. Re-measure before relying on it. Its README describes it as legacy tests
 for all clients to test against.
 
 It holds 36,535 json across the proof-of-work-era forks — **more completely than any other

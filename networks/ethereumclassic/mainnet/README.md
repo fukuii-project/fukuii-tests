@@ -24,7 +24,7 @@ different code paths and cannot share a directory.
 
 **No upgrade appears in a path.** The upgrade dimension lives in each fixture's `post` map, which
 is keyed by label — a directory named for an upgrade would compete with that map and eventually
-disagree with it. To cover twelve upgrades the harness reads one directory twelve times.
+disagree with it. The harness reads one directory once per upgrade, however many there are.
 
 This repository briefly had `schedule/` and `spiral/` directories and both were mistakes:
 `schedule/` named a property every state fixture has, and `spiral/` named an upgrade. They are

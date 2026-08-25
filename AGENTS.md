@@ -109,11 +109,19 @@ Each site records which was chosen and why. **Do not "correct" one into another.
 It points at **`fukuii-project/archive-reference-material`** — reference material this project
 archives, not an archive of this project's own material.
 
-**That split exists for the consumer.** Everything a client needs to run this suite is
-`networks/`, `proposals/` and the format specification: under a megabyte. The archived client
-lineage is 1.8 GB. Carrying both in one history meant a Java or C# implementer who wanted the
-fixtures cloned roughly seven hundred times more than they needed, and every future archive
-addition made that worse.
+**That split exists for the consumer, and the reason is structural rather than a matter of
+current size.** What a client needs to run this suite is `networks/`, `proposals/` and the format
+specification — bounded by the schedule it covers. The archive is whole client repositories with
+their history, so it is **orders of magnitude larger and grows every time another client or corpus
+is archived**, while the fixtures do not. Carried in one history, that gap widens on its own and a
+Java or C# implementer who wanted the fixtures pays for all of it.
+
+**No size is quoted here on purpose.** Any figure is wrong the next time something is archived.
+Measure it when you need it:
+
+```bash
+git ls-tree -r -l HEAD | awk '{s+=$4} END{print s/1048576 " MB"}'   # in either repo
+```
 
 ```bash
 git clone …/fukuii-tests            # fixtures and docs. This is what a consumer wants.

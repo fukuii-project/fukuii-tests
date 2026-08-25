@@ -26,7 +26,7 @@ trees are submodules and neither is fetched unless you ask:
 
 ```bash
 git clone https://github.com/fukuii-project/fukuii-tests.git   # under a megabyte
-git submodule update --init archive                            # the archived client lineage, 1.8 GB
+git submodule update --init archive                            # the client lineage — whole repos with history, large
 ```
 
 Nothing under `archive/` is edited — see [AGENTS.md](AGENTS.md) for why, and for how the
