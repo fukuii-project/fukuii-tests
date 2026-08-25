@@ -1230,6 +1230,19 @@ empty list and reads as data.
 **No expectation moved.** The fix touched `txbytes` and nothing else; every `hash` and `logs` value
 is byte-identical across it, which is the check to run after any mechanical pass like this one.
 
+**Where the wrapper came from, since knowing it prevents the next instance.** `evm t8n
+--input.txs`, with a `.rlp` extension, takes a JSON string holding the RLP of a **list** of
+transactions — `rlp([tx])`, exactly the shape every `txbytes` here carried. It was the generator's
+INPUT format, copied into an OUTPUT field where a bare transaction is required. **One shape,
+correct in one direction and wrong in the other**, with nothing in either artifact recording which
+direction it was for.
+
+**That tool fails silently on the opposite mistake too.** Passing a bare transaction where `t8n`
+wants the list runs nothing at all and reports success. It is detectable only because every fixture
+body here writes a **liveness marker** to `0x1f` — a slot whose value is known to be non-zero on
+any run that executed. Without it, "the transaction did nothing" and "the rule produced zero" read
+identically.
+
 **The unwrap is not a plain header strip, and getting it wrong looks like it worked.** A legacy
 transaction sits inside the wrapper as a nested *list*, a typed one as a byte *string*. Removing
 the outer header alone yields the right answer for every legacy case and silently corrupts every

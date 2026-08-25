@@ -166,6 +166,34 @@ That is worth stating because it is the same failure this directory already docu
 instrument that cannot report a negative is not measuring. Here the negative and the positive were
 the same value.
 
+## Three fixtures that exist because a wrong build found the gap first
+
+Every other fixture here was authored from a rule and then checked. These three were authored from
+a **measured hole**: nine deliberately-broken clients were built and scored against the whole
+corpus, and four of the nine were caught by nothing at all.
+
+| fixture | the defect nothing else catches |
+|---|---|
+| `gas/cold_code_access_cost.json` | EXTCODECOPY never paying the cold surcharge; CALLCODE left at pre-2929 pricing |
+| `gas/call_gas_63_64_retention.json` | EIP-150's 63/64 retention rule simply absent |
+| `storage/sstore_reentrancy_sentry.json` | EIP-2200's 2300-gas sentry never firing |
+
+**The gaps were not random, and the pattern is the useful part.** Three of the four were about *how
+much gas a call or a code access gets* — the one axis every fixture here touches incidentally and
+none owned. A corpus authored one subject at a time acquires blind spots along the axes no subject
+is responsible for, which is the same shape as the empty-pre-storage gap two sections above.
+
+### Executing an opcode is not exercising the rule that governs it
+
+**EIP-150's retention rule is the sharpest instance and worth stating on its own.** Ten fixtures
+here execute a `CALL`, so by any coverage measure the opcode is thoroughly covered. Only one names
+an explicit gas figure and it requests a *fixed* 10,000 — comfortably below the 63/64 cap, so the
+cap never binds and the rule never runs. A foundational 2016 consensus rule that every later fork
+inherits was asserted by nothing, in a suite that calls into contracts constantly.
+
+A ledger counting fixtures-per-rule cannot see that. Only running a client that gets the rule wrong
+can.
+
 ## Two things the sequence surfaced that a single-upgrade fixture would not
 
 **The signature scheme changes mid-schedule.** This chain adopts replay protection at Die Hard,
