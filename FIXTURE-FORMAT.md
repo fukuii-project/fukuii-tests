@@ -454,6 +454,27 @@ sharing a genesis can refuse each other before they reach the block they disagre
 
 ### How a harness checks a vector
 
+### Use YOUR genesis hash, not the one in the file
+
+**`genesisHash` here is a cross-check, not an input to trust.** Seed the checksum from the genesis
+hash *your* client computes, then compare the resulting `forkHash` against this file. Doing it the
+other way — taking our value and accumulating fork blocks onto it — makes every vector pass no
+matter what genesis your client actually built.
+
+That distinction is the whole test for one class of defect. A wrong genesis alloc, a wrong initial
+difficulty, a wrong `extraData` — none of them is visible in a fork identifier computed from a
+supplied hash, and **all of them change the hash a real node derives**. Seed from your own and the
+error surfaces at the very first vector, where `head` is 0 and no fork block has been folded in yet.
+
+**If they disagree, stop rather than continuing.** A genesis mismatch is not a fork-identifier bug
+and will not be fixed by anything in this file; every later vector is then noise. Compare our
+`genesisHash` against yours directly and report *that*.
+
+The same holds for `forkBlocks`: read them from your own chain configuration and check them against
+this file. A client that takes both the genesis and the schedule from the fixture is testing our
+arithmetic against itself.
+
+
 ```
 crc = CRC32(genesisHash)                      # 32 raw bytes, not the hex text
 for f in forkBlocks:

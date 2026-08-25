@@ -47,12 +47,18 @@ the whole reason this directory exists rather than a `--network` flag on the mai
 | `blocks/` | ECIP-1017 emission at Mordor's era length |
 | `pow/` | ECIP-1099 epoch schedule at Mordor's activation |
 | `state/` | the two rules that are genuinely Mordor's, not mainnet's with a different number |
+| `difficulty/` | that the bomb never existed here, asserted at every height where mainnet's did |
 
-**There is no `difficulty/bomb_*` fixture here, and its absence is an assertion in waiting rather
-than an omission.** Mordor's `DisposalBlock` is 0 and its `ECIP1010PauseBlock` is null: the
-difficulty bomb never ran on this network. Mainnet's bomb fixture has no Mordor counterpart to
-rebase — the correct Mordor fixture would assert that **no bomb term is ever added at any height**,
-which is a different test with a different shape. Worth authoring; not yet authored.
+**`difficulty/` asserts an absence, which is why it looks unlike mainnet's.** Mordor's
+`DisposalBlock` is 0 and its `ECIP1010PauseBlock` is null: the bomb never ran here. There is no
+growing phase, no pause and no removal to assert — so the fixture holds the block interval at nine
+seconds, where the adjustment is exactly zero, and walks the block number across every landmark of
+*mainnet's* bomb. All nine must return the parent's difficulty unchanged.
+
+**The constancy is the assertion.** On mainnet the identical sweep moves three times; here it must
+not move at all. A client that ported mainnet's bomb schedule scores 18/78, and the error is not
+subtle — at mainnet's pause block the exponential clause alone adds 2²⁸ against a parent difficulty
+of about 1.3 × 10⁷.
 
 **`state/` is deliberately small, and will stay that way.** Mordor runs the same EIP sets mainnet
 reaches, so a gas or opcode fixture here would be `../mainnet/state/`'s answer restated — the roots
