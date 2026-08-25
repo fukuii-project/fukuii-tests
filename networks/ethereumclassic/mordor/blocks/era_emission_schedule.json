@@ -1,0 +1,191 @@
+{
+  "eraEmissionScheduleMordor": {
+    "_info": {
+      "comment": "ECIP-1017 emission on Mordor. The rule is mainnet's; the ERA LENGTH is not. Mordor's era is 2,000,000 blocks against mainnet's 5,000,000, so every boundary and every reward after the first era differs, and a fixture copied from mainnet would be wrong from block 2,000,001 onward.",
+      "network": "Mordor. ECIP1017FBlock 0, ECIP1017EraRounds 2000000 -- read from the production client's MordorChainConfig.",
+      "baseRewardIsTheSameAsMainnets": "5 ETC, and this was verified rather than assumed: the client's ECIP-1017 path takes vars.FrontierBlockReward unconditionally, so no per-network override exists. Only the era length is network-scoped.",
+      "eraFormula": "era = (block - 1) // eraLength for block >= 1, and 0 below that. Read from the client's GetBlockEra, which expresses it as a remainder subtraction; the two agree on every vector here.",
+      "theTruncationOrderIsPartOfTheRule": "The reward for era n is 5 ETC * 4^n / 5^n with ONE division at the end, NOT a multiply-and-truncate repeated per era. The two readings agree for twenty eras and then diverge. The high-era vectors below exist for that and nothing else -- they look like padding and they are the only part of this file that separates the two. Mordor reaches those eras four times sooner than mainnet in block terms, because its era is shorter.",
+      "oracle": "Computed from ECIP-1017 with the era length read from the client's Mordor configuration. The same reimplementation reproduces every vector of the mainnet emission file, where it was additionally checked against the client's own arithmetic.",
+      "oracle-version": "core-geth production v1.12.21-unstable, MordorChainConfig",
+      "generated": "2026-08-25",
+      "wrongBuildScores": {
+        "method": "Scored 2026-08-25 by reimplementing ECIP-1017 and breaking it one parameter at a time. The correct reimplementation reproduces all 11 vectors and also every vector of the mainnet emission file.",
+        "correct": "11/11",
+        "includerBonusDividedBy16": "0/11",
+        "mainnetEraLength5000000": "2/11 -- THE defect this file exists for. See below.",
+        "era0UncleFormulaUsedAtAllEras": "2/11",
+        "disinflation4over5to3over4": "2/11",
+        "truncatesEveryEraInsteadOfOnce": "9/11 -- caught only by the vectors past era 20"
+      },
+      "whyThisFileIsNotACopyOfMainnets": "THE DEFECT THIS FILE EXISTS FOR IS NETWORK CONFUSION, not a misread of the rule. A client that implements this rule perfectly and applies MAINNET's parameter to Mordor is the most likely real error here, because the rule text is identical and only a number read from configuration differs. It is also the error least likely to be caught by reading code, since the code is correct. Measured: that build scores 2/11 on emission and 6/12 on the epoch schedule. A Mordor fixture copied from mainnet rather than derived from Mordor's own configuration would agree with the broken client and certify it."
+    },
+    "eraLength": "2000000",
+    "activationBlock": "0",
+    "maxOmmersPerBlock": "2",
+    "validOmmerDistances": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6"
+    ],
+    "vectors": [
+      {
+        "block": "1",
+        "era": "0",
+        "winnerBaseReward": "5000000000000000000",
+        "includerBonusPerUncle": "156250000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "4375000000000000000",
+          "2": "3750000000000000000",
+          "3": "3125000000000000000",
+          "4": "2500000000000000000",
+          "5": "1875000000000000000",
+          "6": "1250000000000000000"
+        }
+      },
+      {
+        "block": "2000000",
+        "era": "0",
+        "winnerBaseReward": "5000000000000000000",
+        "includerBonusPerUncle": "156250000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "4375000000000000000",
+          "2": "3750000000000000000",
+          "3": "3125000000000000000",
+          "4": "2500000000000000000",
+          "5": "1875000000000000000",
+          "6": "1250000000000000000"
+        }
+      },
+      {
+        "block": "2000001",
+        "era": "1",
+        "winnerBaseReward": "4000000000000000000",
+        "includerBonusPerUncle": "125000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "125000000000000000",
+          "2": "125000000000000000",
+          "3": "125000000000000000",
+          "4": "125000000000000000",
+          "5": "125000000000000000",
+          "6": "125000000000000000"
+        }
+      },
+      {
+        "block": "4000000",
+        "era": "1",
+        "winnerBaseReward": "4000000000000000000",
+        "includerBonusPerUncle": "125000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "125000000000000000",
+          "2": "125000000000000000",
+          "3": "125000000000000000",
+          "4": "125000000000000000",
+          "5": "125000000000000000",
+          "6": "125000000000000000"
+        }
+      },
+      {
+        "block": "4000001",
+        "era": "2",
+        "winnerBaseReward": "3200000000000000000",
+        "includerBonusPerUncle": "100000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "100000000000000000",
+          "2": "100000000000000000",
+          "3": "100000000000000000",
+          "4": "100000000000000000",
+          "5": "100000000000000000",
+          "6": "100000000000000000"
+        }
+      },
+      {
+        "block": "6000001",
+        "era": "3",
+        "winnerBaseReward": "2560000000000000000",
+        "includerBonusPerUncle": "80000000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "80000000000000000",
+          "2": "80000000000000000",
+          "3": "80000000000000000",
+          "4": "80000000000000000",
+          "5": "80000000000000000",
+          "6": "80000000000000000"
+        }
+      },
+      {
+        "block": "10000001",
+        "era": "5",
+        "winnerBaseReward": "1638400000000000000",
+        "includerBonusPerUncle": "51200000000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "51200000000000000",
+          "2": "51200000000000000",
+          "3": "51200000000000000",
+          "4": "51200000000000000",
+          "5": "51200000000000000",
+          "6": "51200000000000000"
+        }
+      },
+      {
+        "block": "20000001",
+        "era": "10",
+        "winnerBaseReward": "536870912000000000",
+        "includerBonusPerUncle": "16777216000000000",
+        "uncleMinerRewardByDistance": {
+          "1": "16777216000000000",
+          "2": "16777216000000000",
+          "3": "16777216000000000",
+          "4": "16777216000000000",
+          "5": "16777216000000000",
+          "6": "16777216000000000"
+        }
+      },
+      {
+        "block": "40000001",
+        "era": "20",
+        "winnerBaseReward": "57646075230342348",
+        "includerBonusPerUncle": "1801439850948198",
+        "uncleMinerRewardByDistance": {
+          "1": "1801439850948198",
+          "2": "1801439850948198",
+          "3": "1801439850948198",
+          "4": "1801439850948198",
+          "5": "1801439850948198",
+          "6": "1801439850948198"
+        }
+      },
+      {
+        "block": "42000001",
+        "era": "21",
+        "winnerBaseReward": "46116860184273879",
+        "includerBonusPerUncle": "1441151880758558",
+        "uncleMinerRewardByDistance": {
+          "1": "1441151880758558",
+          "2": "1441151880758558",
+          "3": "1441151880758558",
+          "4": "1441151880758558",
+          "5": "1441151880758558",
+          "6": "1441151880758558"
+        }
+      },
+      {
+        "block": "48000001",
+        "era": "24",
+        "winnerBaseReward": "23611832414348226",
+        "includerBonusPerUncle": "737869762948382",
+        "uncleMinerRewardByDistance": {
+          "1": "737869762948382",
+          "2": "737869762948382",
+          "3": "737869762948382",
+          "4": "737869762948382",
+          "5": "737869762948382",
+          "6": "737869762948382"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "etchashEpochScheduleMordor": {
+    "_info": {
+      "comment": "ECIP-1099 on Mordor: which dataset a seal is verified against. The rule is mainnet's and the ACTIVATION is not -- Mordor doubles its epoch length at 2,520,000 against mainnet's 11,700,000.",
+      "network": "Mordor. ECIP1099FBlock 2520000, read from the production client's MordorChainConfig.",
+      "theDivisorIsAlways30000": "The seed iteration count is the epoch's start block divided by 30,000, NEVER by the epoch length in force. Dividing by the length in force is the natural simplification and it silently reuses a seed from millions of blocks earlier. Mordor makes that error cheaper to hit than mainnet does, because activation is far earlier.",
+      "alsoAForkIdentifierBoundary": "Unlike mainnet, where ECIP-1099 sits among many forks, Mordor's Etchash activation at 2,520,000 is one of only six fork-identifier boundaries -- see ../forkid/.",
+      "oracle": "Computed from ECIP-1099 with the activation read from the client's Mordor configuration. The same reimplementation reproduces every vector of the mainnet pow file.",
+      "oracle-version": "core-geth production v1.12.21-unstable, MordorChainConfig",
+      "generated": "2026-08-25",
+      "wrongBuildScores": {
+        "method": "Scored 2026-08-25 by reimplementing ECIP-1099 and breaking it one parameter at a time. The correct reimplementation reproduces all 12 vectors and also every vector of the mainnet pow file.",
+        "correct": "12/12",
+        "epochStartHasNoPlusOne": "0/12",
+        "mainnetActivation11700000": "6/12 -- THE defect this file exists for. See below.",
+        "epochLengthNeverDoubles": "6/12",
+        "seedDivisorUsesTheEpochLength": "6/12"
+      },
+      "whyThisFileIsNotACopyOfMainnets": "THE DEFECT THIS FILE EXISTS FOR IS NETWORK CONFUSION, not a misread of the rule. A client that implements this rule perfectly and applies MAINNET's parameter to Mordor is the most likely real error here, because the rule text is identical and only a number read from configuration differs. It is also the error least likely to be caught by reading code, since the code is correct. Measured: that build scores 2/11 on emission and 6/12 on the epoch schedule. A Mordor fixture copied from mainnet rather than derived from Mordor's own configuration would agree with the broken client and certify it."
+    },
+    "activationBlock": "2520000",
+    "epochLengthBefore": "30000",
+    "epochLengthFrom": "60000",
+    "seedIterationDivisor": "30000",
+    "vectors": [
+      {
+        "block": "0",
+        "epochLength": "30000",
+        "epoch": "0",
+        "epochStartBlock": "1",
+        "seedHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "seedIterations": "0"
+      },
+      {
+        "block": "1",
+        "epochLength": "30000",
+        "epoch": "0",
+        "epochStartBlock": "1",
+        "seedHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "seedIterations": "0"
+      },
+      {
+        "block": "29999",
+        "epochLength": "30000",
+        "epoch": "0",
+        "epochStartBlock": "1",
+        "seedHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "seedIterations": "0"
+      },
+      {
+        "block": "30000",
+        "epochLength": "30000",
+        "epoch": "1",
+        "epochStartBlock": "30001",
+        "seedHash": "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563",
+        "seedIterations": "1"
+      },
+      {
+        "block": "30001",
+        "epochLength": "30000",
+        "epoch": "1",
+        "epochStartBlock": "30001",
+        "seedHash": "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563",
+        "seedIterations": "1"
+      },
+      {
+        "block": "2519999",
+        "epochLength": "30000",
+        "epoch": "83",
+        "epochStartBlock": "2490001",
+        "seedHash": "0xcc55dae5d4738f1350d80a23aed0b0b0049085afc24eca54277a4ce9600ff670",
+        "seedIterations": "83"
+      },
+      {
+        "block": "2520000",
+        "epochLength": "60000",
+        "epoch": "42",
+        "epochStartBlock": "2520001",
+        "seedHash": "0x002440e15267eebdf06fa7fe5aee5ccff445967925a90ecce6429aef7f8feb1f",
+        "seedIterations": "84"
+      },
+      {
+        "block": "2520001",
+        "epochLength": "60000",
+        "epoch": "42",
+        "epochStartBlock": "2520001",
+        "seedHash": "0x002440e15267eebdf06fa7fe5aee5ccff445967925a90ecce6429aef7f8feb1f",
+        "seedIterations": "84"
+      },
+      {
+        "block": "2580000",
+        "epochLength": "60000",
+        "epoch": "43",
+        "epochStartBlock": "2580001",
+        "seedHash": "0xb08741c315151129d790a3a705898f9d0c5155391030d506c3c7bbb672a1767d",
+        "seedIterations": "86"
+      },
+      {
+        "block": "3000000",
+        "epochLength": "60000",
+        "epoch": "50",
+        "epochStartBlock": "3000001",
+        "seedHash": "0x71a56feffb6f10ea9d76e1a9464eb0abd86e4349ae98fb794923a65b650282a3",
+        "seedIterations": "100"
+      },
+      {
+        "block": "5000000",
+        "epochLength": "60000",
+        "epoch": "83",
+        "epochStartBlock": "4980001",
+        "seedHash": "0x3aa8f28cac16bdd858f2a726a06d1217f0f10e7334151dfc211e1003e022d38e",
+        "seedIterations": "166"
+      },
+      {
+        "block": "10000000",
+        "epochLength": "60000",
+        "epoch": "166",
+        "epochStartBlock": "9960001",
+        "seedHash": "0x2905fd5186c975a16b4c5d157463a325aa73cd8405f0489a0023acf87db18f34",
+        "seedIterations": "332"
+      }
+    ]
+  }
+}

@@ -1,0 +1,153 @@
+{
+  "forkIdentifierMordor": {
+    "_info": {
+      "comment": "Fork identifiers for Mordor, this chain's proof-of-work testnet. Each vector is the pair a node announces at a given head: a checksum over the genesis hash and every fork block already passed, and the next fork block it expects. The sweep sits one block below, at, and one above every fork, so a boundary off by one cannot pass.",
+      "network": "Mordor. Chain id 63, network id 7 -- both differ from mainnet's 61 and 1, and a fixture that reused mainnet's would be wrong before it computed anything.",
+      "genesisHashIsMordorsOwn": "Mordor has its own genesis, unlike mainnet which shares Ethereum's. So unlike the mainnet file, the identifiers here differ from Ethereum's from the very first vector rather than only after a divergence.",
+      "thereIsNoDeclinedForkHere": "Stated because its absence is meaningful rather than an omission. Mordor postdates the DAO fork entirely, so it has no refused fork to exclude from the checksum -- which is the single most interesting property of the mainnet fork-identifier file and simply does not arise here.",
+      "forkBlocks": "301243, 999983, 2520000, 3985893, 5520000, 9957000 -- read from the production client's MordorChainConfig. Note that ECIP-1099 (Etchash, 2520000) IS a fork-identifier boundary here.",
+      "oracle": "Two independent sources agreeing. Computed from EIP-2124 -- a CRC-32 accumulated over the genesis hash and each passed fork block as a big-endian 64-bit value -- and cross-checked against the production client's OWN published Mordor test table in core/forkid/forkid_test.go, which agrees on all 15 heads it covers.",
+      "oracle-version": "core-geth production v1.12.21-unstable, MordorChainConfig and its forkid test table",
+      "generated": "2026-08-25"
+    },
+    "genesisHash": "0xa68ebde7932eccb177d38d55dcc6461a019dd795a681e59b5a3e4f3a7259a3f1",
+    "forkBlocks": [
+      "301243",
+      "999983",
+      "2520000",
+      "3985893",
+      "5520000",
+      "9957000"
+    ],
+    "forkBlockNames": {
+      "301243": "Atlantis-equivalent set (EIP-145/1014/1052)",
+      "999983": "Phoenix-equivalent set",
+      "2520000": "ECIP-1099 Etchash",
+      "3985893": "Magneto-equivalent set",
+      "5520000": "Mystique-equivalent set",
+      "9957000": "Spiral-equivalent set"
+    },
+    "vectors": [
+      {
+        "head": "0",
+        "forkHash": "0x175782aa",
+        "forkNext": "301243",
+        "forkIdRlp": "0xc984175782aa830498bb"
+      },
+      {
+        "head": "301242",
+        "forkHash": "0x175782aa",
+        "forkNext": "301243",
+        "forkIdRlp": "0xc984175782aa830498bb"
+      },
+      {
+        "head": "301243",
+        "forkHash": "0x604f6ee1",
+        "forkNext": "999983",
+        "forkIdRlp": "0xc984604f6ee1830f422f"
+      },
+      {
+        "head": "301244",
+        "forkHash": "0x604f6ee1",
+        "forkNext": "999983",
+        "forkIdRlp": "0xc984604f6ee1830f422f"
+      },
+      {
+        "head": "999982",
+        "forkHash": "0x604f6ee1",
+        "forkNext": "999983",
+        "forkIdRlp": "0xc984604f6ee1830f422f"
+      },
+      {
+        "head": "999983",
+        "forkHash": "0xf42f5539",
+        "forkNext": "2520000",
+        "forkIdRlp": "0xc984f42f5539832673c0"
+      },
+      {
+        "head": "999984",
+        "forkHash": "0xf42f5539",
+        "forkNext": "2520000",
+        "forkIdRlp": "0xc984f42f5539832673c0"
+      },
+      {
+        "head": "2519999",
+        "forkHash": "0xf42f5539",
+        "forkNext": "2520000",
+        "forkIdRlp": "0xc984f42f5539832673c0"
+      },
+      {
+        "head": "2520000",
+        "forkHash": "0x66b5c286",
+        "forkNext": "3985893",
+        "forkIdRlp": "0xc98466b5c286833cd1e5"
+      },
+      {
+        "head": "2520001",
+        "forkHash": "0x66b5c286",
+        "forkNext": "3985893",
+        "forkIdRlp": "0xc98466b5c286833cd1e5"
+      },
+      {
+        "head": "3985892",
+        "forkHash": "0x66b5c286",
+        "forkNext": "3985893",
+        "forkIdRlp": "0xc98466b5c286833cd1e5"
+      },
+      {
+        "head": "3985893",
+        "forkHash": "0x92b323e0",
+        "forkNext": "5520000",
+        "forkIdRlp": "0xc98492b323e083543a80"
+      },
+      {
+        "head": "3985894",
+        "forkHash": "0x92b323e0",
+        "forkNext": "5520000",
+        "forkIdRlp": "0xc98492b323e083543a80"
+      },
+      {
+        "head": "5519999",
+        "forkHash": "0x92b323e0",
+        "forkNext": "5520000",
+        "forkIdRlp": "0xc98492b323e083543a80"
+      },
+      {
+        "head": "5520000",
+        "forkHash": "0x8c9b1797",
+        "forkNext": "9957000",
+        "forkIdRlp": "0xc9848c9b17978397ee88"
+      },
+      {
+        "head": "5520001",
+        "forkHash": "0x8c9b1797",
+        "forkNext": "9957000",
+        "forkIdRlp": "0xc9848c9b17978397ee88"
+      },
+      {
+        "head": "9956999",
+        "forkHash": "0x8c9b1797",
+        "forkNext": "9957000",
+        "forkIdRlp": "0xc9848c9b17978397ee88"
+      },
+      {
+        "head": "9957000",
+        "forkHash": "0x3a6b00d7",
+        "forkNext": "0",
+        "forkIdRlp": "0xc6843a6b00d780"
+      },
+      {
+        "head": "9957001",
+        "forkHash": "0x3a6b00d7",
+        "forkNext": "0",
+        "forkIdRlp": "0xc6843a6b00d780"
+      },
+      {
+        "head": "20000000",
+        "forkHash": "0x3a6b00d7",
+        "forkNext": "0",
+        "forkIdRlp": "0xc6843a6b00d780"
+      }
+    ]
+  }
+}
