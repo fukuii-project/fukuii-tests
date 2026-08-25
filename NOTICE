@@ -18,5 +18,8 @@ limitations under the License.
 This repository is part of the Fukuii project. For the main client, see
 https://github.com/fukuii-project/fukuii
 
-Vendored upstream test corpora (e.g. ethereum/tests and derivatives) retain their original licenses and
-copyright; per-corpus attribution is recorded here as those corpora are added.
+No upstream corpus is vendored into this repository, and that is the layout decision rather than a
+stage it has not reached yet: upstream/ holds pinned submodules, and preserved copies live in the
+archive submodule (fukuii-project/archive-reference-material), which carries their licenses and
+per-corpus attribution with them. Should material ever be copied in rather than pinned or archived,
+its attribution is recorded here at that point.

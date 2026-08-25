@@ -1138,9 +1138,9 @@ Not of the name. Establish it mechanically, with `git rev-list --max-parents=0 H
 | besu-etc | `7dfc2e408` | Java |
 
 **This project's own overlays are NEVER an independent oracle**, whatever they are named after.
-The Besu, Nethermind and Scala implementations in `work/repos/` were written from the production
-client and the specification by the same maintainer as the client under certification, so their
-agreement establishes that one reader read the specification the same way twice. Check before
+This project's own Besu, Nethermind and Scala overlays were written from the production client and
+the specification by the same maintainer as the client under certification, so their agreement
+establishes that one reader read the specification the same way twice. Check before
 citing one: a file present in a fork and absent from its upstream is ours. `git ls-tree -r
 upstream/master | grep -c <file>` against a control that must be non-zero settles it in one
 command — and the control is not optional, since a zero from a broken search looks identical to a

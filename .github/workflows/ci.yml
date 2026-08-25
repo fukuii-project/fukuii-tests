@@ -22,8 +22,14 @@ jobs:
   checks:
     uses: fukuii-project/.github/.github/workflows/checks.yml@aceddac07800571e8af7d2c2a74b852eb22dc3a8 # main @ 2026-07-18
 
-  # build:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
-  #     - run: {{BUILD_AND_TEST}}
+  # No build job, and that is not an omission left over from seeding: this
+  # repository is data. There is nothing here to compile, and the runner that
+  # executes these fixtures lives in each consuming client, in its own language
+  # and its own CI.
+  #
+  # What is NOT yet checked here is fixture well-formedness. `check-json` in
+  # .pre-commit-config.yaml covers it for anyone who has installed pre-commit,
+  # which is a local convention rather than a gate -- a malformed fixture pushed
+  # without it reaches main unchallenged. Closing that is a real job (a schema
+  # check, not a parse check) and is deliberately not stubbed out here, because a
+  # commented-out placeholder reads as a decision already taken.

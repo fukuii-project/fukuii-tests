@@ -39,7 +39,12 @@ git submodule update --init upstream/ethereum/devp2p        # 732 KB
 git submodule update --init upstream/ethereum/hive          # 15 MB
 git submodule update --init upstream/ethereum/tests         # 281 MB
 git submodule update --init upstream/ethereum/legacytests   # 2.6 GB
+git submodule update --init upstream/ethereum/execution-spec-tests   # 46 MB
+git submodule update --init upstream/ethereum/execution-specs        # 54 MB
 ```
+
+Sizes are the working tree, measured; a fetch also downloads history. They are here so the
+2.6 GB entry cannot be started by accident, not as figures to keep current.
 
 ## Bumping a pin
 
