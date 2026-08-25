@@ -110,9 +110,16 @@ leaving the absence to look like an omission.
 **A plain clone gives you the fixtures and nothing else, which is the point:**
 
 ```bash
-git clone https://github.com/fukuii-project/fukuii-tests.git   # under a megabyte
+git clone https://github.com/fukuii-project/fukuii-tests.git   # fixtures and docs only
 git submodule update --init upstream/ethereum/tests            # Ethereum's own corpus
 git submodule update --init archive                            # the archived client lineage — large
+```
+
+No clone size is quoted, for the same reason `AGENTS.md` quotes none for the archive: the figure is
+wrong the next time a fixture is added, and a stale one reads as current. Measure it:
+
+```bash
+git ls-tree -r -l HEAD | awk '{s+=$4} END{print s/1048576 " MB"}'
 ```
 
 Nothing under `archive/` is ever edited. See [AGENTS.md](AGENTS.md) for why, and for how the freeze
