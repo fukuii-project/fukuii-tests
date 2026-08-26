@@ -130,10 +130,10 @@ archives, not an archive of this project's own material.
 
 **That split exists for the consumer, and the reason is structural rather than a matter of
 current size.** What a client needs to run this suite is `networks/`, `proposals/` and the format
-specification — bounded by the schedule it covers. The archive is whole client repositories with
-their history, so it is **orders of magnitude larger and grows every time another client or corpus
-is archived**, while the fixtures do not. Carried in one history, that gap widens on its own and a
-Java or C# implementer who wanted the fixtures pays for all of it.
+specification — bounded by the schedule it covers. The archive is whole upstream repositories with
+their history, so it is **orders of magnitude larger and grows every time anything is archived**,
+while the fixtures do not. Carried in one history, that gap widens on its own and a Java or C#
+implementer who wanted the fixtures pays for all of it.
 
 **No size is quoted here on purpose.** Any figure is wrong the next time something is archived.
 Measure it when you need it:
@@ -144,8 +144,16 @@ git ls-tree -r -l HEAD | awk '{s+=$4} END{print s/1048576 " MB"}'   # in either 
 
 ```bash
 git clone …/fukuii-tests            # fixtures and docs. This is what a consumer wants.
-git submodule update --init archive # the archived client lineage, when you actually need it.
+git submodule update --init archive # the archived material, when you actually need it.
 ```
+
+**Do not describe the archive by listing what is in it, here or anywhere else.** It began as a
+client lineage plus test corpora and has since taken in tooling and the personal-account work of
+departed core developers; any sentence naming its contents is wrong at the next addition and
+reads as settled while it is wrong. This is the same rule this file already applies to the
+Olympia suite's membership and to clone sizes, and it decays the same silent way. **The authority
+is `archive/PROVENANCE.md`, which carries one entry per vendored tree** — read it at the moment
+you need it.
 
 **A pin is not a copy, which is why the submodule points at a repository we own.** A gitlink is
 twenty bytes of SHA and nothing else — the parent repository cannot even resolve it. Pinning a
@@ -188,12 +196,35 @@ The reason is not reverence. A corrected mirror cannot be compared against what 
 published, and that comparison is the only thing that makes a copy of a dead corpus worth
 holding. Fixing it in place spends the artifact to save a rename.
 
+**Editing an existing entry and appending a new one are different acts, and only the first is
+frozen.** That is the archive's own rule, and restating it loosely here as "nothing is ever
+written" would forbid the one write archiving something new requires. Recording a new corpus in
+`PROVENANCE.md` or `NOTICE` is the documented path; revising a line already there is not. The
+archive's `AGENTS.md` carries the command that proves a change was append-only — **run it there,
+in that repository, rather than reasoning about it here.**
+
 **Check the freeze by tree hash, not by diff.** `git subtree` relocates a corpus under a prefix,
 so `git diff <ref>..HEAD -- <path>` reports every file as added and looks alarming while proving
 nothing. Compare `git rev-parse '<ref>^{tree}'` against
 `git rev-parse 'HEAD:<org>/<repo>'` **inside the archive submodule**; two identical hashes is the
 whole proof. Note the path no longer carries an `archive/` prefix — that prefix was the mount
 point, and inside the archive repository the organisation is the top level.
+
+**Compare at `<org>/<repo>`, never at `<org>`, and this is a false-alarm trap rather than a
+nicety.** An organisation's tree hash *necessarily* moves when that organisation gains an entry,
+so an org-level comparison reports a frozen corpus as CHANGED and looks like a freeze violation
+while proving nothing. Descend one level. **Calibrate the run too:** a sweep in which nothing
+reports CHANGED cannot distinguish a held freeze from a broken comparison, so check it against
+files you expect to differ — `AGENTS.md`, `PROVENANCE.md`, `NOTICE` — in the same pass.
+
+**Bumping the gitlink is invisible to plain `git status` and `git diff`**, because `.gitmodules`
+sets `ignore = all` on this submodule. That is deliberate and it hides the one thing you are
+trying to confirm. Verify a bump by its own instruments instead:
+
+```bash
+git ls-files --stage archive                              # the staged SHA
+git diff --cached --ignore-submodules=none --name-only    # must print exactly: archive
+```
 
 **Gaps and inherited mistakes are answered in `proposals/` and `networks/` instead** — our tests,
 our names, mapped. A reader can then see both what was inherited and what this project asserts,

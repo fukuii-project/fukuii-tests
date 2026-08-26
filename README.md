@@ -112,7 +112,7 @@ leaving the absence to look like an omission.
 ```bash
 git clone https://github.com/fukuii-project/fukuii-tests.git   # fixtures and docs only
 git submodule update --init upstream/ethereum/tests            # Ethereum's own corpus
-git submodule update --init archive                            # the archived client lineage — large
+git submodule update --init archive                            # the archived material — large
 ```
 
 No clone size is quoted, for the same reason `AGENTS.md` quotes none for the archive: the figure is
@@ -122,8 +122,13 @@ wrong the next time a fixture is added, and a stale one reads as current. Measur
 git ls-tree -r -l HEAD | awk '{s+=$4} END{print s/1048576 " MB"}'
 ```
 
-Nothing under `archive/` is ever edited. See [AGENTS.md](AGENTS.md) for why, and for how the freeze
-is verified.
+Nothing already in `archive/` is ever edited — appending a new entry when something is archived is
+a different act, and the only written one. See [AGENTS.md](AGENTS.md) for why, and for how the
+freeze is verified.
+
+**What the archive holds is deliberately not described here.** It grows, and any list of its
+contents is wrong at the next addition while still reading as current. `archive/PROVENANCE.md`
+carries one entry per vendored tree and is the authority.
 
 ## Contributing
 
