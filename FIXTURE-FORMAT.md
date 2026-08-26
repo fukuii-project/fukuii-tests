@@ -3,47 +3,113 @@
 Everything in `proposals/` and `networks/` is **data**. This file is the contract: every shape,
 field by field, with its type, its units and what a reader must do when a field is absent.
 
-**It is written for someone implementing a harness in a language nobody here has used.** Five
-clients are meant to run these fixtures, across four languages — Go, Scala, Java and C# — and a
-sixth should need nothing but this file. Where a rule below is subtle, the reason it is subtle is
-stated, because a convention whose reason is unrecorded is a convention that gets "simplified"
-back out.
+**It is written for someone implementing a harness in a language nobody here has used.** Several
+clients across several languages are meant to run these fixtures, and one more should need nothing
+but this file. Where a rule below is subtle, the reason it is subtle is stated, because a
+convention whose reason is unrecorded is a convention that gets "simplified" back out.
 
-**None of the five reads this directory yet.** The two readers cited below consume the vendored
-Ethereum corpora, in the same formats, and are described here because they are the only working
-readers of two of these shapes that exist. Treat them as the reference implementation of a format,
-not as a consumer of this suite.
+**No client reads this directory yet.** The readers cited below consume the vendored Ethereum
+corpora, in the same formats, and are described here because they are the only working readers of
+any of these shapes that exist. Treat them as the reference implementation of a format, not as a
+consumer of this suite.
 
-Verified against the readers and the fixtures on **2026-08-24**.
+Verified against the readers and the corpus on **2026-08-26**, which is a dated reading of the
+corpus rather than a promise about it.
+
+**Counts are deliberately absent from this file, and that is a correction rather than a style.**
+Every hardcoded number here decayed: it said six shapes while a seventh directory already existed,
+and four `blocks/` schemas while there were eight. A count reads as precise and goes stale with
+nobody editing it, which is the same failure this repository documents for the archive's contents
+and for a specification suite's membership. Where you want a number, derive it — the commands are
+below.
 
 ---
 
-## Read this first: the six shapes are not equally settled
+## Read this first: the shapes are not equally settled
 
 Taking them as equally hardened is the mistake to avoid. Two axes matter and they are independent:
 whether the format **pre-exists this repository**, and whether anything **reads it yet**.
+
+### The inventory is the tree; this file is the contract
+
+**This file cannot tell you what exists, and twice it has claimed to and been wrong.** Derive the
+inventory from the corpus, then read the contract for each thing you find:
+
+```bash
+# every type directory in use -- the level a harness dispatches on to pick a reader
+find proposals networks -name '*.json' | while read -r f; do
+  case "$f" in */state/*) echo state ;; *) basename "$(dirname "$f")" ;; esac
+done | sort | uniq -c
+
+# every outer key in use, against the type directory it sits under
+find proposals networks -name '*.json' | while read -r f; do
+  case "$f" in */state/*) t=state ;; *) t=$(basename "$(dirname "$f")") ;; esac
+  jq -r --arg t "$t" 'keys[] | "\($t)\t\(.)"' "$f"
+done | sort -u
+```
+
+Both were run against this corpus when this file was last revised, so a reader who gets no output
+is looking at a broken invocation rather than an empty tree. **That caution is not decorative: the
+first spelling of the label command below returned nothing at all and would have published a
+silent zero.**
+
+And this file can audit itself. Where the outer key selects a schema, every one the corpus carries
+should have a section here:
+
+```bash
+documented=$(grep -oE '^### .*' FIXTURE-FORMAT.md | grep -oE '`[A-Za-z0-9_]+`' | tr -d '`' | sort -u)
+carried=$(find proposals networks -path '*/blocks/*.json' -o -path '*/consensus/*.json' \
+          | xargs -I{} jq -r 'keys[]' {} | sort -u)
+for k in $carried; do
+  printf '%s\n' "$documented" | grep -qx "$k" && continue
+  hit=0; for d in $documented; do case "$k" in "$d"*) hit=1;; esac; done   # per-network variant
+  [ "$hit" = 1 ] || echo "UNDOCUMENTED SCHEMA: $k"
+done
+```
+
+It printed nothing when this file was last revised. **Calibrate it before trusting a clean run** —
+delete a `###` heading's backticks and confirm it reports that schema, because a check that cannot
+fail is not a check.
+
+**A type directory that appears in the first command and nowhere in this file is a gap in THIS
+FILE**, not an undocumented fixture — close it here rather than working around it in a reader.
+
+### Two levels, and conflating them is the recurring error
+
+| level | what it is | what a harness does with it |
+|---|---|---|
+| **type directory** | `state/`, `blocks/`, `consensus/`, … | selects which reader runs |
+| **outer key** | the single top-level key inside each file | names that file's contents, and in some directories also selects the schema |
+
+**The outer key is not a synonym for the schema.** In `forkid/` and `difficulty/` every file shares
+one schema and the key merely distinguishes instances — one per network. In `blocks/` and
+`consensus/` the key genuinely selects the schema, and files sitting side by side share nothing
+beyond `_info`. **Never assume a type directory is homogeneous**, and dispatch on the schema you
+identified rather than on how many keys you happened to see.
+
+### Which formats pre-exist, and which this repository publishes alone
 
 | shape | directory | format | a reader exists |
 |---|---|---|---|
 | state | `state/` | **pre-existing** — geth's GeneralStateTest, shared with the Ethereum corpora | yes |
 | difficulty | `difficulty/` | **pre-existing** — shared with `DifficultyTests` | yes |
 | proof of work | `pow/` | **pre-existing, extended here** | yes |
-| block-level | `blocks/` | **specified here** | **partly — two of its four schemas** |
+| block-level | `blocks/` | **specified here** | **per-schema, not per-directory** |
 | fork identifier | `forkid/` | **specified here** | not yet |
 | chain selection | `chainselection/` | **specified here** | not yet |
+| consensus mechanism | `consensus/` | **specified here** | not yet |
 
-**Three formats pre-exist this repository**: get them wrong and your harness disagrees with a corpus
-of tens of thousands of published files. Fix your reader.
+**Where a format pre-exists**, get it wrong and your harness disagrees with a corpus of tens of
+thousands of published files. Fix your reader.
 
-**Three are specified here, with one publisher.** No upstream corpus carries them, because no
-upstream corpus tests these rules — Ethereum has no era emission, no declined fork to exclude from
-a checksum, and no reorg-defense rule. If one is awkward in your language, report it rather than
-work around it: nothing has hardened them yet.
+**Where this repository is the only publisher**, no upstream corpus carries the format, because no
+upstream corpus tests these rules — Ethereum has no era emission, no declined fork to exclude
+from a checksum, and no reorg-defense rule. If one is awkward in your language, report it rather
+than work around it: nothing has hardened these yet.
 
-**`blocks/` is the one shape where "has a reader" is per-schema rather than per-directory.** It
-holds four schemas and they are unrelated to each other beyond `_info`; a consumer reading the
-emission vectors has done nothing toward reading the receipt-encoding ones. Establish which
-schemas your reader covers before treating the directory as supported.
+**"Has a reader" is per-schema wherever the outer key selects one.** A consumer reading the
+emission vectors has done nothing toward reading the receipt-encoding ones, though both live in
+`blocks/`. Establish which schemas your reader covers before treating a directory as supported.
 
 > **Do not name a specific file in the client here.** An earlier version of this table cited three
 > reader filenames and **all three had ceased to exist** — the client is under active development
@@ -51,10 +117,10 @@ schemas your reader covers before treating the directory as supported.
 > than none, because it reads as precise. This is the same rule this repository applies to
 > specifications: cite, never restate.
 
-**Do not infer a shape by pattern-matching a neighbouring file.** The six nest differently and
-none of them is guessable from another. Confirm a new one by round-tripping a fixture through a
-reader with a deliberately corrupted value, and check that the reader *rejects* it — a reader that
-cannot report a negative is not reading.
+**Do not infer a shape by pattern-matching a neighbouring file.** They nest differently and none is
+guessable from another. Confirm a new one by round-tripping a fixture through a reader with a
+deliberately corrupted value, and check that the reader *rejects* it — a reader that cannot report
+a negative is not reading.
 
 ---
 
@@ -86,19 +152,27 @@ Three consequences, all of which shape the layout:
 
 ### The upgrade labels
 
-Twelve labels appear in a `post` map, in schedule order:
+**Read the labels off the corpus, not off this file.** The set grows whenever the chain activates
+an upgrade, and a list written here decays with nobody editing it:
 
-```
-ETC_Frontier  ETC_Homestead  ETC_GasReprice  ETC_DieHard  ETC_Gotham
-ETC_DefuseDifficultyBomb  ETC_Atlantis  ETC_Agharta  ETC_Phoenix
-ETC_Magneto  ETC_Mystique  ETC_Spiral
+```bash
+find networks proposals -name '*.json' \
+  -exec jq -r '..|objects|select(has("post"))|.post|keys[]' {} \; | sort -u
 ```
 
-Six more name entries in the schedule that carry **no state expectation anywhere in this suite**:
-`ETC_FrontierThawing`, `ETC_DAOWars`, `ETC_DAOFork`, `ETC_Thanos`, `ETC_MESSOn`, `ETC_MESSOff`.
-Each shape records why in its own way — a difficulty fixture keys them in an `_info.unfillable`
-map, a state fixture names them in the value of an `_info.unfilled-*` key. Either way the reason
-is written down; see "What a MISSING expectation means" below.
+**A label belongs to a family, and the two families do not share a vocabulary.** Ethereum Classic
+fixtures use this suite's own `ETC_`-prefixed labels in schedule order; Ethereum-family fixtures
+use upstream's own names, which carry no prefix at all. The command above returns both mixed
+together, which is the honest answer — a reader resolving a label has to know which family's
+schedule it belongs to, and the path says so.
+
+Further labels name entries in a schedule that carry **no state expectation anywhere in this
+suite**. Derive those the same way, by diffing the schedule your client resolves against the
+command above rather than trusting a list.
+
+Each shape records why a label carries nothing, in its own way — a difficulty fixture keys them
+in an `_info.unfillable` map, a state fixture names them in the value of an `_info.unfilled-*`
+key. Either way the reason is written down; see "What a MISSING expectation means" below.
 
 **The labels are this suite's, not the production client's.** `ETC_Frontier` is what that client
 calls `Frontier`. A label is carried through a reader unmapped and resolved by whoever runs the
@@ -177,7 +251,7 @@ silently loses data on.
 
 ---
 
-## Shape 1 — state fixtures (`state/`)
+## state fixtures (`state/`)
 
 An existing format. One file holds one or more named cases:
 
@@ -374,7 +448,7 @@ error — which looks exactly like an opcode being unavailable.
 
 ---
 
-## Shape 2 — difficulty fixtures (`difficulty/`)
+## difficulty fixtures (`difficulty/`)
 
 An existing format, and it nests differently from every other shape: an **outer name**, then
 **fork labels**, then **case names**, then six scalars.
@@ -428,7 +502,7 @@ tell a gap from an omission.
 
 ---
 
-## Shape 3 — fork-identifier vectors (`forkid/`)
+## fork-identifier vectors (`forkid/`)
 
 **Specified here.** EIP-2124: the pair a node announces at a given head, so that two chains
 sharing a genesis can refuse each other before they reach the block they disagree about.
@@ -517,17 +591,22 @@ in this schedule is covered by nothing else in the suite for exactly that reason
 
 ---
 
-## Shape 4 — block-level vectors (`blocks/`)
+## block-level vectors (`blocks/`)
 
 **Specified here.** Block-level rules are functions of height, with no per-upgrade expectation to
 carry, so this shape is indexed by block number rather than keyed by upgrade.
 
-> **`blocks/` holds FOUR schemas, and the outer name is what says which.** This is true of
-> all three repository-specified types and it is a real difference from `state/` and `difficulty/`,
-> where every file in a directory has the same shape. A type directory here groups files by the
-> **reader code path** they need, and each file's single outer key names its own schema —
-> `eraEmissionSchedule`, `requiredBlockHeaders`, `ommerPaymentVectors` and
-> `receiptStatusEncoding` are all block-level and share no fields beyond `_info`. A harness dispatches on that outer name; it must not assume a directory is homogeneous.
+> **`blocks/` holds several schemas and the outer key is what says which.** A type directory here
+> groups files by the **reader code path** they need, and each file's single outer key names its
+> own schema; block-level files sitting side by side share no fields beyond `_info`. A harness
+> dispatches on that outer key and must not assume the directory is homogeneous.
+>
+> **The sections below describe the schemas; the corpus says which exist.** This paragraph counted
+> them at four and there were eight by the time anyone checked — run the second command under
+> "The inventory is the tree" and read `blocks` off it. A schema in that output with no section
+> here is a gap in this file. Note also that one schema can appear under more than one outer key,
+> once per network (`eraEmissionSchedule` and `eraEmissionScheduleMordor` are one reader path),
+> so the key count is an upper bound on the number of reader paths, never the number itself.
 
 ### `eraEmissionSchedule` — what a block pays
 
@@ -695,6 +774,72 @@ included at all — at most two, within seven ancestors, not already included �
 than emission. The two have to agree or a client mints currency no other client mints, which is why
 both are stated rather than one inferred from the other.
 
+### `ommerValidityRules` — which ommers a block may include at all
+
+```jsonc
+{
+  "ommerValidityRules": {
+    "_info": { },
+    "maxOmmersPerBlock":   "2",
+    "ancestorWindow":      "7",
+    "validOmmerDistances": ["1","2","3","4","5","6"],
+    "vectors": [
+      { "name": "…", "blockNumber": "6000000",
+        "ommers": [ { "number": "5999999", "distance": "1", "id": "A" } ],
+        "valid": true,
+        "rejectionClass": "tooManyUncles",
+        "note": "…" }
+    ]
+  }
+}
+```
+
+**Admissibility, not payment.** What an included ommer *earns* is `ommerPaymentVectors`'s; whether it
+may be included at all is here. The two have to agree or a client mints currency no other client
+mints, which is why both are stated rather than one inferred from the other.
+
+`valid` is a real JSON boolean. **`rejectionClass` appears only where `valid` is false**, and names
+which rule the shape violates — too many ommers, a duplicate, an ancestor presented as an ommer, a
+distance outside the window. **Compare the class, not merely that the block was refused**: a client
+that rejects every ommer-bearing block passes a file checked only for refusal.
+
+`id` labels an ommer within its vector so a duplicate can be expressed at all; it is not a hash and
+a reader derives nothing from it.
+
+### `daoIrregularStateChange` — a scripted mutation, and the one thing here that is not a rule
+
+```jsonc
+{
+  "daoIrregularStateChange": {
+    "_info": { },
+    "block":       "1920000",
+    "beneficiary": "0x…",
+    "headerMarker": { "marker": "0x…", "markerText": "dao-hard-fork",
+                      "range": { "from": "1920000", "to": "1920009" },
+                      "mustCarryMarker": true },
+    "drainedAccounts": [ "0x…", "0x…" ]
+  }
+}
+```
+
+**No opcode implements this, no gas is charged for it and no schedule of EVM rules can express
+it.** At one height, on one network, the balance of every account in `drainedAccounts` moves in
+full to `beneficiary`. A harness applies it as a scripted state mutation at `block` and compares
+balances afterwards.
+
+**`beneficiary` is deliberately not in `drainedAccounts`**, and a reader that merges the two lists
+drains the destination.
+
+**`headerMarker` is a SEPARATE rule from the state change** and is stated separately: across the
+range, a header must carry the marker. Note the polarity — `mustCarryMarker: true` here, against
+`false` in Ethereum Classic's `requiredBlockHeaders.declinedForkExtraData`, which asserts the
+mirror image on the chain that refused this fork. The two files are a matched pair and reading
+either alone gets the sign wrong half the time.
+
+**There is no list of drained accounts to shorten.** Its length is the assertion: a client that
+applies the mutation to a subset produces a state root nothing else computes, and the file exists
+because no `state/` fixture can reach a change that no transaction causes.
+
 ### `receiptStatusEncoding` — what a receipt's first field is
 
 ```jsonc
@@ -742,13 +887,14 @@ to verify.
 the boundary. A harness whose root changes there is deriving it from the rule rather than from the
 receipts.
 
-## Shape 5 — chain-selection vectors (`chainselection/`)
+## chain-selection vectors (`chainselection/`)
 
 **Specified here.** Whether a proposed reorganization is accepted. The only rule in the schedule
 that decides between two competing chains rather than computing something about one.
 
-Four vector lists, and **they are four different claims** — a harness may implement them
-independently and should report them separately:
+Several vector lists, and **each is a different claim** — a harness may implement them
+independently and should report them separately. Read which exist off the file rather than off
+this sentence; the block below shows the ones it carried when this was written:
 
 ```jsonc
 {
@@ -889,7 +1035,7 @@ if they are wrong at all, and that is the useful thing to certify. `windowVector
 means *the bundled default has it enabled at this height* — read as "a conformant node refuses
 reorgs here", it will fail a node that is merely configured differently.
 
-## Shape 6 — proof-of-work epoch vectors (`pow/`)
+## proof-of-work epoch vectors (`pow/`)
 
 The published `PoWTests` tier is a **flat map from case name to case**, with no fork level and no
 state anywhere in it: there is no fork to resolve, because a seal's algorithm belongs to the engine
@@ -991,6 +1137,192 @@ activation.
 > An implementation that divided by the length in force would compute 195 iterations for the first
 > post-activation epoch and **collide with a seed already used at block 5,850,000**. `seedIterations`
 > is published beside each seed so a consumer failing this lands on the step, not on the digest.
+
+## consensus-mechanism vectors (`consensus/`)
+
+**Specified here.** How a chain decides *who may produce a block, and which block wins* — rules
+that are not state transitions and that no `state/`, `blocks/` or `difficulty/` fixture can reach.
+The directory appears under both axes: proof-of-authority mechanisms are proposal-scoped
+(`proposals/<series>/<proposal>/consensus/`), while a rule keyed to one network's own constants is
+network-scoped (`networks/<family>/<network>/consensus/`).
+
+**Like `blocks/`, this directory is heterogeneous and the outer key selects the schema.** The
+schemas share no fields beyond `_info`, and a reader that handles one has done nothing toward
+another. Derive which exist with the second command under "The inventory is the tree"; the
+sections below are the contract for each.
+
+> ### A quantity here may be a JSON number, and that is a divergence to tolerate
+>
+> "Conventions every shape shares" requires every quantity to be a JSON **string**. The Clique
+> schemas below carry `epoch`, `period`, `extraVanityBytes` and `extraSealBytes` as JSON
+> **numbers**; the QBFT schema carries every quantity as a string, per the convention. **Accept
+> both wherever this directory states a quantity.** The divergence is recorded rather than
+> smoothed over because a reader that only accepts one form fails on half the directory, and the
+> failure surfaces as a parse error rather than as a disagreement.
+
+### `cliqueSealDifficulty` — the in-turn / out-of-turn difficulty rule, as accept/reject pairs
+
+```jsonc
+{
+  "cliqueSealDifficulty": {
+    "_info": { },
+    "chainConfig": { "headerFieldCount": 16, "activatedAtBlockZero": [ "London", … ] },
+    "diffInTurn": "0x2",
+    "diffNoTurn": "0x1",
+    "keyDerivation": "keccak256(\"fukuii-tests/eip-225/\" + label)",
+    "vectors": [
+      { "name": "…", "comment": "…",
+        "epoch": 30000, "period": 1,
+        "genesisSignerLabels": ["A","B","C"],
+        "genesisSigners":      ["0x…","0x…","0x…"],
+        "genesis":        { "…full header…", "hash": "0x…", "sealHash": "0x…", "rlp": "0x…" },
+        "prefixHeaders":  [ { "…full header…" } ],
+        "acceptedHeader": { "…full header…" },
+        "rejectedHeader": { "…full header…" },
+        "expectedError":  "…", "direction": "…" }
+    ]
+  }
+}
+```
+
+**A vector is a PAIR and the accepted half is the load-bearing one.** A client that refuses every
+block scores perfectly against rejection vectors alone. The two headers differ in `difficulty` and
+in everything downstream of it — `extraData`, because the seal covers a different header, and
+therefore the hashes and the RLP. That cascade is expected and is not a second variable.
+
+**Import the two halves onto separate chains.** They are siblings at the same height, not a
+sequence: build the genesis from `genesisSigners`, confirm `genesis.hash`, replay `prefixHeaders`
+if present, then present `acceptedHeader` to one chain and `rejectedHeader` to another.
+
+**`chainConfig` is not derivable from the vectors and must be read first.** These headers carry a
+specific field count, and a client configured outside that window fails at RLP decode — which
+reads as a broken fixture rather than as a misconfigured harness.
+
+### `cliqueSignerVoting` — the authorized signer set, derived from a header chain
+
+```jsonc
+{
+  "cliqueSignerVoting": {
+    "_info": { },
+    "chainConfig": { },
+    "keyDerivation": "…",
+    "extraVanityBytes": 32, "extraSealBytes": 65,
+    "nonceAuthVote": "0xffffffffffffffff", "nonceDropVote": "0x0000000000000000",
+    "vectors": [
+      { "name": "…", "comment": "…", "epoch": 30000, "period": 1,
+        "genesisSignerLabels": [ "A" ], "genesisSigners": [ "0x…" ],
+        "genesis": { "…full header…" },
+        "headers": [ { "…full header…" } ],
+        "expectedSignerLabels": [ "A", "B" ],
+        "expectedSigners":      [ "0x…", "0x…" ],
+        "expectedFailure": "" }
+    ]
+  }
+}
+```
+
+A harness seeds a chain from `genesis`, imports `headers` in order, and compares the signer set it
+derives against `expectedSigners`.
+
+**`expectedFailure` is an assertion when non-empty and says nothing when empty.** A non-empty value
+names the condition the chain must be refused for — an unauthorized signer, a signer that signed
+too recently. **Compare the reason, not merely that some refusal happened**, for the same reason a
+refused state transaction needs its reason compared: any refusal leaves the same observable state,
+including a refusal for a rule the vector is not about.
+
+**The labels exist so a failure report can name a signer.** `expectedSignerLabels` is parallel to
+`expectedSigners` and carries no information a reader needs; it is there so a human reading a
+divergence sees `B` rather than a second 20-byte address.
+
+### `qbftProposerSelection` — which validator proposes at a height and round
+
+```jsonc
+{
+  "qbftProposerSelection": {
+    "_info": { },
+    "policy": "roundRobin",
+    "ordering": "byteOrder",
+    "offsetFromParentProposer": "1",
+    "validatorSets": {
+      "<set name>": {
+        "comment": "…",
+        "validators": [ "0x…", "0x…" ],
+        "stringOrderForContrast": [ "0x…", "0x…" ]
+      }
+    },
+    "vectors": [
+      { "name": "…", "comment": "…",
+        "validatorSet": "<set name>",
+        "blockNumber": "100", "round": "0",
+        "parentProposer":   "0x…",
+        "expectedProposer": "0x…",
+        "tags": [ "round-zero", "discriminates-string-ordering" ] }
+    ]
+  }
+}
+```
+
+The rule is `validators[(index(parentProposer) + offsetFromParentProposer + round) mod size]`, with
+`validators` in ascending order of the raw 20 address bytes.
+
+**Sort the set yourself rather than trusting the file's order.** It is already in byte order; sort
+anyway, and **if your sort disagrees with the file's order, that is the finding** — ordering is
+precisely what one of these vectors' defect classes is about.
+
+**`stringOrderForContrast` is not an alternative a client may choose.** It appears only where a set
+was constructed so that byte order and EIP-55 checksummed-string order differ, and it records the
+wrong ordering so a reader can see what the vector discriminates against.
+
+**`blockNumber` is carried for realism and is not an input.** The rule reads the validator set, the
+parent block's proposer and the round, and nothing else.
+
+**Addresses are EIP-55 checksummed and comparison is case-insensitive**, per "Duplicate keys are an
+error" above: two spellings are one address.
+
+**`tags` are documentation, not selectors.** A harness runs every vector; the tags say what each
+one separates, so a failure report can say which property broke.
+
+### `terminalTotalDifficultyMainnet` and `mergeNetsplitBlockSepolia` — where proof-of-work ends
+
+Two network-scoped schemas for the same question, differing because the two networks answer it
+differently: one by accumulated difficulty, one by a block number and a timestamp.
+
+```jsonc
+{
+  "terminalTotalDifficultyMainnet": {
+    "_info": { },
+    "terminalTotalDifficulty": "58750000000000000000000",
+    "mergeNetsplitBlock": null,
+    "vectors": [
+      { "name": "…", "parentTotalDifficulty": "…", "totalDifficulty": "…",
+        "isTerminalPoWBlock": true, "note": "…" }
+    ]
+  }
+}
+
+{
+  "mergeNetsplitBlockSepolia": {
+    "_info": { },
+    "terminalTotalDifficulty": "17000000000000000",
+    "mergeNetsplitBlock": "1735371",
+    "shanghaiTime": "1677557088",
+    "vectors": [
+      { "name": "…", "blockNumber": "…", "timestamp": "…",
+        "isPostMerge": true, "note": "…" }
+    ]
+  }
+}
+```
+
+**`mergeNetsplitBlock` is `null` where the network has none**, and JSON `null` here means *this
+network does not use that mechanism* — it is not a missing field and not zero. A reader that
+coerces it to zero concludes every block is at or past the netsplit.
+
+**`isTerminalPoWBlock` is a predicate over a PAIR of difficulties**, the parent's accumulated total
+and this block's: a block is terminal when its parent is below the threshold and it is at or above
+it. Both are stated because the rule cannot be evaluated from one.
+
+---
 
 ## What a MISSING expectation means, per shape
 
@@ -1259,8 +1591,9 @@ fixture's `oracle-version` says so explicitly rather than leaving it to be re-de
 
 **A harness that ignores this certifies the wrong network and reports success.**
 
-geth's state-test struct has exactly six fields — `_info`, `env`, `pre`, `transaction`, `out`,
-`post`. There is **no `config` field of any kind**. A fixture's `config.chainid` is therefore
+geth's state-test struct carried exactly `_info`, `env`, `pre`, `transaction`, `out` and `post`
+when this was checked, and **no `config` field of any kind**. Re-read the struct rather than the
+count if the behavior below ever changes. A fixture's `config.chainid` is therefore
 silently discarded, and every test runs at whatever chain id the named fork's own configuration
 carries: **61 for every `ETC_*` label.**
 
@@ -1392,6 +1725,15 @@ coverage for the rule's:
   authoring one.
 - **Access-list pre-warming, in `fukuii-cli` specifically.** The fixture asserts it; that consumer
   does not carry an access list into execution. A consumer gap, recorded above.
+- **A running proof-of-authority chain.** `consensus/` asserts the rules a PoA client applies
+  — which difficulty a seal must carry, which signer set a header chain derives, which validator
+  proposes next. Nothing here stands up two nodes and watches them agree, and one region is
+  asserted by nothing on purpose: where implementations disagree and the specification declines to
+  rule, that fixture's `_info` says so rather than picking a value.
+
+**This list is maintained by hand and is therefore the least trustworthy section in the file.**
+An entry can be closed without anyone striking it through — receipts were, once. Treat it as a
+starting point for what to check, never as a statement of what remains.
 
 ---
 
