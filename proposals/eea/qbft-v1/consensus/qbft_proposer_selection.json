@@ -1,0 +1,349 @@
+{
+  "qbftProposerSelection": {
+    "_info": {
+      "comment": "QBFT round-robin proposer selection, in the region where every available authority agrees. For a block at height h and round r whose parent block was proposed by P, with validator set V unchanged by that parent block, the proposer is V[(index(P) + 1 + r) mod |V|], where V is in ascending byte order. Each vector states V, P and r, and expects one address.",
+      "theSCOPEIsTheWholePointOfThisFile": "This fixture deliberately covers ONLY blocks whose parent did not change the validator set. That is not caution about an untested corner: outside it, besu, GoQuorum and the QBFT specification's own formula give up to three different answers, and no authority exists that would let a fixture pick one. Read whyTheDivergentRegionIsNotHere before adding a vector that leaves this region.",
+      "whyTheDivergentRegionIsNotHere": "Measured 2026-08-26 by executing both implementations. When the parent block CHANGES the validator set in a way that moves the parent proposer's index -- most sharply when the parent's own block votes its proposer out -- besu resolves the next validator after the removed one in byte order (TreeSet.tailSet, offset by round with no +1), while GoQuorum's calcSeed finds no index, leaves offset at 0, and returns validators[(round+1) % size] wherever the removed proposer sorted. In one measured case the two implementations and the specification's formula give three different addresses. The state is reachable: it was produced by driving each implementation's own vote machinery, and neither forbids the self-directed drop vote that gets there.",
+      "whyTheSPECIFICATIONCannotSettleIt": "The EEA QBFT Blockchain Consensus Protocol Specification v1 (17 January 2023, https://entethalliance.org/specs/qbft/v1/ -- the latest release, there is no v2) does define proposer selection, in Dafny: proposer(ibftRound, blockchain) resolves the previous proposer's index in validators(blockchain[..last]) -- the PARENT's own validator set -- and applies it modulo validators(blockchain). Both implementations instead resolve that index in the CURRENT set, which is why both need a fallback the specification has no use for. But the same document lists 'Definition of the algorithm used to determine the validator set in charge of deciding on the block to be appended to a given blockchain' among the issues it does not address, and the accompanying formal verification (Consensys/qbft-formal-spec-and-verification) proves safety only under an explicit axiom that the validator set never changes. So the formula has a value outside this fixture's region and no authority there. Inside the region the parent's set and the current set coincide, the anchor question does not arise, and all three agree -- which is exactly why the region is drawn here.",
+      "howAHarnessReadsThis": "For each vector: take validatorSets[vector.validatorSet].validators, sort ascending by the raw 20 address bytes (they are already in that order here -- sort anyway, and if your sort disagrees with this file's order, that is the finding), find parentProposer in it, and select index (i + 1 + round) mod size. Compare against expectedProposer, case-insensitively: addresses here are EIP-55 checksummed and two spellings of one address are the same address. blockNumber is the height of the block BEING PROPOSED and is carried for realism only -- the rule reads the validator set, the parent's proposer and the round, and nothing else.",
+      "whatEachTagMeans": {
+        "round-zero": "Round 0. A sticky-proposer implementation returns the parent's own proposer here, so every one of these separates round-robin from sticky.",
+        "round-change": "Round above zero, i.e. after a round change.",
+        "round-equals-set-size": "The round equals the validator count, so the modulus wraps exactly once and the answer returns to round 0's.",
+        "wraps-past-end": "The parent's proposer is the last validator in byte order, so the selection wraps to the first.",
+        "set-size-5": "A five-validator set. A client with a hardcoded modulus passes the four-validator vectors and fails these.",
+        "discriminates-sticky": "Round-robin and sticky give different answers here.",
+        "discriminates-string-ordering": "Byte ordering and EIP-55 checksummed-string ordering give different answers here."
+      },
+      "oracle": "TWO implementations, both EXECUTED, neither read. besu: BftProposerSelector.selectProposerForRound(roundIdentifier, prevProposer, validators, changeEachBlock=true) -- the same static call its production selector makes, with true the value both IbftBesuControllerBuilder and QbftBesuControllerBuilder pass. GoQuorum: valSet.CalcProposer(lastProposer, round) on a set built with NewRoundRobinProposerPolicy().Use(ValidatorSortByByte()) -- the pairing backend.startQBFT() installs. Every vector was produced by both and the two agreed on all of them; the specification's formula agrees on all of them too, and was checked separately rather than used as a source.",
+      "oracle-version": "besu at ebe5bcb617 (branch rebase/upstream-26.7.0; consensus/ verified byte-identical to the merge-base with origin/upstream, so the oracle is upstream's code and not this project's overlay). GoQuorum at 5ffacc482 (Consensys/quorum master, archived upstream, so this ref will not move). Both re-verified 2026-08-26.",
+      "crossImplementation": "Java and Go, two codebases that share no consensus code: geth never had QBFT, so GoQuorum's istanbul tree is its own work. State the limit rather than claiming a clean second opinion: besu and GoQuorum are both ConsenSys projects, so this is implementation-independent and NOT specification-independent. The specification's own formula was checked as a third reading and is not a third implementation.",
+      "generated": "2026-08-26",
+      "keyDerivation": "keccak256(\"fukuii-tests/eea-qbft-v1/\" + label), last 20 bytes. No private keys exist for these addresses and none is needed: proposer selection signs nothing, which is why this fixture is portable in a way a sealed-header one is not.",
+      "wrongBuildMethod": "Four wrong builds, scored 2026-08-26 against the published file. TWO OF THEM REQUIRE NO PATCH AT ALL, which is the strongest form this method takes: they are supported configurations of a real implementation that are wrong for QBFT. GoQuorum was run with ValidatorSortByString, the ordering its own backend.startIBFT() installs; besu was run with changeEachBlock=false, its own sticky parameter. The other two are source mutations of besu's BftProposerSelector, each checked for having changed the source AND for still compiling before its score was read.",
+      "oneMutationFailedToCompileAndThatMatters": "The obvious spelling of the round-ignored mutation -- assigning the literal 0 -- leaves roundIdentifier unused, and besu builds with -Werror, so it failed to compile. An uncompiled patch yields NO score, and a missing score reads exactly like 'the fixture did not catch this'. It was rewritten as Math.min(round, 0), which keeps the variable used and means the same thing, and only then was its result recorded. Changed-and-compiles is not hygiene here; it is what makes a not-caught result mean anything.",
+      "wrongBuildScores": {
+        "controls": "besu unmodified (changeEachBlock=true) 22/22 pass; GoQuorum unmodified (ValidatorSortByByte) 22/22 pass. A file that no correct client passes is measuring its own generator.",
+        "goquorum_ValidatorSortByString_NO_PATCH": "7 pass / 15 fail. The 15 are EXACTLY the vectors tagged discriminates-string-ordering -- checked, not assumed. This is GoQuorum's IBFT ordering applied to QBFT.",
+        "besu_changeEachBlock_false_NO_PATCH": "0 pass / 22 fail. Sticky differs from round-robin at every round, so this one fails everything; it demonstrates the file rejects the wrong policy, and it discriminates nothing beyond that.",
+        "besu_round_ignored_MUTATION": "11 pass / 11 fail. Every vector at a round above zero fails EXCEPT s4_round4_parent_A, where the round equals the set size and the modulus returns the same answer round 0 would. That non-catch is a property of the vector rather than a gap, and it is what the round-equals-set-size tag exists to name.",
+        "besu_modulus_hardcoded_to_4_MUTATION": "19 pass / 3 fail. Three of the four set-size-5 vectors fail; s5_round0_parent_G passes because its index arithmetic gives 1 under either modulus. A four-validator-only client is caught, but only by the vectors where 5 and 4 actually differ.",
+        "everyVectorIsLoadBearing": "Measured rather than reasoned: the union of the four defects' failures covers all 22 vectors, so no vector is dead weight. No defect is inert either -- each fails at least three vectors, and a defect that failed none would be indistinguishable from a patch that never took effect."
+      },
+      "stickyIsOutOfScope": "QBFT's other documented policy, sticky (offset + round, with no +1), is not asserted here. besu passes changeEachBlock=true unconditionally for QBFT, so it cannot produce sticky answers under this mechanism at all, and the specification carries only the round-robin form. A sticky vector would have one implementation behind it and no specification -- which is the situation this file exists to avoid."
+    },
+    "policy": "roundRobin",
+    "ordering": "byteOrder",
+    "offsetFromParentProposer": "1",
+    "validatorSets": {
+      "S4": {
+        "comment": "Validators in byte order. This set is chosen so that byte order and EIP-55 checksummed-string order DIFFER -- see stringOrderForContrast.",
+        "validators": [
+          "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+          "0xA8de8c7593855Aa4C100A344d37811d39020F7f1",
+          "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+          "0xFce42d1247a7eCc2a6985a838713c1579fC369A5"
+        ],
+        "stringOrderForContrast": [
+          "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+          "0xA8de8c7593855Aa4C100A344d37811d39020F7f1",
+          "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+          "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9"
+        ],
+        "whyStringOrderIsHere": "It is not an alternative a client may choose. It is the ordering GoQuorum installs for IBFT (ValidatorSortByString) and NOT for QBFT, and it is a real shipping code path -- so a client that resolved validators that way would be wrong in a way that already exists in an implementation rather than only in a mutation. The vectors tagged discriminates-string-ordering are the ones where the two orderings select different validators."
+      },
+      "S5": {
+        "comment": "Validators in the order a conformant client resolves them: ascending byte order of the 20-byte address.",
+        "validators": [
+          "0x3501C692df7600aAB674DA76B858878Df6F15323",
+          "0x3C0667E831644546DC40E1EB56638A29d5228177",
+          "0x546B01a1379Ba068578632357a1C63709B537c48",
+          "0x9b6cc7B3Fce5CB6e043fCb11753a9B800638a205",
+          "0xF170f1A511BE2edc85d47727B4BCf7DfC45487AB"
+        ]
+      }
+    },
+    "vectors": [
+      {
+        "name": "s4_round0_parent_A",
+        "comment": "Round 0. A sticky implementation returns the parent's own proposer here; round-robin returns the next validator in byte order.",
+        "validatorSet": "S4",
+        "blockNumber": "100",
+        "round": "0",
+        "parentProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "expectedProposer": "0xA8de8c7593855Aa4C100A344d37811d39020F7f1",
+        "tags": [
+          "round-zero",
+          "discriminates-sticky"
+        ]
+      },
+      {
+        "name": "s4_round0_parent_C",
+        "comment": "Round 0. A sticky implementation returns the parent's own proposer here; round-robin returns the next validator in byte order.",
+        "validatorSet": "S4",
+        "blockNumber": "101",
+        "round": "0",
+        "parentProposer": "0xA8de8c7593855Aa4C100A344d37811d39020F7f1",
+        "expectedProposer": "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+        "tags": [
+          "round-zero",
+          "discriminates-sticky",
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_round0_parent_K",
+        "comment": "Round 0. A sticky implementation returns the parent's own proposer here; round-robin returns the next validator in byte order.",
+        "validatorSet": "S4",
+        "blockNumber": "102",
+        "round": "0",
+        "parentProposer": "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+        "expectedProposer": "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+        "tags": [
+          "round-zero",
+          "discriminates-sticky",
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_round0_parent_B",
+        "comment": "Round 0. A sticky implementation returns the parent's own proposer here; round-robin returns the next validator in byte order.",
+        "validatorSet": "S4",
+        "blockNumber": "103",
+        "round": "0",
+        "parentProposer": "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+        "expectedProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "tags": [
+          "round-zero",
+          "discriminates-sticky",
+          "wraps-past-end",
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_round1_parent_A",
+        "comment": "A round change. The offset is round + 1 from the parent proposer's index; at round == the set size the selection returns to where round 0 was.",
+        "validatorSet": "S4",
+        "blockNumber": "104",
+        "round": "1",
+        "parentProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "expectedProposer": "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+        "tags": [
+          "round-change",
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_round2_parent_A",
+        "comment": "A round change. The offset is round + 1 from the parent proposer's index; at round == the set size the selection returns to where round 0 was.",
+        "validatorSet": "S4",
+        "blockNumber": "104",
+        "round": "2",
+        "parentProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "expectedProposer": "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+        "tags": [
+          "round-change",
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_round3_parent_A",
+        "comment": "A round change. The offset is round + 1 from the parent proposer's index; at round == the set size the selection returns to where round 0 was.",
+        "validatorSet": "S4",
+        "blockNumber": "104",
+        "round": "3",
+        "parentProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "expectedProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "tags": [
+          "round-change"
+        ]
+      },
+      {
+        "name": "s4_round4_parent_A",
+        "comment": "A round change. The offset is round + 1 from the parent proposer's index; at round == the set size the selection returns to where round 0 was.",
+        "validatorSet": "S4",
+        "blockNumber": "104",
+        "round": "4",
+        "parentProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "expectedProposer": "0xA8de8c7593855Aa4C100A344d37811d39020F7f1",
+        "tags": [
+          "round-change",
+          "round-equals-set-size"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_A_round1",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "1",
+        "parentProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "expectedProposer": "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_A_round2",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "2",
+        "parentProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "expectedProposer": "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_C_round0",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "0",
+        "parentProposer": "0xA8de8c7593855Aa4C100A344d37811d39020F7f1",
+        "expectedProposer": "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_C_round1",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "1",
+        "parentProposer": "0xA8de8c7593855Aa4C100A344d37811d39020F7f1",
+        "expectedProposer": "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_K_round0",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "0",
+        "parentProposer": "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+        "expectedProposer": "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_K_round1",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "1",
+        "parentProposer": "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+        "expectedProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_K_round2",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "2",
+        "parentProposer": "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+        "expectedProposer": "0xA8de8c7593855Aa4C100A344d37811d39020F7f1",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_B_round0",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "0",
+        "parentProposer": "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+        "expectedProposer": "0x7958D6089c16Ee846c90974f4c6818a26B7A93aE",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_B_round1",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "1",
+        "parentProposer": "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+        "expectedProposer": "0xA8de8c7593855Aa4C100A344d37811d39020F7f1",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s4_ordering_parent_B_round2",
+        "comment": "ORDERING DISCRIMINATOR. This set's byte order and its EIP-55 checksummed-string order differ, and here the two orderings select different validators.",
+        "validatorSet": "S4",
+        "blockNumber": "110",
+        "round": "2",
+        "parentProposer": "0xFce42d1247a7eCc2a6985a838713c1579fC369A5",
+        "expectedProposer": "0xe4b3920ec3FcA60F87DA35349E2CF91FA4E3a3F9",
+        "tags": [
+          "discriminates-string-ordering"
+        ]
+      },
+      {
+        "name": "s5_round0_parent_G",
+        "comment": "A five-validator set. Same rule, different modulus.",
+        "validatorSet": "S5",
+        "blockNumber": "200",
+        "round": "0",
+        "parentProposer": "0x3501C692df7600aAB674DA76B858878Df6F15323",
+        "expectedProposer": "0x3C0667E831644546DC40E1EB56638A29d5228177",
+        "tags": [
+          "round-zero",
+          "set-size-5"
+        ]
+      },
+      {
+        "name": "s5_round0_parent_D",
+        "comment": "A five-validator set. Same rule, different modulus.",
+        "validatorSet": "S5",
+        "blockNumber": "201",
+        "round": "0",
+        "parentProposer": "0x9b6cc7B3Fce5CB6e043fCb11753a9B800638a205",
+        "expectedProposer": "0xF170f1A511BE2edc85d47727B4BCf7DfC45487AB",
+        "tags": [
+          "round-zero",
+          "set-size-5"
+        ]
+      },
+      {
+        "name": "s5_round0_parent_E",
+        "comment": "A five-validator set. Same rule, different modulus.",
+        "validatorSet": "S5",
+        "blockNumber": "202",
+        "round": "0",
+        "parentProposer": "0xF170f1A511BE2edc85d47727B4BCf7DfC45487AB",
+        "expectedProposer": "0x3501C692df7600aAB674DA76B858878Df6F15323",
+        "tags": [
+          "round-zero",
+          "set-size-5",
+          "wraps-past-end"
+        ]
+      },
+      {
+        "name": "s5_round3_parent_D",
+        "comment": "A round change in the five-validator set.",
+        "validatorSet": "S5",
+        "blockNumber": "205",
+        "round": "3",
+        "parentProposer": "0x3501C692df7600aAB674DA76B858878Df6F15323",
+        "expectedProposer": "0xF170f1A511BE2edc85d47727B4BCf7DfC45487AB",
+        "tags": [
+          "round-change",
+          "set-size-5"
+        ]
+      }
+    ]
+  }
+}

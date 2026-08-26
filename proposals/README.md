@@ -1,7 +1,9 @@
 # `proposals/` — tests scoped to a single proposal
 
 **Fukuii's own work.** One directory per proposal namespace, matching the client's
-`chainspec/proposals/` and its `ProposalId`, which admits `Eip(n)` and `Ecip(n)`.
+`chainspec/proposals/` and its `ProposalId`, which admits `Eip(n)` and `Ecip(n)` — and one
+namespace that deliberately does not, for a specification series that is neither. See *A third
+namespace* below before adding a directory here.
 
 ```
 proposals/
@@ -9,6 +11,9 @@ proposals/
     eip-225/            Clique proof-of-authority
       consensus/
   ecip/
+  eea/
+    qbft-v1/            QBFT, the EEA's own consensus specification
+      consensus/
 ```
 
 ## What has to be true before a fixture belongs here
@@ -31,6 +36,32 @@ block period would not be: that is network-scoped and belongs in `../networks/`.
 The alternative — putting network-agnostic material under whichever network happened to need it
 first — is the failure this axis exists to prevent. Nothing lands here to fill the directory; it
 lands here because it passed the test above.
+
+## A third namespace, and it is ahead of the client
+
+`eea/` is not an oversight in the two-series list above. **QBFT is neither an EIP nor an ECIP.**
+EIP-650 was IBFT 1.0 and was never merged: measured against the vendored `ethereum/EIPs`, there is
+no `eip-650.md` at all and **zero** files mention QBFT, with `eip-155` present as the control. The
+QBFT specification is published by the Enterprise Ethereum Alliance — *QBFT Blockchain Consensus
+Protocol Specification v1* — and cited from the EEA Client Specification's CONS-092.
+
+So the series is the EEA's, and the directory says so.
+
+**This is ahead of the client, deliberately and visibly.** `ProposalId` admits `Eip(n)` and
+`Ecip(n)` and has no case for a third series — read at the moment this landed, not assumed. But its
+own documentation says the set is open: *"A network that authors its own series adds a case here…
+a case added later makes every exhaustive match over this type report where it has to be
+extended."* Adding that case is the client's call and is not made here; what is recorded here is
+that a fixture exists whose proposal has no `ProposalId` yet.
+
+The alternative — filing QBFT under `eip/` because that namespace already exists — would state
+something false about where the specification comes from, and would do it in a path, which is the
+one place a reader never re-checks.
+
+**`qbft-v1` follows the publisher's own path**, `entethalliance.org/specs/qbft/v1/`, by exactly the
+rule that makes `eip-225` follow `ethereum/EIPs`' own filename. The version is part of the name
+because the specification carries one and the EEA's "latest release" currently resolves to it; a v2
+would be a sibling rather than an edit.
 
 ## Naming beneath a namespace
 
