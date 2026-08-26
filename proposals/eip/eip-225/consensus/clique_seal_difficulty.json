@@ -17,7 +17,34 @@
         "difficulty_outofturn_branch_only": "1/2 -- fails in_turn_header_given_out_of_turn_difficulty, and only that one.",
         "theTwoSetsAreDISJOINT": "Measured, not reasoned. Each half-implemented build fails precisely the vector aimed at the branch it dropped, so neither vector is dead weight and a one-direction file would pass a client missing half the rule.",
         "siblingFileScores": "Both defects score 0/24 against clique_signer_voting.json. The voting file cannot see this rule, which is the measured reason these are two files and not one."
-      }
+      },
+      "aHARNESSMUSTREADchainConfigFIRST": "These headers are London-era and carry 16 RLP fields. A client configured outside that window fails at decode, before any rule is reached. `chainConfig` states exactly what to set; do not infer it from the genesis fields."
+    },
+    "chainConfig": {
+      "comment": "What a client must configure for its header decoder and validator to accept these chains. Recorded because it is NOT derivable from the vectors, and a wrong guess fails at RLP decode -- which reads as a broken fixture rather than a misconfigured harness.",
+      "headerFieldCount": 16,
+      "whyTheFieldCountMatters": "16 fields is the London-era header: 15 pre-London, 16 with baseFeePerGas, 17 once Shanghai adds withdrawalsRoot, 20 at Cancun. A client configured outside that window cannot decode these headers at all, and the failure looks nothing like a consensus disagreement.",
+      "activatedAtBlockZero": [
+        "Homestead",
+        "EIP150",
+        "EIP155",
+        "EIP158",
+        "Byzantium",
+        "Constantinople",
+        "Petersburg",
+        "Istanbul",
+        "MuirGlacier",
+        "Berlin",
+        "London",
+        "ArrowGlacier",
+        "GrayGlacier"
+      ],
+      "notActivated": "No time-based fork. Shanghai, Cancun, Prague and everything later are unset -- which is what keeps the header at 16 fields.",
+      "daoForkSupport": false,
+      "terminalTotalDifficulty": "0x7fffffffffffffff -- effectively unreachable, so these chains never merge and stay under the Clique engine throughout.",
+      "chainIdUsedToGenerate": 1,
+      "chainIdIsNOTAnInputAndThatWasMEASURED": "The whole vector set was regenerated with chainId 61 and the output is BYTE-IDENTICAL to chainId 1. That is the evidence for filing this under proposals/ rather than under a network: no chain id reaches the rule, and the value above is a generator artifact a harness may set to anything.",
+      "genesisAllocIsEMPTY": "stateRoot 0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421 is the empty trie root. There are no accounts, no transactions and no ommers in any vector."
     },
     "diffInTurn": "0x2",
     "diffNoTurn": "0x1",

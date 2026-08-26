@@ -20,7 +20,34 @@
         "difficulty_inturn_branch_only": "0/24 -- this file cannot see the difficulty rule at all, which is why clique_seal_difficulty.json exists rather than folding into this one.",
         "difficulty_outofturn_branch_only": "0/24 -- same."
       },
-      "theAttributionIsThePoint": "A count alone would not establish that these vectors cover distinct failure modes. Three of the four defects are caught by exactly the vectors that target them and by no others, which is the difference between a reasoned claim of coverage and a measured one."
+      "theAttributionIsThePoint": "A count alone would not establish that these vectors cover distinct failure modes. Three of the four defects are caught by exactly the vectors that target them and by no others, which is the difference between a reasoned claim of coverage and a measured one.",
+      "aHARNESSMUSTREADchainConfigFIRST": "These headers are London-era and carry 16 RLP fields. A client configured outside that window fails at decode, before any rule is reached. `chainConfig` states exactly what to set; do not infer it from the genesis fields."
+    },
+    "chainConfig": {
+      "comment": "What a client must configure for its header decoder and validator to accept these chains. Recorded because it is NOT derivable from the vectors, and a wrong guess fails at RLP decode -- which reads as a broken fixture rather than a misconfigured harness.",
+      "headerFieldCount": 16,
+      "whyTheFieldCountMatters": "16 fields is the London-era header: 15 pre-London, 16 with baseFeePerGas, 17 once Shanghai adds withdrawalsRoot, 20 at Cancun. A client configured outside that window cannot decode these headers at all, and the failure looks nothing like a consensus disagreement.",
+      "activatedAtBlockZero": [
+        "Homestead",
+        "EIP150",
+        "EIP155",
+        "EIP158",
+        "Byzantium",
+        "Constantinople",
+        "Petersburg",
+        "Istanbul",
+        "MuirGlacier",
+        "Berlin",
+        "London",
+        "ArrowGlacier",
+        "GrayGlacier"
+      ],
+      "notActivated": "No time-based fork. Shanghai, Cancun, Prague and everything later are unset -- which is what keeps the header at 16 fields.",
+      "daoForkSupport": false,
+      "terminalTotalDifficulty": "0x7fffffffffffffff -- effectively unreachable, so these chains never merge and stay under the Clique engine throughout.",
+      "chainIdUsedToGenerate": 1,
+      "chainIdIsNOTAnInputAndThatWasMEASURED": "The whole vector set was regenerated with chainId 61 and the output is BYTE-IDENTICAL to chainId 1. That is the evidence for filing this under proposals/ rather than under a network: no chain id reaches the rule, and the value above is a generator artifact a harness may set to anything.",
+      "genesisAllocIsEMPTY": "stateRoot 0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421 is the empty trie root. There are no accounts, no transactions and no ommers in any vector."
     },
     "keyDerivation": "keccak256(\"fukuii-tests/eip-225/\" + label)",
     "extraVanityBytes": 32,
