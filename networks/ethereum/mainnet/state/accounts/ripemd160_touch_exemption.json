@@ -1,0 +1,152 @@
+{
+  "ripemd160TouchAtTheOutermostFrame": {
+    "_info": {
+      "comment": "EIP-161(d) deletes touched-and-empty accounts at the end of a transaction, and a failed frame discards its touched set -- except for the RIPEMD-160 address 0x03, which is re-added. Every published case reaches 0x03 through a NESTED call, where the exemption lives in the child-frame merge and every implementation agrees. This case reaches it at the OUTERMOST frame, by sending the transaction directly to 0x03, which no corpus case does. The two gas values are the whole vector: 21599 is one gas short of the RIPEMD-160 base charge and the frame fails, 21600 is exactly enough and it succeeds. Same pre-state, same sender, same target, same empty calldata -- so gas is the only variable, and the failure is the only thing that can explain a difference between the two expectations.",
+      "why-this-file-exists": "The executable specification and the production clients DISAGREE here, and the disagreement is invisible to every existing corpus. Measured, not read: ethereum/legacytests @ 1f581b8ccd, Constantinople/GeneralStateTests -- 579 files carry an EIP158 post section, 6 of those also carry 0x03 in their pre-state, and ZERO of the 6 send the transaction to 0x03 directly. ethereum/execution-specs-fixtures at tests@v20.0.1, state_tests/for_spuriousdragon -- zero files contain the 0x03 address at all.",
+      "divergence": "At indexes.gas 0 (the failing frame) the two oracles produce DIFFERENT post-state roots. go-ethereum deletes 0x03; the executable specification keeps it. The `hash` recorded below is go-ethereum's, because that is what the network ran and what every production client implements -- see `expectation-is-the-network`. The specification's root for the same input is 0xb943603e6b049b593cbe924542f6456495e0589d8e63c84172c344291bed1f95, recorded here so a consumer can see both rather than only the one this file asserts. At indexes.gas 1 (the succeeding frame) the two agree on a byte-identical root, which is what makes the divergence attributable to the failure path and to nothing else.",
+      "expectation-is-the-network": "go-ethereum's answer is asserted rather than the specification's on three grounds. It is what Ethereum mainnet executed. besu agrees with it independently -- clearAccumulatedStateBesidesGasAndOutput runs on any frame failure including the initial one. And the specification's own argument from the certification corpus is vacuous here, because that corpus contains no case that reaches this path. This is recorded as a disagreement, not resolved into one: a consumer wanting the specification's behavior has its root in `divergence`.",
+      "mechanism": "The two implementations place the exemption in different layers, which is why they part company at the outermost frame and nowhere else. go-ethereum puts it in the state database: stateObject.touch() calls journal.dirty(0x03) explicitly, and nothing in a revert undoes that extra increment, so 0x03 stays in journal.dirties and Finalise(true) deletes it -- frame-independent by construction. The executable specification puts it in the child-frame merge, incorporate_child_on_error, which a nested frame reaches and the outermost frame does not; process_message_call wipes touched_accounts on evm.error with no carve-out.",
+      "oracle": "TWO oracles, both executed on byte-identical signed transactions, not read from source. Primary: go-ethereum-pow v1.10.26 (evm t8n, --state.fork=EIP158) -- geth while it still ran proof-of-work, and the lineage mainnet actually ran at Spurious Dragon. Second: ethereum/execution-specs @ ccaaaba58 (ethereum_spec_tools.evm_tools t8n, --state.fork=SpuriousDragon). The transactions were signed once by the geth build and decoded into explicit v/r/s so neither tool signed its own input.",
+      "oracle-independence": "These two are genuinely independent -- a Go client lineage and a Python executable specification, sharing no code. That is the opposite of the core-geth/multi-geth/ethereumproject trio, which share root commit 5db3335dc and are one opinion seen three times.",
+      "post-label": "The post label is EIP158, which is the geth-family runner's name for Spurious Dragon, so this file runs directly under `evm statetest` -- the same second-opinion check the rest of the state tier uses, and the reason the Ethereum Classic labels are core-geth's names rather than prettier ones. The executable specification calls the same fork SpuriousDragon and needs that name instead; no single label satisfies both runners, and FIXTURE-FORMAT.md already documents label mapping for exactly this reason.",
+      "calibration": "The second case in this file, ripemd160UntouchedControl, is the instrument check: identical pre-state, transaction sent elsewhere, and 0x03 SURVIVES on both oracles with a byte-identical root. Without it, 0x03's absence from a post-state could equally mean it was never in the pre-state. The pre-state commit uses deleteEmptyObjects=false, which is what lets an empty 0x03 exist to be touched at all.",
+      "mainnet-history": "Asked and answered, because a real mainnet transaction would outrank any authored vector. IT DOES NOT EXIST. The window is 2,675,000 (EIP-161 activates) through 2,675,118 -- 119 blocks. 0x03 exists and is empty throughout it, is DELETED in block 2,675,119 (the incident the specification's own source comment names), and stays ABSENT continuously until 2,687,391. An absent account cannot be touched-and-empty, so the case cannot arise after 2,675,118. Every block of that window was retrieved and every transaction in it inspected -- a scan of 2,674,900..2,675,300, all 401 blocks, 1,403 transactions -- and it contains ZERO transactions sent to ANY precompile address 0x01-0x09, let alone a failing one to 0x03. A wider sweep corroborates it: the whole span 2,675,000..2,687,391 -- all 12,392 blocks examined, none skipped, 114,758 transactions inspected -- contains exactly ONE transaction sent directly to ANY precompile 0x01-0x09, and it is: 0xa9edd044354bc72471d08ac240fda0f88a13db11ceef65c6e081a62747b8ed9f in block 2,687,391. It is OUTSIDE the window, it SUCCEEDED (gasUsed 0x5460 -- the same 21,600 as indexes.gas 1 here -- out of 360,000 offered, where an out-of-gas would have burned all of it), and it carried 1 wei, which is what recreated the account. So mainnet exercised the SUCCEEDING outermost frame, where the two oracles agree, and never the failing one. The synthetic vector is required.",
+      "not-the-2675119-incident": "Block 2,675,119 is named in the specification's source comment and reused as this file's env.currentNumber, and it is NOT this case. The transaction there is 0xcf416c536ec1a19ed1fb89e4ec7ffb3cf73aa413b3aa9b77d60e4fd81a4296ba, which besu's corpus carries as failed_tx_xcf416c53.json; it was sent to the contract 0x0e879ae28cdddeb31a405a9db354505a5560b0bd and reached 0x03 through a NESTED call, where every implementation agrees. That transaction is also what deleted 0x03 and thereby closed the window. The height is reused here only so the vector executes under the rules that were live when the exemption was created.",
+      "generated": "2026-08-26",
+      "signing": "txbytes carries the signed transaction; the signing key is a filling input, not a fixture field, and the harness reads `sender`.",
+      "ethereum-classic": "The same rule arrives at Ethereum Classic's Atlantis and the answer there is not in doubt, because Ethereum Classic runs core-geth and that is the go-ethereum lineage. No fixture is filled for it here: this directory's Ethereum Classic counterpart requires a body filled across the whole schedule, and the upstream-pegged core-geth has no fork name for ETC_DieHard, ETC_Gotham or ETC_DefuseDifficultyBomb. Left as follow-up rather than filled from `main`, which is the Ethereum Classic overlay and is never an oracle.",
+      "placement": "Placed under a network rather than under `proposals/`, and that is the repository's own rule rather than a preference: `proposals/README.md` requires 'no chain id, and no network's upgrade labels', and a state fixture carries both. The rule delta is genuinely network-agnostic; its expression as a state fixture is not. Kept in the Ethereum family despite `networks/ethereum/README.md`'s 'could the upstream corpus express this?' test, because the honest answer is no: that corpus is GENERATED FROM the executable specification, so it structurally cannot hold a case whose expected value contradicts the specification -- which is exactly what this case is.",
+      "the-specification-lands-on-pre-eip-161-state": "Measured while checking the Ethereum Classic side, and it is the sharpest statement of the divergence available. Running this same body at core-geth's Frontier rules -- where no state-clearing rule exists at all -- produces post-state root 0xb943603e6b049b593cbe924542f6456495e0589d8e63c84172c344291bed1f95 for the failing call. That is byte-identical to what the executable specification produces at Spurious Dragon. So at this one frame the specification lands on exactly the state EIP-161(d) had not yet arrived to change: not a different deletion rule, but the clause not taking effect at all.",
+      "mainnet-history-instrument": "Recorded because it nearly produced a wrong answer. Account EXISTENCE was read with eth_getProof, discriminating a non-existent account (codeHash 0x00..0) from an existing empty one (codeHash = keccak of empty). THREE public archive endpoints were tried and only ONE is usable: eth.drpc.org passes a positive calibration (a known-live address reads EXISTS at an old height), a NEGATIVE calibration (a never-used address reads ABSENT), and an archive-depth check (historical balances differ from latest). rpc.mevblocker.io serves historical balances correctly but FAILS the negative calibration -- it reports a never-used address as EXISTS -- and returns different answers for the same query across repeats; its existence readings are worthless and initially produced a spurious 12,391-block window. eth.merkle.io returns non-JSON for eth_getBalance. A single endpoint without a negative control cannot answer an existence question.",
+      "mainnet-history-completeness": "Both scans are complete BY CONSTRUCTION rather than by a clean-looking summary: a block counts as examined only when its own transaction list parsed, and the loop repeats until the examined set equals the full range. An earlier scan was discarded for lacking this -- it treated a failed HTTP batch as an empty result, so those blocks entered neither its tally nor its retry list and its 'nothing outstanding' could have hidden up to 50 uninspected blocks per failure. Its transaction count (118,545) was inflated by retry double-counting; the complete scan's figure is 114,758."
+    },
+    "config": {
+      "chainid": "0x01"
+    },
+    "env": {
+      "currentCoinbase": "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+      "currentNumber": "0x28d1af",
+      "currentTimestamp": "0x5834e72b",
+      "currentGasLimit": "0x0f4240",
+      "currentDifficulty": "0x020000"
+    },
+    "pre": {
+      "0x0000000000000000000000000000000000000003": {
+        "balance": "0x00",
+        "nonce": "0x00",
+        "code": "0x",
+        "storage": {}
+      },
+      "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+        "balance": "0x3b9aca00",
+        "nonce": "0x00",
+        "code": "0x",
+        "storage": {}
+      }
+    },
+    "transaction": {
+      "nonce": "0x00",
+      "sender": "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
+      "to": "0x0000000000000000000000000000000000000003",
+      "gasPrice": "0x01",
+      "gasLimit": [
+        "0x545f",
+        "0x5460"
+      ],
+      "value": [
+        "0x00"
+      ],
+      "data": [
+        "0x"
+      ]
+    },
+    "post": {
+      "EIP158": [
+        {
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "hash": "0xfc75204dd7619452841d16e582444d657991c8bb1bb13ae1ed8e1573f446c773",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf85f800182545f940000000000000000000000000000000000000003808026a069b80c9eb264a8fec23c66c2b9e0a240ecf45e832a4dcee63c9d97ce752e6ec7a0370a735c07b9ad7cda1a98ac372a4f048b4ce63ecc69c320beb2a94458620328",
+          "replay-protected": true
+        },
+        {
+          "indexes": {
+            "data": 0,
+            "gas": 1,
+            "value": 0
+          },
+          "hash": "0x37b8377b46b7f06f78ef0be667f43d99dc21670a3a6776c5caae99bf8243f769",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf85f8001825460940000000000000000000000000000000000000003808026a0303f3d39291104ef3ebd8ca01dc1fca7a558bc87d4830491b9a97c28b953b4bfa066dfc16d90ae5df75a17ab0dc230fdbef022ec9597ca35bacaac40c738f23ef4",
+          "replay-protected": true
+        }
+      ]
+    }
+  },
+  "ripemd160UntouchedControl": {
+    "_info": {
+      "comment": "The instrument check for ripemd160TouchAtTheOutermostFrame, and it belongs in the corpus rather than in a scratch script because it is what makes that case readable. Identical pre-state, including the empty 0x03. The transaction goes to an unrelated address instead, so nothing touches 0x03 and it must SURVIVE. Both oracles agree on a byte-identical root here. Without this case, 0x03's absence from the other case's post-state is ambiguous between 'deleted by the touch' and 'never in the pre-state at all'.",
+      "oracle": "go-ethereum-pow v1.10.26 and ethereum/execution-specs @ ccaaaba58, both executed, byte-identical post-state roots.",
+      "generated": "2026-08-26",
+      "signing": "txbytes carries the signed transaction; the signing key is a filling input, not a fixture field, and the harness reads `sender`."
+    },
+    "config": {
+      "chainid": "0x01"
+    },
+    "env": {
+      "currentCoinbase": "0x2adc25665018aa1fe0e6bc666dac8fc2697ff9ba",
+      "currentNumber": "0x28d1af",
+      "currentTimestamp": "0x5834e72b",
+      "currentGasLimit": "0x0f4240",
+      "currentDifficulty": "0x020000"
+    },
+    "pre": {
+      "0x0000000000000000000000000000000000000003": {
+        "balance": "0x00",
+        "nonce": "0x00",
+        "code": "0x",
+        "storage": {}
+      },
+      "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+        "balance": "0x3b9aca00",
+        "nonce": "0x00",
+        "code": "0x",
+        "storage": {}
+      }
+    },
+    "transaction": {
+      "nonce": "0x00",
+      "sender": "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
+      "to": "0x00000000000000000000000000000000000000ff",
+      "gasPrice": "0x01",
+      "gasLimit": [
+        "0x5460"
+      ],
+      "value": [
+        "0x01"
+      ],
+      "data": [
+        "0x"
+      ]
+    },
+    "post": {
+      "EIP158": [
+        {
+          "indexes": {
+            "data": 0,
+            "gas": 0,
+            "value": 0
+          },
+          "hash": "0x934f84ca41d40b38e07a00bd4dd77ffca25db4abb7f45b8f6bd2a43bec4b1bbf",
+          "logs": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
+          "txbytes": "0xf85f80018254609400000000000000000000000000000000000000ff018025a0ae9542302c31e81af51b670be07b01a1b7872a24ce0910b53847124a6b45259fa039dbddeef00f57f5e4dbb3f7aae286ac7d2de99e1eb0f08c55c60593807ede7c",
+          "replay-protected": true
+        }
+      ]
+    }
+  }
+}
