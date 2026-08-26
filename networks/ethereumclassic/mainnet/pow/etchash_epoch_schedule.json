@@ -18,7 +18,8 @@
         "correctedToIncludeTheSizeFields": "The first scoring pass compared epochLength, epoch, epochStartBlock, seedIterations and seedHash and SKIPPED cacheSizeBytes and datasetSizeBytes, so its scores understated what this file asserts. Re-derived 2026-08-25: both size fields reproduce at 16/16 from the ethash sizing functions -- the largest prime multiple below an epoch-linear bound.",
         "sizesComputedFromTheUndoubledEpoch": "10/16, and it is the sharpest Etchash defect available. A client can double the epoch LENGTH for scheduling and still size its cache and dataset from the old epoch number. Scheduling then looks correct, seeds look correct, and the DAG is the wrong size -- so every seal fails verification for a reason that points nowhere near the actual mistake. Only the size fields catch it.",
         "sizesOffByOneEpoch": "0/16"
-      }
+      },
+      "doNOTSourceFromIquidusEcip1099Data": "iquidus/ecip-1099-data carries cache and dataset sha256sums at the epoch boundary and looks like an oracle for this file. It is not: its MAINNET.md declares ETCHASH_FORK_BLOCK=11460000 throughout, while core-geth's ECIP1099FBlock is 11_700_000 -- the value this file already carries. It is pre-activation research whose headline constant was superseded before activation. Recorded because the repository is plausible, is on this machine, and would silently move the activation by 240,000 blocks."
     },
     "activationBlock": "11700000",
     "epochLengthBefore": "30000",
