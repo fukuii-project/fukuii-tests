@@ -37,7 +37,7 @@ The alternative — putting network-agnostic material under whichever network ha
 first — is the failure this axis exists to prevent. Nothing lands here to fill the directory; it
 lands here because it passed the test above.
 
-## A third namespace, and it is ahead of the client
+## A third namespace, which the client has not needed yet
 
 `eea/` is not an oversight in the two-series list above. **QBFT is neither an EIP nor an ECIP.**
 EIP-650 was IBFT 1.0 and was never merged: measured against the vendored `ethereum/EIPs`, there is
@@ -47,12 +47,21 @@ Protocol Specification v1* — and cited from the EEA Client Specification's CON
 
 So the series is the EEA's, and the directory says so.
 
-**This is ahead of the client, deliberately and visibly.** `ProposalId` admits `Eip(n)` and
-`Ecip(n)` and has no case for a third series — read at the moment this landed, not assumed. But its
-own documentation says the set is open: *"A network that authors its own series adds a case here…
-a case added later makes every exhaustive match over this type report where it has to be
-extended."* Adding that case is the client's call and is not made here; what is recorded here is
-that a fixture exists whose proposal has no `ProposalId` yet.
+**The tests lead the client here, and that is the working order rather than an exception.**
+`ProposalId` admits `Eip(n)` and `Ecip(n)` and has no case for a third series — read at the moment
+this landed, not assumed — because the client is implementing EIPs and ECIPs and has not reached
+QBFT. It will add the case when it does, and it will read this tree to see the shape the fixtures
+already use. The two repositories are aligned by that reading, not by being changed together.
+
+The client's own documentation says the set is open and describes what happens when it is extended:
+*"A network that authors its own series adds a case here… a case added later makes every exhaustive
+match over this type report where it has to be extended."* So a namespace here that the client
+cannot yet name is not a mismatch to reconcile; it is the fixture arriving first, which is the
+point of authoring fixtures at all.
+
+**What this repository must get right, therefore, is the pattern rather than the timing.** A
+directory name, a type directory beneath it, and one outer key per file, exactly as under `eip/`.
+The client reads a convention, not a special case.
 
 The alternative — filing QBFT under `eip/` because that namespace already exists — would state
 something false about where the specification comes from, and would do it in a path, which is the
