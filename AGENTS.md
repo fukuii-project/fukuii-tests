@@ -47,6 +47,7 @@ for a bucket that means different things in different places.
 | `archive/` | preserved copies of dying or deleted upstream material | **a submodule, and frozen** — see below |
 | `upstream/` | live upstreams, pinned as submodules, fetched | tracked |
 | `proposals/` | our tests for a single EIP or ECIP, network-agnostic | **authored** |
+| `consensus-algorithms/` | our tests for a consensus mechanism, under the class it belongs to | **authored** |
 | `networks/` | our tests scoped to a network or an upgrade | **authored** |
 
 `archive/` and `upstream/` sort by **source organization** — `archive/etclabscore/tests`,
@@ -54,7 +55,14 @@ for a bucket that means different things in different places.
 path should say which one it is.
 
 `proposals/` and `networks/` follow the client's own two axes, `chainspec/proposals/` and
-`chainspec/networks/<family>/<Network>`.
+`chainspec/networks/<family>/<Network>`. **`consensus-algorithms/` follows a third axis the client
+also has** — its `consensus` and `consensus-pow` modules sit beside `chainspec`, not inside it.
+
+**A consensus mechanism is not an improvement proposal**, and only Clique has ever looked like one
+because only Clique has an EIP number. Filing it under `proposals/eip/eip-225/` was right for
+Clique and generalized badly: the next mechanism to arrive had no number and was given an invented
+namespace to hold it. The mechanisms now have their own root, and a proposal number is an `_info`
+fact rather than a path component. See `consensus-algorithms/README.md`.
 
 ### Two families, and they are NOT covered to the same depth
 

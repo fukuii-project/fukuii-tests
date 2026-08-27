@@ -36,36 +36,53 @@ whether the format **pre-exists this repository**, and whether anything **reads 
 inventory from the corpus, then read the contract for each thing you find:
 
 ```bash
-# every type directory in use -- the level a harness dispatches on to pick a reader
-find proposals networks -name '*.json' | while read -r f; do
-  case "$f" in */state/*) echo state ;; *) basename "$(dirname "$f")" ;; esac
-done | sort | uniq -c
+# every authored fixture, wherever the roots are. This names NO directory on purpose:
+# submodule contents are gitlinks and are never listed, and a fixture is recognised by
+# carrying `_info` rather than by where it sits -- so a new root needs no edit here.
+fixtures() {
+  git ls-files '*.json' | while read -r f; do
+    jq -e 'type=="object" and (to_entries|any(.value|type=="object" and has("_info")))' \
+       "$f" >/dev/null 2>&1 && echo "$f"
+  done
+}
 
-# every outer key in use, against the type directory it sits under
-find proposals networks -name '*.json' | while read -r f; do
-  case "$f" in */state/*) t=state ;; *) t=$(basename "$(dirname "$f")") ;; esac
-  jq -r --arg t "$t" 'keys[] | "\($t)\t\(.)"' "$f"
-done | sort -u
+fixtures | cut -d/ -f1 | sort | uniq -c          # the roots actually in use
+fixtures | while read -r f; do                   # every schema, against the file carrying it
+  jq -r --arg f "$f" 'keys[] | "\(.)\t\($f)"' "$f"
+done | sort
 ```
+
+**That predicate is calibrated, and re-calibrate it if you change it.** Run against this corpus it
+selects every fixture and rejects exactly `.claude/settings.json` and `.mcp.json` — a filter that
+cannot reject anything is not filtering.
 
 Both were run against this corpus when this file was last revised, so a reader who gets no output
 is looking at a broken invocation rather than an empty tree. **That caution is not decorative: the
 first spelling of the label command below returned nothing at all and would have published a
 silent zero.**
 
-And this file can audit itself. Where the outer key selects a schema, every one the corpus carries
-should have a section here:
+And this file can audit itself. **Only where the outer key selects a schema**, which is a property
+this file declares rather than one the tree reveals: in `forkid/` and `difficulty/` every file
+shares one schema and the key merely names an instance, so auditing those would report every
+fixture as an undocumented schema. The declaration is one marker line, kept next to the check so it
+cannot drift out of sight:
+
+<!-- schema-selecting-paths: blocks/ consensus-algorithms/ /consensus/ -->
 
 ```bash
+sel=$(grep -oP '(?<=schema-selecting-paths: ).*(?= -->)' FIXTURE-FORMAT.md | head -1)
 documented=$(grep -oE '^### .*' FIXTURE-FORMAT.md | grep -oE '`[A-Za-z0-9_]+`' | tr -d '`' | sort -u)
-carried=$(find proposals networks -path '*/blocks/*.json' -o -path '*/consensus/*.json' \
-          | xargs -I{} jq -r 'keys[]' {} | sort -u)
+carried=$(fixtures | grep -F -f <(printf '%s\n' $sel) | xargs -I{} jq -r 'keys[]' {} | sort -u)
 for k in $carried; do
   printf '%s\n' "$documented" | grep -qx "$k" && continue
   hit=0; for d in $documented; do case "$k" in "$d"*) hit=1;; esac; done   # per-network variant
   [ "$hit" = 1 ] || echo "UNDOCUMENTED SCHEMA: $k"
 done
 ```
+
+**Adding a root costs one token in that marker, not an edit to the command** — which is the whole
+point, because the previous version hardcoded `*/blocks/*.json` and `*/consensus/*.json` inside the
+command and silently stopped covering a schema the moment a root appeared. One did, on 2026-08-27.
 
 It printed nothing when this file was last revised. **Calibrate it before trusting a clean run** —
 delete a `###` heading's backticks and confirm it reports that schema, because a check that cannot
@@ -97,7 +114,7 @@ identified rather than on how many keys you happened to see.
 | block-level | `blocks/` | **specified here** | **per-schema, not per-directory** |
 | fork identifier | `forkid/` | **specified here** | not yet |
 | chain selection | `chainselection/` | **specified here** | not yet |
-| consensus mechanism | `consensus/` | **specified here** | not yet |
+| consensus mechanism | `consensus-algorithms/<class>/<algo>/`, and `consensus/` under a network | **specified here** | not yet |
 
 **Where a format pre-exists**, get it wrong and your harness disagrees with a corpus of tens of
 thousands of published files. Fix your reader.
@@ -1138,13 +1155,22 @@ activation.
 > post-activation epoch and **collide with a seed already used at block 5,850,000**. `seedIterations`
 > is published beside each seed so a consumer failing this lands on the step, not on the digest.
 
-## consensus-mechanism vectors (`consensus/`)
+## consensus-mechanism vectors (`consensus-algorithms/`, and `consensus/` under a network)
 
 **Specified here.** How a chain decides *who may produce a block, and which block wins* — rules
 that are not state transitions and that no `state/`, `blocks/` or `difficulty/` fixture can reach.
-The directory appears under both axes: proof-of-authority mechanisms are proposal-scoped
-(`proposals/<series>/<proposal>/consensus/`), while a rule keyed to one network's own constants is
-network-scoped (`networks/<family>/<network>/consensus/`).
+
+**These schemas live in two places, and the split is the subject rather than the shape.** A rule
+that belongs to a **mechanism** holds wherever that mechanism runs and sits under
+`consensus-algorithms/<class>/<algo>/` — Clique's difficulty rule is the same rule on every Clique
+chain. A rule keyed to **one network's own constants** sits under
+`networks/<family>/<network>/consensus/` — when a particular chain stopped doing proof of work is a
+fact about that chain. Read `consensus-algorithms/README.md` for the test.
+
+> **The mechanism schemas moved on 2026-08-27**, from `proposals/eip/eip-225/consensus/` and
+> `proposals/eea/qbft-v1/consensus/`. Clique had been filed as an improvement proposal because it
+> has an EIP number, which no other mechanism does; a path is not a citation, and EIP-225 is
+> recorded in that fixture's `_info` where it belongs.
 
 **Like `blocks/`, this directory is heterogeneous and the outer key selects the schema.** The
 schemas share no fields beyond `_info`, and a reader that handles one has done nothing toward

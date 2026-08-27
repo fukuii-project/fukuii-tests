@@ -1,20 +1,23 @@
 # `proposals/` — tests scoped to a single proposal
 
 **Fukuii's own work.** One directory per proposal namespace, matching the client's
-`chainspec/proposals/` and its `ProposalId`, which admits `Eip(n)` and `Ecip(n)` — and one
-namespace that deliberately does not, for a specification series that is neither. See *A third
-namespace* below before adding a directory here.
+`chainspec/proposals/` and its `ProposalId`, which admits `Eip(n)` and `Ecip(n)`.
 
 ```
 proposals/
   eip/
-    eip-225/            Clique proof-of-authority
-      consensus/
   ecip/
-  eea/
-    qbft-v1/            QBFT, the EEA's own consensus specification
-      consensus/
 ```
+
+## EIP-225 used to live here, and its departure is the boundary made concrete
+
+Clique's two fixtures sat at `eip/eip-225/consensus/` until 2026-08-27. They were correct there on
+their own terms — Clique **is** an EIP — and that turned out to be a coincidence rather than a
+rule: no other consensus mechanism has a proposal number, so the second one to arrive needed a
+namespace invented for it. Both moved to `../consensus-algorithms/`, which is keyed by mechanism.
+
+**The test below is unchanged; what changed is that it is no longer being stretched.** A proposal's
+rule delta belongs here. A consensus mechanism is a different kind of subject and has its own root.
 
 ## What has to be true before a fixture belongs here
 
@@ -37,47 +40,17 @@ The alternative — putting network-agnostic material under whichever network ha
 first — is the failure this axis exists to prevent. Nothing lands here to fill the directory; it
 lands here because it passed the test above.
 
-## A third namespace, which the client has not needed yet
-
-`eea/` is not an oversight in the two-series list above. **QBFT is neither an EIP nor an ECIP.**
-EIP-650 was IBFT 1.0 and was never merged: measured against the vendored `ethereum/EIPs`, there is
-no `eip-650.md` at all and **zero** files mention QBFT, with `eip-155` present as the control. The
-QBFT specification is published by the Enterprise Ethereum Alliance — *QBFT Blockchain Consensus
-Protocol Specification v1* — and cited from the EEA Client Specification's CONS-092.
-
-So the series is the EEA's, and the directory says so.
-
-**The tests lead the client here, and that is the working order rather than an exception.**
-`ProposalId` admits `Eip(n)` and `Ecip(n)` and has no case for a third series — read at the moment
-this landed, not assumed — because the client is implementing EIPs and ECIPs and has not reached
-QBFT. It will add the case when it does, and it will read this tree to see the shape the fixtures
-already use. The two repositories are aligned by that reading, not by being changed together.
-
-The client's own documentation says the set is open and describes what happens when it is extended:
-*"A network that authors its own series adds a case here… a case added later makes every exhaustive
-match over this type report where it has to be extended."* So a namespace here that the client
-cannot yet name is not a mismatch to reconcile; it is the fixture arriving first, which is the
-point of authoring fixtures at all.
-
-**What this repository must get right, therefore, is the pattern rather than the timing.** A
-directory name, a type directory beneath it, and one outer key per file, exactly as under `eip/`.
-The client reads a convention, not a special case.
-
-The alternative — filing QBFT under `eip/` because that namespace already exists — would state
-something false about where the specification comes from, and would do it in a path, which is the
-one place a reader never re-checks.
-
-**`qbft-v1` follows the publisher's own path**, `entethalliance.org/specs/qbft/v1/`, by exactly the
-rule that makes `eip-225` follow `ethereum/EIPs`' own filename. The version is part of the name
-because the specification carries one and the EEA's "latest release" currently resolves to it; a v2
-would be a sibling rather than an edit.
-
 ## Naming beneath a namespace
 
-`eip-225/` follows the convention the source corpus uses — `ethereum/EIPs` names its own files
-`eip-225.md` — per the rule in `../AGENTS.md` that a data tree follows the corpora's conventions
-rather than the client's type names. Beneath it, the **test type** is a directory exactly as under a
-network, because a harness resolves by type before it resolves by subject.
+A proposal directory follows the convention its own source corpus uses — `ethereum/EIPs` names
+its files `eip-150.md`, so the directory is `eip-150/` — per the rule in `../AGENTS.md` that a data
+tree follows the corpora's conventions rather than the client's type names. Beneath it, the **test
+type** is a directory exactly as under a network, because a harness resolves by type before it
+resolves by subject.
+
+**This directory is empty of fixtures today** and that is a statement of the test above, not a gap:
+everything authored so far is either network-scoped or mechanism-scoped. The first proposal-scoped
+fixture that is genuinely a rule delta lands here.
 
 ## Why proposals are their own axis
 
