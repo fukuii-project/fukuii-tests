@@ -40,7 +40,8 @@ inventory from the corpus, then read the contract for each thing you find:
 # submodule contents are gitlinks and are never listed, and a fixture is recognised by
 # carrying `_info` rather than by where it sits -- so a new root needs no edit here.
 fixtures() {
-  git ls-files '*.json' | while read -r f; do
+  { git ls-files '*.json'; git ls-files --others --exclude-standard '*.json'; } | sort -u |
+  while read -r f; do
     jq -e 'type=="object" and (to_entries|any(.value|type=="object" and has("_info")))' \
        "$f" >/dev/null 2>&1 && echo "$f"
   done
@@ -59,12 +60,17 @@ cannot reject anything is not filtering.
 Both were run against this corpus when this file was last revised, so a reader who gets no output
 is looking at a broken invocation rather than an empty tree.
 
-**`git ls-files` sees only TRACKED files, which is deliberate and has one consequence worth
-knowing**: a brand-new fixture is invisible to every check here until it is staged. The corpus is
-what is committed. Stage first, then audit — a clean audit over an unstaged fixture is a clean
-audit over nothing. **That caution is not decorative: the
-first spelling of the label command below returned nothing at all and would have published a
-silent zero.**
+**It lists untracked-but-not-ignored files too, and that is a correction rather than the original
+design.** The first version used `git ls-files` alone, on the reasoning that the corpus is what is
+committed. True of the corpus, wrong for the check: an audit exists to catch an undocumented schema
+**before** it lands, and a tracked-only enumerator is blind at exactly that moment. Recorded because
+it fired on 2026-08-27 — a new fixture was written, the audit reported zero gaps, and it was
+reporting on a tree that did not contain it. `--exclude-standard` keeps `.gitignore` in force, so
+scratch trees stay out.
+
+**A clean audit still means nothing if the invocation is broken**, which is the older caution and it
+stands: both commands above were run against this corpus when this file was last revised, so a
+reader who gets no output is looking at a broken invocation rather than an empty tree.
 
 And this file can audit itself. **Only where the outer key selects a schema**, which is a property
 this file declares rather than one the tree reveals: in `forkid/` and `difficulty/` every file
@@ -1323,6 +1329,62 @@ including a refusal for a rule the vector is not about.
 **The labels exist so a failure report can name a signer.** `expectedSignerLabels` is parallel to
 `expectedSigners` and carries no information a reader needs; it is there so a human reading a
 divergence sees `B` rather than a second 20-byte address.
+
+### `etchashEpochFunctions` — ECIP-1099's epoch arithmetic as pure functions
+
+**Four vector lists, and they are four separate claims.** A client may implement any three
+correctly and the fourth wrong, so a harness should report them separately.
+
+```jsonc
+{
+  "etchashEpochFunctions": {
+    "_info": { },
+    "constants": { "cacheInitBytes": "16777216", "epochLengthDefault": "30000",
+                   "epochLengthEcip1099": "60000", "bundledTableCoversEpochsBelow": "2048",
+                   "seedIterationDivisor": "30000", … },
+
+    "epochLengthVectors": [ { "name": "…", "block": "11700000",
+                              "activationBlock": "11700000",     // null means never adopted
+                              "epochLength": "60000" } ],
+
+    "epochVectors":       [ { "name": "…", "block": "…", "epochLength": "…",
+                              "epoch": "…", "epochStartBlock": "…" } ],
+
+    "sizeVectors":        [ { "name": "…", "epoch": "2048",
+                              "servedFromBundledTable": false,   // JSON boolean
+                              "cacheSizeBytes": "…",   "datasetSizeBytes": "…",
+                              "cacheSizeFromFormula": "…", "datasetSizeFromFormula": "…" } ],
+
+    "seedVectors":        [ { "name": "…", "epoch": "195", "epochLength": "60000",
+                              "seedIterations": "390", "seedHash": "0x…" } ]
+  }
+}
+```
+
+**`activationBlock` is an INPUT, and that is what makes this a component.** A network fixture pins
+the height one chain actually chose; here it is supplied per vector, so the same file certifies any
+chain adopting the rule. `null` means the chain never adopts it, and the length stays at the default
+however high the block.
+
+**The size vectors carry each quantity twice on purpose.** A client may serve sizes from a bundled
+table below `bundledTableCoversEpochsBelow` and compute them above it. `cacheSizeBytes` is what it
+must produce; `cacheSizeFromFormula` is the same quantity computed. They are equal at every vector
+here **including across the 2047/2048 seam**, so a table transcription error shows up as a
+disagreement between the two columns rather than only above the seam. Measured: a defect in the
+formula alone leaves the table intact, and asserting one column would have caught it at three
+vectors out of eight instead of all eight.
+
+> #### The seed divisor is the trap, and it is not the epoch length
+>
+> `seedIterations = epochStartBlock / 30000` — the **default** length, whatever length is in
+> force, and not the epoch number. So a post-activation epoch takes the seed its legacy twin would
+> have had: `seed_epoch_195_length_60000` and `seed_epoch_390_length_30000` carry the **same** hash,
+> because both start at block 11,700,001. A client dividing by the length in force computes 195
+> iterations there and silently reuses a seed from six million blocks earlier — generating a real
+> dataset for the wrong epoch rather than failing.
+>
+> Epoch 0 is the other edge: its start block is 1, below the divisor, so the seed is **32 zero
+> bytes** and not the hash of them.
 
 ### `qbftProposerSelection` — which validator proposes at a height and round
 

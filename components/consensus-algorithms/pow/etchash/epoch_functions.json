@@ -1,0 +1,243 @@
+{
+  "etchashEpochFunctions": {
+    "_info": {
+      "comment": "ECIP-1099's epoch arithmetic as PURE FUNCTIONS, with the activation height supplied as an INPUT rather than baked in. Four independent vector lists: the epoch length a block resolves to, the epoch and its start block, the cache and dataset sizes for an epoch, and the seed. A harness may implement them separately and should report them separately.",
+      "whyThisIsAComponentAndNotANetworkFixture": "Every value here is a function of its own inputs and holds on any chain adopting ECIP-1099. WHEN a particular chain adopts it is not here: `activationBlock` is a vector input, not a constant. The network-scoped half stays in networks/<family>/<network>/pow/, which pins the real activation height and walks it by block number. Splitting them is why this file exists: the network fixtures carried both, so the reusable half could not be run by anyone else.",
+      "theFourListsAreFourClaims": "epochLengthVectors is the ECIP-1099 switch itself. epochVectors is integer division plus the start-block +1. sizeVectors is the prime-reduced growth schedule. seedVectors is the iterated keccak. A client can implement any three correctly and the fourth wrong.",
+      "sizeVectorsAssertATABLEAGAINSTAFORMULA": "core-geth serves cache and dataset sizes from a bundled table below epoch 2048 and computes them above it. Both paths are recorded per vector -- cacheSizeBytes is what the client must produce, cacheSizeFromFormula is the same quantity computed. They are equal at every epoch here INCLUDING across 2047/2048, which is the seam: a client implementing only the table is wrong above it, one implementing only the formula must still match the table below it, and a transcription error in either shows up as a disagreement between the two columns.",
+      "theSeedDivisorIsTheTRAP": "seedIterations is epochStartBlock / 30000 -- the DEFAULT epoch length, whatever length is actually in force, and NOT the epoch number. seed_epoch_195_length_60000 and seed_epoch_390_length_30000 therefore carry the SAME seed, because a post-activation epoch takes the seed its legacy twin would have had. A client dividing by the length in force computes 195 iterations there and silently reuses a seed from six million blocks earlier.",
+      "oracle": "core-geth's own consensus/ethash primitives, EXECUTED not read: calcEpochLength, calcEpoch, calcEpochBlock, cacheSize, datasetSize, calcCacheSize, calcDatasetSize and seedHash. All are unexported, so the generator ran as an in-package test file, was removed, and the clone was verified clean afterwards.",
+      "oracle-version": "reference-material/ethereumclassic/core-geth at 4185df450 (branch master) -- the production client, which is what Ethereum Classic mainnet runs. On this machine reference-material/* is upstream third-party work; work/repos/* is the maintainer's own and is never an oracle.",
+      "crossImplementation": "Every value was computed a second time by an implementation sharing no code with core-geth: a deterministic Miller-Rabin primality test written for this suite (exact below 3.3e24, so exact for every uint64 the rule can produce) rather than Go's big.Int.ProbablyPrime, and pycryptodome's keccak rather than golang.org/x/crypto/sha3. 24 of 24 vectors agree on every field.",
+      "andEpochZeroISPublishedUpstream": "The published PoWTests tier states epoch 0's cache_size as 16776896 and full_size as 1073739904. size_epoch_0 reproduces both, so the base of the schedule is anchored to a corpus neither implementation here produced.",
+      "generated": "2026-08-27",
+      "wrongBuildMethod": "Four defects were introduced into core-geth's consensus/ethash/algorithm.go one at a time, each confirmed to change the source and to compile before being run; a patch that does neither produces a clean NOT-CAUGHT indistinguishable from a real coverage gap. The unmodified build is the control and must pass everything -- a file no correct client passes is measuring its own generator. The clone was restored and verified clean after every cycle.",
+      "wrongBuildScores": {
+        "control": "Unmodified core-geth: 24/24 pass.",
+        "seed_divisor_uses_length_in_force": "22/24 -- fails seed_epoch_195_length_60000 and seed_epoch_196_length_60000, and ONLY those. It correctly does not fire on epoch 390 at length 30000, where the two divisors coincide, nor on epochs 0 and 1. The defect is caught exactly where it changes an answer.",
+        "activation_compares_with_strict_greater": "22/24 -- fails length_exactly_at_activation and length_activation_at_block_zero. Both boundaries, and nothing else.",
+        "epoch_start_block_drops_the_plus_one": "18/24 -- fails all six epochVectors.",
+        "cache_formula_subtracts_twice_the_hash_size": "16/24 -- fails all eight sizeVectors, INCLUDING the six served from the bundled table. See the note below: that is the second column working.",
+        "theSecondSIZEColumnEARNEDITSPLACE": "Measured, not argued. The cache-formula defect leaves the bundled table untouched, so cacheSizeBytes is still right for every epoch below 2048. Asserting only that column would have caught the defect at epochs 2048, 2049 and 5000 and passed the other five. Because each vector also pins cacheSizeFromFormula, all eight fail and the disagreement is visible at every epoch rather than only above the seam.",
+        "whatNOVECTORHERECATCHES": "The missing +1 in the epoch start block is invisible to seedVectors, and that is a property of the arithmetic rather than a gap to fill. Seed iterations are epochStartBlock/30000 under integer division, and dropping the +1 moves 11700001 to 11700000, which floors to the same 390. A seed vector can only see the +1 where it crosses a multiple of 30000, and no epoch boundary does. epochVectors is what pins it, and all six of them fail."
+      }
+    },
+    "constants": {
+      "cacheInitBytes": "16777216",
+      "cacheGrowthBytes": "131072",
+      "hashBytes": "64",
+      "datasetInitBytes": "1073741824",
+      "datasetGrowthBytes": "8388608",
+      "mixBytes": "128",
+      "epochLengthDefault": "30000",
+      "epochLengthEcip1099": "60000",
+      "bundledTableCoversEpochsBelow": "2048",
+      "seedIterationDivisor": "30000"
+    },
+    "epochLengthVectors": [
+      {
+        "name": "length_no_activation_configured",
+        "comment": "A chain that never adopts ECIP-1099 keeps the default length at any height.",
+        "block": "50000000",
+        "activationBlock": null,
+        "epochLength": "30000"
+      },
+      {
+        "name": "length_one_block_before_activation",
+        "comment": "DISCRIMINATOR. The switch is `block >= activation`, so the block before still uses the old length.",
+        "block": "11699999",
+        "activationBlock": "11700000",
+        "epochLength": "30000"
+      },
+      {
+        "name": "length_exactly_at_activation",
+        "comment": "DISCRIMINATOR. The activation block itself already uses the new length.",
+        "block": "11700000",
+        "activationBlock": "11700000",
+        "epochLength": "60000"
+      },
+      {
+        "name": "length_after_activation",
+        "comment": "And it stays switched.",
+        "block": "11700001",
+        "activationBlock": "11700000",
+        "epochLength": "60000"
+      },
+      {
+        "name": "length_activation_at_block_zero",
+        "comment": "A chain adopting the rule from genesis.",
+        "block": "0",
+        "activationBlock": "0",
+        "epochLength": "60000"
+      }
+    ],
+    "epochVectors": [
+      {
+        "name": "epoch_block_zero",
+        "block": "0",
+        "epochLength": "30000",
+        "epoch": "0",
+        "epochStartBlock": "1"
+      },
+      {
+        "name": "epoch_last_of_epoch_zero",
+        "block": "29999",
+        "epochLength": "30000",
+        "epoch": "0",
+        "epochStartBlock": "1"
+      },
+      {
+        "name": "epoch_first_of_epoch_one",
+        "block": "30000",
+        "epochLength": "30000",
+        "epoch": "1",
+        "epochStartBlock": "30001"
+      },
+      {
+        "name": "epoch_long_length_boundary",
+        "block": "60000",
+        "epochLength": "60000",
+        "epoch": "1",
+        "epochStartBlock": "60001"
+      },
+      {
+        "name": "epoch_activation_height_new_length",
+        "block": "11700000",
+        "epochLength": "60000",
+        "epoch": "195",
+        "epochStartBlock": "11700001"
+      },
+      {
+        "name": "epoch_activation_height_old_length",
+        "block": "11700000",
+        "epochLength": "30000",
+        "epoch": "390",
+        "epochStartBlock": "11700001"
+      }
+    ],
+    "sizeVectors": [
+      {
+        "name": "size_epoch_0",
+        "comment": "The base of the schedule.",
+        "epoch": "0",
+        "servedFromBundledTable": true,
+        "cacheSizeBytes": "16776896",
+        "datasetSizeBytes": "1073739904",
+        "cacheSizeFromFormula": "16776896",
+        "datasetSizeFromFormula": "1073739904"
+      },
+      {
+        "name": "size_epoch_1",
+        "comment": "The first growth step.",
+        "epoch": "1",
+        "servedFromBundledTable": true,
+        "cacheSizeBytes": "16907456",
+        "datasetSizeBytes": "1082130304",
+        "cacheSizeFromFormula": "16907456",
+        "datasetSizeFromFormula": "1082130304"
+      },
+      {
+        "name": "size_epoch_195",
+        "comment": "The first post-activation epoch on a chain activating at 11,700,000.",
+        "epoch": "195",
+        "servedFromBundledTable": true,
+        "cacheSizeBytes": "42334912",
+        "datasetSizeBytes": "2709518464",
+        "cacheSizeFromFormula": "42334912",
+        "datasetSizeFromFormula": "2709518464"
+      },
+      {
+        "name": "size_epoch_2046",
+        "comment": "Inside the bundled table.",
+        "epoch": "2046",
+        "servedFromBundledTable": true,
+        "cacheSizeBytes": "284950208",
+        "datasetSizeBytes": "18236833408",
+        "cacheSizeFromFormula": "284950208",
+        "datasetSizeFromFormula": "18236833408"
+      },
+      {
+        "name": "size_epoch_2047",
+        "comment": "DISCRIMINATOR. The LAST epoch served from the table.",
+        "epoch": "2047",
+        "servedFromBundledTable": true,
+        "cacheSizeBytes": "285081536",
+        "datasetSizeBytes": "18245220736",
+        "cacheSizeFromFormula": "285081536",
+        "datasetSizeFromFormula": "18245220736"
+      },
+      {
+        "name": "size_epoch_2048",
+        "comment": "DISCRIMINATOR. The FIRST epoch computed by the formula. The table and the formula must agree across this seam; a client implementing only one path is wrong on one side of it.",
+        "epoch": "2048",
+        "servedFromBundledTable": false,
+        "cacheSizeBytes": "285211712",
+        "datasetSizeBytes": "18253610624",
+        "cacheSizeFromFormula": "285211712",
+        "datasetSizeFromFormula": "18253610624"
+      },
+      {
+        "name": "size_epoch_2049",
+        "comment": "Just past the seam.",
+        "epoch": "2049",
+        "servedFromBundledTable": false,
+        "cacheSizeBytes": "285343424",
+        "datasetSizeBytes": "18261994624",
+        "cacheSizeFromFormula": "285343424",
+        "datasetSizeFromFormula": "18261994624"
+      },
+      {
+        "name": "size_epoch_5000",
+        "comment": "Well beyond any table.",
+        "epoch": "5000",
+        "servedFromBundledTable": false,
+        "cacheSizeBytes": "672137152",
+        "datasetSizeBytes": "43016779648",
+        "cacheSizeFromFormula": "672137152",
+        "datasetSizeFromFormula": "43016779648"
+      }
+    ],
+    "seedVectors": [
+      {
+        "name": "seed_epoch_0_length_30000",
+        "comment": "Epoch 0 starts at block 1, which is below the divisor, so the seed is 32 zero bytes and NOT a hash of them.",
+        "epoch": "0",
+        "epochLength": "30000",
+        "seedIterations": "0",
+        "seedHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      {
+        "name": "seed_epoch_1_length_30000",
+        "comment": "The first hashed seed.",
+        "epoch": "1",
+        "epochLength": "30000",
+        "seedIterations": "1",
+        "seedHash": "0x290decd9548b62a8d60345a988386fc84ba6bc95484008f6362f93160ef3e563"
+      },
+      {
+        "name": "seed_epoch_195_length_60000",
+        "comment": "DISCRIMINATOR. A post-activation epoch under the long length: iterations are epochStartBlock/30000 = 390, NOT the epoch number 195.",
+        "epoch": "195",
+        "epochLength": "60000",
+        "seedIterations": "390",
+        "seedHash": "0xe79f0f63030bf691445c2b9d0266b24a9619e355194067f2ad2c73a8e0a26c65"
+      },
+      {
+        "name": "seed_epoch_390_length_30000",
+        "comment": "Epoch 195's legacy twin. Same start block, so the SAME seed -- the chain continues rather than restarting.",
+        "epoch": "390",
+        "epochLength": "30000",
+        "seedIterations": "390",
+        "seedHash": "0xe79f0f63030bf691445c2b9d0266b24a9619e355194067f2ad2c73a8e0a26c65"
+      },
+      {
+        "name": "seed_epoch_196_length_60000",
+        "comment": "392 iterations, keeping the parity of the identity above.",
+        "epoch": "196",
+        "epochLength": "60000",
+        "seedIterations": "392",
+        "seedHash": "0x1ba62b295a00a4a170571539c1b90d97125bd99543c4fa38949778158873095d"
+      }
+    ]
+  }
+}
