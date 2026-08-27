@@ -14,7 +14,8 @@ proposals/
 Clique's two fixtures sat at `eip/eip-225/consensus/` until 2026-08-27. They were correct there on
 their own terms — Clique **is** an EIP — and that turned out to be a coincidence rather than a
 rule: no other consensus mechanism has a proposal number, so the second one to arrive needed a
-namespace invented for it. Both moved to `../consensus-algorithms/`, which is keyed by mechanism.
+namespace invented for it. Both moved to `../consensus-algorithms/`, which is keyed by mechanism. Both now sit under
+`components/` — see its README for the test that separates a component from a network.
 
 **The test below is unchanged; what changed is that it is no longer being stretched.** A proposal's
 rule delta belongs here. A consensus mechanism is a different kind of subject and has its own root.
@@ -34,7 +35,7 @@ isolation.
 **EIP-225 is the first that is.** Clique's authorized signer set is a pure function of the header
 chain — no chain id reaches the rule, no upgrade schedules it, and the same vectors hold on every
 network that runs Clique. A fixture asserting *a particular Clique network's* genesis signer set or
-block period would not be: that is network-scoped and belongs in `../networks/`.
+block period would not be: that is network-scoped and belongs in `../../networks/`.
 
 The alternative — putting network-agnostic material under whichever network happened to need it
 first — is the failure this axis exists to prevent. Nothing lands here to fill the directory; it
@@ -43,7 +44,7 @@ lands here because it passed the test above.
 ## Naming beneath a namespace
 
 A proposal directory follows the convention its own source corpus uses — `ethereum/EIPs` names
-its files `eip-150.md`, so the directory is `eip-150/` — per the rule in `../AGENTS.md` that a data
+its files `eip-150.md`, so the directory is `eip-150/` — per the rule in `../../AGENTS.md` that a data
 tree follows the corpora's conventions rather than the client's type names. Beneath it, the **test
 type** is a directory exactly as under a network, because a harness resolves by type before it
 resolves by subject.
@@ -63,7 +64,7 @@ it arrives on Ethereum Classic at Gas Reprice or on Ethereum at Tangerine Whistl
 here says so once.
 
 Anything that depends on *which* upgrade adopted it, or *when* a network activated it, is not
-proposal-scoped and belongs in `../networks/`.
+proposal-scoped and belongs in `../../networks/`.
 
 ## ECIPs are first-class here
 

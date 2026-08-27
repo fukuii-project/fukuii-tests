@@ -39,30 +39,31 @@ under active development.
 
 ## Layout
 
-Four roots, split by **what a thing is** rather than which network it concerns. Nothing is named
+Four roots, split by **what a thing is** rather than which network it concerns. Two are
+vendored (`archive/`, `upstream/`) and two are authored: `components/` holds what is true of a rule
+or a mechanism anywhere, `networks/` holds what is true of one chain. Nothing is named
 for a bucket that means different things in different places.
 
 | directory | what it holds | posture |
 |---|---|---|
 | `archive/` | preserved copies of dying or deleted upstream material | **a submodule, and frozen** — see below |
 | `upstream/` | live upstreams, pinned as submodules, fetched | tracked |
-| `proposals/` | our tests for a single EIP or ECIP, network-agnostic | **authored** |
-| `consensus-algorithms/` | our tests for a consensus mechanism, under the class it belongs to | **authored** |
-| `networks/` | our tests scoped to a network or an upgrade | **authored** |
+| `components/` | the pieces a chain is assembled from, none of them tied to a chain — `proposals/` for a single EIP or ECIP, `consensus-algorithms/` for a mechanism | **authored** |
+| `networks/` | our tests scoped to a network or an upgrade — the real implementations | **authored** |
 
 `archive/` and `upstream/` sort by **source organization** — `archive/etclabscore/tests`,
 `upstream/ethereum/tests` — because two upstreams both publish a repository called `tests` and a
 path should say which one it is.
 
-`proposals/` and `networks/` follow the client's own two axes, `chainspec/proposals/` and
-`chainspec/networks/<family>/<Network>`. **`consensus-algorithms/` follows a third axis the client
-also has** — its `consensus` and `consensus-pow` modules sit beside `chainspec`, not inside it.
+`components/proposals/` and `networks/` follow the client's own two axes, `chainspec/proposals/`
+and `chainspec/networks/<family>/<Network>`. **`components/consensus-algorithms/` follows a third
+axis the client also has** — its `consensus` and `consensus-pow` modules sit beside `chainspec`, not inside it.
 
 **A consensus mechanism is not an improvement proposal**, and only Clique has ever looked like one
 because only Clique has an EIP number. Filing it under `proposals/eip/eip-225/` was right for
 Clique and generalized badly: the next mechanism to arrive had no number and was given an invented
-namespace to hold it. The mechanisms now have their own root, and a proposal number is an `_info`
-fact rather than a path component. See `consensus-algorithms/README.md`.
+namespace to hold it. The mechanisms now sit under `components/`, and a proposal number is an `_info`
+fact rather than a path component. See `components/README.md`.
 
 ### Two families, and they are NOT covered to the same depth
 
@@ -90,7 +91,7 @@ depends on, and putting it a layer too low duplicates it while a layer too high 
 
 | layer | asserts | scope | lives in |
 |---|---|---|---|
-| proposal | one EIP or ECIP's rule delta, alone | network-agnostic | `proposals/` |
+| proposal | one EIP or ECIP's rule delta, alone | network-agnostic | `components/proposals/` |
 | upgrade | a named, composed rule set | family | `networks/<family>/` |
 | activation | behavior at or across a height | network | `networks/<family>/<network>/` |
 

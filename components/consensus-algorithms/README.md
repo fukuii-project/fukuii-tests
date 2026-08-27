@@ -15,8 +15,8 @@ no network's upgrade labels, and no dependence on which network happens to have 
 in-turn difficulty rule is the same rule on every Clique chain; QBFT's proposer selection is the same
 function on every QBFT chain.
 
-**A fixture that depends on one network's constants is network-scoped and belongs in `../networks/`.**
-The two merge predicates under `networks/*/consensus/` are the worked contrast: *when* a particular
+**A fixture that depends on one network's constants is network-scoped and belongs in `../../networks/`.**
+The two merge predicates under `../../networks/*/consensus/` are the worked contrast: *when* a particular
 chain stopped doing proof of work is a fact about that chain, keyed to its own terminal difficulty
 and netsplit block, and it does not generalize to another network running the same engine.
 
@@ -53,5 +53,6 @@ Directory names are the mechanism's own, lowercase: `clique`, `qbft`, `ibft`, `a
 which document governs a fixture is recorded in its `_info`, where it can be corrected without
 moving a file.
 
-Read `../AGENTS.md` before adding a directory here, and `../FIXTURE-FORMAT.md` for the schema each
-file must satisfy.
+Read `../README.md` for the test that separates a component from a network, `../../AGENTS.md`
+before adding a directory here, and `../../FIXTURE-FORMAT.md` for the schema each file must
+satisfy.

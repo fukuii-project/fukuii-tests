@@ -114,7 +114,7 @@ identified rather than on how many keys you happened to see.
 | block-level | `blocks/` | **specified here** | **per-schema, not per-directory** |
 | fork identifier | `forkid/` | **specified here** | not yet |
 | chain selection | `chainselection/` | **specified here** | not yet |
-| consensus mechanism | `consensus-algorithms/<class>/<algo>/`, and `consensus/` under a network | **specified here** | not yet |
+| consensus mechanism | `components/consensus-algorithms/<class>/<algo>/`, and `consensus/` under a network | **specified here** | not yet |
 
 **Where a format pre-exists**, get it wrong and your harness disagrees with a corpus of tens of
 thousands of published files. Fix your reader.
@@ -1162,13 +1162,13 @@ that are not state transitions and that no `state/`, `blocks/` or `difficulty/` 
 
 **These schemas live in two places, and the split is the subject rather than the shape.** A rule
 that belongs to a **mechanism** holds wherever that mechanism runs and sits under
-`consensus-algorithms/<class>/<algo>/` — Clique's difficulty rule is the same rule on every Clique
-chain. A rule keyed to **one network's own constants** sits under
+`components/consensus-algorithms/<class>/<algo>/` — Clique's difficulty rule is the same rule on
+every Clique chain. A rule keyed to **one network's own constants** sits under
 `networks/<family>/<network>/consensus/` — when a particular chain stopped doing proof of work is a
-fact about that chain. Read `consensus-algorithms/README.md` for the test.
+fact about that chain. Read `components/README.md` for the test.
 
 > **The mechanism schemas moved on 2026-08-27**, from `proposals/eip/eip-225/consensus/` and
-> `proposals/eea/qbft-v1/consensus/`. Clique had been filed as an improvement proposal because it
+> `proposals/eea/qbft-v1/consensus/`, and again under `components/` the same day. Clique had been filed as an improvement proposal because it
 > has an EIP number, which no other mechanism does; a path is not a citation, and EIP-225 is
 > recorded in that fixture's `_info` where it belongs.
 
