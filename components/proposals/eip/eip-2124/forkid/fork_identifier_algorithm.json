@@ -1,0 +1,235 @@
+{
+  "eip2124ForkIdentifierAlgorithm": {
+    "_info": {
+      "comment": "EIP-2124's fork-identifier ALGORITHM, tested as a pure function. Given a genesis hash, an ascending list of fork block numbers and a head, the identifier is the CRC32-IEEE of the genesis hash with every fork at or below the head folded in as a big-endian uint64, paired with the first fork above the head or zero.",
+      "thisIsTheALGORITHMAndNOTAnyChainsIDENTIFIER": "**Read this before using it, because it inverts a rule the network-level fixtures state.** networks/<family>/<network>/forkid/ says: use YOUR genesis hash, never the one in the file, because seeding from a supplied hash makes every vector pass whatever genesis your client actually built. That is correct THERE and does not apply HERE. This file supplies the genesis hash deliberately, as an input, because the subject is the checksum arithmetic rather than any chain's configuration. **It does not substitute for the network fixture and cannot detect a wrong genesis, a wrong alloc or a wrong schedule.** Run both.",
+      "whyItIsAComponent": "No chain id, no upgrade labels, no state root, and nothing keyed to a schedule -- the inputs are supplied and the output is a pure function of them. That is the test components/README.md states, and it is why this can live beside the mechanisms rather than under a network.",
+      "specAnchor": "Three vectors are values EIP-2124 PUBLISHES ITSELF, reproduced exactly: forkhash0 = 0xfc64ec04 = CRC32(genesis), forkhash1 = 0x97c2c34c = CRC32(genesis || uint64(1150000)), forkhash2 = 0x91d1f948 = CRC32(genesis || uint64(1150000) || uint64(1920000)), over Ethereum mainnet's genesis hash. **The specification is the anchor here, not an implementation** -- which is the strongest position a fixture in this corpus can be in, and it is available because this rule is arithmetic rather than a state transition.",
+      "oracle": "go-ethereum's own core/forkid primitives, EXECUTED not read: crc32.ChecksumIEEE seeds from the genesis hash, checksumUpdate folds each passed fork, checksumToBytes renders it, and rlp.EncodeToBytes encodes the ID -- the same calls NewID makes. checksumUpdate and checksumToBytes are unexported, so the generator runs inside package forkid.",
+      "oracle-version": "reference-material/ethereum/go-ethereum at e9e35a42f (branch master) -- the pristine upstream clone. On this machine reference-material/* is upstream third-party work and work/repos/* is the maintainer's own; an oracle is only ever taken from the first.",
+      "notFukuii": "Fukuii is the CONSUMER of this file and never its source. A fixture generated from the client under certification asserts only that the client agrees with itself, and passes forever including for every bug it already has. When fukuii implements EIP-2124, this file is how we find out whether it is right.",
+      "crossImplementation": "Every value was computed a second time by an implementation sharing no code with go-ethereum: Python's zlib CRC32 and a hand-written minimal RLP encoder. The two agree on forkHash, forkNext AND forkIdRlp for all 12 vectors. Agreement across a representational difference -- a C zlib table against Go's crc32, a hand encoder against geth's rlp package -- is worth more than agreement between two copies of one lineage.",
+      "generated": "2026-08-27",
+      "howAHarnessReadsThis": "For each vector: seed a CRC32-IEEE with the 32 raw bytes of genesisHash (not its hex text), fold every entry of forkBlocks that is <= head as an 8-byte big-endian value in the order given, and render the result as 4 big-endian bytes. forkNext is the first forkBlocks entry greater than head, or 0. forkIdRlp is RLP([forkHash as 4 bytes, forkNext minimally encoded]) -- and a forkNext of 0 is the EMPTY byte string, not a zero byte. All three outputs are asserted, because a client can have the checksum right and the encoder wrong.",
+      "wrongBuildMethod": "Two mutations of go-ethereum's own checksumUpdate, each confirmed to change the source and to compile, plus one mutation of the READER. The three are not the same kind of check and are labelled so: mutating the oracle asks whether the fixture catches a broken implementation; mutating the reader asks whether the fixture separates two readings of the rule.",
+      "theFirstVerifierDidNotCompileAndScoredNOTHING": "Recorded because the failure mode is the dangerous one. The verifier was first derived from the generator by string substitution and left a dangling reference, so every run -- control and both mutations -- reported a build failure and produced no score at all. An absent score reads exactly like 'the fixture did not catch this'. It was rewritten by hand and only then were results recorded.",
+      "wrongBuildScores": {
+        "control": "Unmodified go-ethereum: 12/12 pass. A file no correct client passes is measuring its own generator.",
+        "oracle_fold_fork_as_32_bits": "11 pass / 1 fail -- exactly fork_numbers_above_2_32, the vector tagged for it. A client truncating the fork number folds zero for a fork above 2^32 and every other vector still agrees.",
+        "oracle_little_endian_fork_number": "5 pass / 7 fail. The 5 that pass are the vectors where NO fork folds -- no forks configured, or the head below the first fork -- which is correct: endianness cannot matter if nothing is folded. That the survivors are exactly the empty-fold cases is the check on the check.",
+        "reader_folds_on_strict_less_than": "6 pass / 6 fail, and every failure is a head sitting exactly on a fork block. This is the fork <= head boundary, and it is why the file carries the pair at head 99 and head 100.",
+        "whatTheseScoresDoNOTCover": "The verifier calls go-ethereum's checksumUpdate, checksumToBytes and rlp package, but implements the fold LOOP itself, because NewID needs a ChainConfig and a genesis Block that synthetic inputs cannot supply. So the two oracle mutations score geth's primitives rather than geth's loop. The loop is covered by the reader mutation instead, which is a weaker claim and is stated as one."
+      },
+      "whatEachTagMeans": {
+        "spec-published": "The expected value appears in EIP-2124 itself.",
+        "fold-boundary": "Sits on the fork <= head boundary.",
+        "fork-next-zero": "forkNext is zero, so the RLP carries an empty byte string.",
+        "empty-fold": "No fork folds, so the identifier is the bare CRC32 of the genesis hash.",
+        "discriminates-strict-comparison": "A client folding on fork < head instead of <= fails this.",
+        "discriminates-32-bit-truncation": "A client folding the fork number as 32 bits fails this.",
+        "genesis-seeds-the-sum": "Differs from another vector only in the genesis hash."
+      }
+    },
+    "algorithm": {
+      "checksum": "CRC32-IEEE",
+      "seed": "the 32 raw bytes of the genesis hash",
+      "fold": "for each fork block <= head, in ascending order: crc = CRC32(uint64_be(fork), crc)",
+      "forkHash": "the resulting checksum as 4 big-endian bytes",
+      "forkNext": "the first fork block > head, else 0",
+      "forkIdRlp": "RLP([forkHash as 4 bytes, forkNext as a minimal big-endian integer])"
+    },
+    "vectors": [
+      {
+        "name": "spec_published_head_before_any_fork",
+        "comment": "EIP-2124's own worked example: forkhash0 = CRC32(genesis-hash). Anchors this file to the specification rather than to an implementation.",
+        "genesisHash": "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
+        "forkBlocks": [
+          "1150000",
+          "1920000"
+        ],
+        "head": "0",
+        "forkHash": "0xfc64ec04",
+        "forkNext": "1150000",
+        "forkIdRlp": "0xc984fc64ec0483118c30",
+        "tags": [
+          "spec-published"
+        ]
+      },
+      {
+        "name": "spec_published_head_at_first_fork",
+        "comment": "EIP-2124's forkhash1 = CRC32(genesis-hash || uint64(1150000)).",
+        "genesisHash": "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
+        "forkBlocks": [
+          "1150000",
+          "1920000"
+        ],
+        "head": "1150000",
+        "forkHash": "0x97c2c34c",
+        "forkNext": "1920000",
+        "forkIdRlp": "0xc98497c2c34c831d4c00",
+        "tags": [
+          "spec-published",
+          "fold-boundary"
+        ]
+      },
+      {
+        "name": "spec_published_head_at_second_fork",
+        "comment": "EIP-2124's forkhash2 = CRC32(genesis-hash || uint64(1150000) || uint64(1920000)). Both forks folded and no fork remains, so forkNext is zero.",
+        "genesisHash": "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
+        "forkBlocks": [
+          "1150000",
+          "1920000"
+        ],
+        "head": "1920000",
+        "forkHash": "0x91d1f948",
+        "forkNext": "0",
+        "forkIdRlp": "0xc68491d1f94880",
+        "tags": [
+          "spec-published",
+          "fork-next-zero"
+        ]
+      },
+      {
+        "name": "no_forks_at_all_head_zero",
+        "comment": "A chain with no forks configured. The identifier is the bare CRC32 of the genesis hash and forkNext is zero -- which is the empty byte string in the RLP, not a zero byte.",
+        "genesisHash": "0x01872498fea4cca01159015c759fb35e2a877417699067e5bbad50623562faa6",
+        "forkBlocks": [],
+        "head": "0",
+        "forkHash": "0xfe828c3f",
+        "forkNext": "0",
+        "forkIdRlp": "0xc684fe828c3f80",
+        "tags": [
+          "empty-fold",
+          "fork-next-zero"
+        ]
+      },
+      {
+        "name": "no_forks_at_all_head_high",
+        "comment": "The same chain far ahead. With no forks the head cannot change the answer; a client that folds the head itself fails here and passes the vector above.",
+        "genesisHash": "0x01872498fea4cca01159015c759fb35e2a877417699067e5bbad50623562faa6",
+        "forkBlocks": [],
+        "head": "1000000000",
+        "forkHash": "0xfe828c3f",
+        "forkNext": "0",
+        "forkIdRlp": "0xc684fe828c3f80",
+        "tags": [
+          "empty-fold",
+          "fork-next-zero"
+        ]
+      },
+      {
+        "name": "head_one_before_fork",
+        "comment": "The last block before a fork. Nothing folds yet.",
+        "genesisHash": "0x01872498fea4cca01159015c759fb35e2a877417699067e5bbad50623562faa6",
+        "forkBlocks": [
+          "100",
+          "200"
+        ],
+        "head": "99",
+        "forkHash": "0xfe828c3f",
+        "forkNext": "100",
+        "forkIdRlp": "0xc684fe828c3f64",
+        "tags": [
+          "fold-boundary"
+        ]
+      },
+      {
+        "name": "head_exactly_at_fork",
+        "comment": "DISCRIMINATOR. The rule folds a fork when fork <= head, so the fork block ITSELF folds. A client using a strict < gives the previous vector's answer here.",
+        "genesisHash": "0x01872498fea4cca01159015c759fb35e2a877417699067e5bbad50623562faa6",
+        "forkBlocks": [
+          "100",
+          "200"
+        ],
+        "head": "100",
+        "forkHash": "0x98dae090",
+        "forkNext": "200",
+        "forkIdRlp": "0xc78498dae09081c8",
+        "tags": [
+          "fold-boundary",
+          "discriminates-strict-comparison"
+        ]
+      },
+      {
+        "name": "head_one_after_fork",
+        "comment": "One block later, same answer as at the fork block -- which is what makes the pair above a boundary rather than an off-by-one.",
+        "genesisHash": "0x01872498fea4cca01159015c759fb35e2a877417699067e5bbad50623562faa6",
+        "forkBlocks": [
+          "100",
+          "200"
+        ],
+        "head": "101",
+        "forkHash": "0x98dae090",
+        "forkNext": "200",
+        "forkIdRlp": "0xc78498dae09081c8",
+        "tags": [
+          "fold-boundary"
+        ]
+      },
+      {
+        "name": "head_past_all_forks",
+        "comment": "Every fork folded, nothing upcoming.",
+        "genesisHash": "0x01872498fea4cca01159015c759fb35e2a877417699067e5bbad50623562faa6",
+        "forkBlocks": [
+          "100",
+          "200"
+        ],
+        "head": "500",
+        "forkHash": "0x8e6ed495",
+        "forkNext": "0",
+        "forkIdRlp": "0xc6848e6ed49580",
+        "tags": [
+          "fork-next-zero"
+        ]
+      },
+      {
+        "name": "fork_at_block_zero",
+        "comment": "A fork configured at the genesis block folds immediately, because 0 <= 0.",
+        "genesisHash": "0x01872498fea4cca01159015c759fb35e2a877417699067e5bbad50623562faa6",
+        "forkBlocks": [
+          "0",
+          "100"
+        ],
+        "head": "0",
+        "forkHash": "0xd20545d1",
+        "forkNext": "100",
+        "forkIdRlp": "0xc684d20545d164",
+        "tags": [
+          "fold-boundary"
+        ]
+      },
+      {
+        "name": "fork_numbers_above_2_32",
+        "comment": "DISCRIMINATOR. The fork number is folded as a big-endian uint64. A client truncating to 32 bits folds zero here and gets the empty-fold answer.",
+        "genesisHash": "0x01872498fea4cca01159015c759fb35e2a877417699067e5bbad50623562faa6",
+        "forkBlocks": [
+          "4294967296",
+          "1099511627776"
+        ],
+        "head": "4294967296",
+        "forkHash": "0xef656c61",
+        "forkNext": "1099511627776",
+        "forkIdRlp": "0xcc84ef656c6186010000000000",
+        "tags": [
+          "discriminates-32-bit-truncation"
+        ]
+      },
+      {
+        "name": "different_genesis_same_forks",
+        "comment": "Identical fork list and head to head_exactly_at_fork, different genesis hash. The two must differ, which is what proves the genesis actually seeds the checksum.",
+        "genesisHash": "0x3b95c58360c1aefe1e335be1ab89b72d931e067f5beb73a8312a46bd5531c878",
+        "forkBlocks": [
+          "100",
+          "200"
+        ],
+        "head": "100",
+        "forkHash": "0xa8d0d577",
+        "forkNext": "200",
+        "forkIdRlp": "0xc784a8d0d57781c8",
+        "tags": [
+          "genesis-seeds-the-sum"
+        ]
+      }
+    ]
+  }
+}

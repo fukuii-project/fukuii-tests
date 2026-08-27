@@ -57,7 +57,12 @@ selects every fixture and rejects exactly `.claude/settings.json` and `.mcp.json
 cannot reject anything is not filtering.
 
 Both were run against this corpus when this file was last revised, so a reader who gets no output
-is looking at a broken invocation rather than an empty tree. **That caution is not decorative: the
+is looking at a broken invocation rather than an empty tree.
+
+**`git ls-files` sees only TRACKED files, which is deliberate and has one consequence worth
+knowing**: a brand-new fixture is invisible to every check here until it is staged. The corpus is
+what is committed. Stage first, then audit — a clean audit over an unstaged fixture is a clean
+audit over nothing. **That caution is not decorative: the
 first spelling of the label command below returned nothing at all and would have published a
 silent zero.**
 
@@ -67,7 +72,7 @@ shares one schema and the key merely names an instance, so auditing those would 
 fixture as an undocumented schema. The declaration is one marker line, kept next to the check so it
 cannot drift out of sight:
 
-<!-- schema-selecting-paths: blocks/ consensus-algorithms/ /consensus/ -->
+<!-- schema-selecting-paths: blocks/ consensus-algorithms/ /consensus/ components/proposals/ -->
 
 ```bash
 sel=$(grep -oP '(?<=schema-selecting-paths: ).*(?= -->)' FIXTURE-FORMAT.md | head -1)
@@ -79,6 +84,12 @@ for k in $carried; do
   [ "$hit" = 1 ] || echo "UNDOCUMENTED SCHEMA: $k"
 done
 ```
+
+**Pick the token carefully: it is a path fragment, not a type name.** `/forkid/` looks like the
+right token for the fork-identifier shapes and is wrong — it also matches the SIX network-level
+forkid files, whose outer keys are instance names rather than schemas, and the audit then reports
+every one of them as undocumented. `components/proposals/` matches only the component layer, where
+the key really does select the schema. Measured when the token was first added, not reasoned.
 
 **Adding a root costs one token in that marker, not an edit to the command** — which is the whole
 point, because the previous version hardcoded `*/blocks/*.json` and `*/consensus/*.json` inside the
@@ -1154,6 +1165,59 @@ activation.
 > An implementation that divided by the length in force would compute 195 iterations for the first
 > post-activation epoch and **collide with a seed already used at block 5,850,000**. `seedIterations`
 > is published beside each seed so a consumer failing this lands on the step, not on the digest.
+
+## proposal-algorithm vectors (`components/proposals/<series>/<proposal>/`)
+
+**Specified here.** A proposal's rule tested as a **pure function of supplied inputs** — no chain
+id, no upgrade labels, no state root. The type directory beneath the proposal is the same one a
+network uses, so a harness resolves by type before it resolves by subject.
+
+**This is the component layer, and it inverts a rule the network layer states.** Read
+`components/README.md` before using one.
+
+### `eip2124ForkIdentifierAlgorithm` — the checksum, with the chain supplied rather than derived
+
+```jsonc
+{
+  "eip2124ForkIdentifierAlgorithm": {
+    "_info": { },
+    "algorithm": {
+      "checksum":   "CRC32-IEEE",
+      "seed":       "the 32 raw bytes of the genesis hash",
+      "fold":       "for each fork block <= head, ascending: crc = CRC32(uint64_be(fork), crc)",
+      "forkHash":   "the resulting checksum as 4 big-endian bytes",
+      "forkNext":   "the first fork block > head, else 0",
+      "forkIdRlp":  "RLP([forkHash as 4 bytes, forkNext as a minimal big-endian integer])"
+    },
+    "vectors": [
+      { "name": "…", "comment": "…",
+        "genesisHash": "0x…", "forkBlocks": ["100","200"], "head": "100",
+        "forkHash": "0x…", "forkNext": "200", "forkIdRlp": "0x…",
+        "tags": [ "fold-boundary" ] }
+    ]
+  }
+}
+```
+
+> ### `genesisHash` is an INPUT here, and that is the opposite of the network shape
+>
+> `forkid/` under a network says: **use YOUR genesis hash, never the one in the file**, because
+> seeding from a supplied hash makes every vector pass whatever genesis your client actually built.
+> That is right there and wrong here. This shape's subject is the checksum arithmetic, so the chain
+> is supplied on purpose.
+>
+> **It therefore cannot detect a wrong genesis, a wrong alloc or a wrong schedule, and does not
+> substitute for the network fixture.** Run both: this one says your arithmetic is right, that one
+> says your chain is.
+
+**All three outputs are asserted**, because a client can have the checksum right and the encoder
+wrong. `forkNext` of zero is the **empty byte string** in the RLP, never a zero byte.
+
+**`forkBlocks` is taken in the order given and is not re-sorted by the reader.** A fixture supplies
+it ascending; a client that sorts defensively passes anyway, and one that folds out of order does
+not.
+
+---
 
 ## consensus-mechanism vectors (`consensus-algorithms/`, and `consensus/` under a network)
 
