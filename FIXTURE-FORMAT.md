@@ -1469,6 +1469,34 @@ Not of the name. Establish it mechanically, with `git rev-list --max-parents=0 H
 | parity-ethereum / openethereum | `f7b618cec` | Rust |
 | besu-etc | `7dfc2e408` | Java |
 
+> #### That command has two failure modes, and both return a confident wrong answer
+>
+> **1. A repository has SEVERAL roots, and the first line is not the one anyone quotes.** Measured
+> 2026-08-26: `ethereum/go-ethereum` and `Consensys/quorum` each print **six**, identically, and the
+> first is `6cf6981ed0` ("init", 2014-12-10) — not `5db3335dc`, which sits **last** and is the root
+> every independence claim in this suite names. A check that takes `| head -1` therefore disagrees
+> with a check that greps for the known root, and both look right. **Compare the SET, or ask the
+> direct question:**
+>
+> ```bash
+> git -C <clone> rev-list --max-parents=0 HEAD | sort          # all of them
+> git -C <clone> cat-file -t 5db3335dce766bd679c54ea44f6df08a7ff74762   # "commit" = shares that root
+> ```
+>
+> **2. A SHARED root is a question, not an answer — open it.** `ethereum/aleth` (C++, 27 roots)
+> and `ethereum/go-ethereum` (6 roots) **share one**, `68ccbefc9`. Read naively, that says the C++
+> client is a geth lineage. Opened, the root holds **three files** — `.gitignore`, `ethereum.js`,
+> `index.html` — the early JavaScript library's history, merged into both repositories and into
+> neither client's implementation. aleth is a genuinely independent lineage.
+>
+> ```bash
+> git -C <clone> ls-tree -r --name-only <shared-root>    # what does the shared history CONTAIN?
+> ```
+>
+> **The two failure modes point opposite ways**, which is why both are stated: the first hides a
+> shared lineage, the second invents one. A root commit is evidence about what two repositories
+> once merged, never by itself evidence about what they implement.
+
 **This project's own overlays are NEVER an independent oracle**, whatever they are named after.
 This project's own Besu, Nethermind and Scala overlays were written from the production client and
 the specification by the same maintainer as the client under certification, so their agreement
