@@ -1330,6 +1330,43 @@ including a refusal for a rule the vector is not about.
 `expectedSigners` and carries no information a reader needs; it is there so a human reading a
 divergence sees `B` rather than a second 20-byte address.
 
+### `ecip1017EmissionSchedule` — Ethereum Classic's monetary policy as pure functions
+
+**Four vector lists, four separate claims**, with `eraLength` and `baseReward` as per-vector
+**inputs** rather than constants.
+
+```jsonc
+{
+  "ecip1017EmissionSchedule": {
+    "_info": { }, "constants": { "disinflationRateQuotient": "4", "disinflationRateDivisor": "5",
+                                 "ommerDistanceDivisorEraZero": "8",
+                                 "ommerRewardDivisorFromEraOne": "32", … },
+    "eraVectors":           [ { "name": "…", "block": "5000000", "eraLength": "5000000",
+                                "era": "0" } ],
+    "winnerRewardVectors":  [ { "name": "…", "era": "21", "baseReward": "5000000000000000000",
+                                "winnerReward": "46116860184273879" } ],
+    "uncleRewardVectors":   [ { "name": "…", "era": "0", "blockNumber": "…", "uncleNumber": "…",
+                                "distance": "…", "baseReward": "…", "uncleReward": "…" } ],
+    "includerBonusVectors": [ { "name": "…", "era": "…", "uncleCount": "1", "baseReward": "…",
+                                "includerBonus": "…" } ]
+  }
+}
+```
+
+**An era begins at the boundary block PLUS ONE.** Block 5,000,000 still pays era 0 at an era length
+of 5,000,000; era 1 starts at 5,000,001. A widely used block explorer gets this wrong, which the
+network-scoped emission fixture records against archive state.
+
+**The reward is one division, not a repeated step.** `winnerReward = baseReward * 4**era / 5**era`,
+truncating **once** at the end. Applying a 4/5 step per era truncates every time; the two agree
+through era 20 and first differ at era 21, by a single wei. Both eras are present, and the *pair* is
+the assertion.
+
+**The ommer rule changes shape at era 1.** Era 0 pays `(8 - distance)/8` of the base reward, so
+distance matters; from era 1 it pays `winnerReward/32` and distance stops mattering — which is why
+two era-1 vectors at different distances carry the *same* value. The includer's bonus is
+`winnerReward/32` per ommer, derived from the **era-adjusted** reward, so it decays too.
+
 ### `etchashEpochFunctions` — ECIP-1099's epoch arithmetic as pure functions
 
 **Four vector lists, and they are four separate claims.** A client may implement any three

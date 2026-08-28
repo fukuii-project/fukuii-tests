@@ -1,0 +1,269 @@
+{
+  "ecip1017EmissionSchedule": {
+    "_info": {
+      "comment": "ECIP-1017's monetary policy as PURE FUNCTIONS. Four independent vector lists: which era a block falls in, the winning miner's reward for an era, an ommer's reward, and the including miner's bonus. A harness may implement them separately and should report them separately.",
+      "whyThisIsAComponentAndNotANetworkFixture": "`eraLength` and `baseReward` are per-vector INPUTS, not constants. The rule is the same wherever it is adopted; which chain adopted it, with what era length, and what its observed mainnet payouts were belongs in networks/<family>/<network>/blocks/, which also carries archive-state readings this file cannot have.",
+      "whatTheINPUTSBUY": "Coverage no network fixture can reach. With eraLength 1 a vector arrives at era 25 in twenty-five blocks; on Ethereum Classic era 25 is 125 million blocks away, so the high-era truncation behaviour below is untestable at network scope.",
+      "theREWARDISONEDIVISIONNOTAREPEATEDSTEP": "winnerReward = baseReward * 4**era / 5**era, with a SINGLE truncating division at the end. Applying a 4/5 step once per era truncates at every step instead. Measured: the two agree for every era up to 20 and first diverge at era 21, by one wei -- 46116860184273879 against 46116860184273878. That is why winner_era_20 and winner_era_21 are both here; the pair is the assertion, and either alone would look like an arbitrary constant.",
+      "theOMMERRULECHANGESSHAPEATERA1": "In era 0 an ommer is paid (8 - distance)/8 of the base reward, so distance matters. From era 1 it is paid winnerReward/32 and distance stops mattering entirely. uncle_era_1_distance_1 and uncle_era_1_distance_6 therefore carry the SAME value, and a client still applying the era-0 formula pays differently at one of them.",
+      "theINCLUDERBONUSDECAYSTOO": "The including miner's bonus is winnerReward/32 per ommer, derived from the ERA-ADJUSTED reward rather than a flat baseReward/32. A client using the flat form pays era 0's bonus forever and is caught from era 1 onward.",
+      "eraZeroCorroboratesTheNETWORKFIXTURE": "At baseReward 5e18 the era-0 includer bonus is 156250000000000000, which is the value networks/ethereumclassic/mainnet/blocks/ records against archive-state observations of real mainnet blocks. The two were derived independently and agree.",
+      "oracle": "core-geth's params/mutations, EXECUTED not read: GetBlockEra, GetBlockWinnerRewardByEra, GetBlockUncleRewardByEra and GetBlockWinnerRewardForUnclesByEra.",
+      "oracle-version": "reference-material/ethereumclassic/core-geth at 4185df450 (branch master) -- the production client, which is what Ethereum Classic mainnet runs. reference-material/* is upstream third-party work on this machine; work/repos/* is the maintainer's own and is never an oracle, and neither is fukuii, which these fixtures exist to certify.",
+      "crossImplementation": "Every value was computed a second time in Python, from the rule as stated in ECIP-1017, using arbitrary-precision integers rather than core-geth's uint256 and big.Int. 28 of 28 vectors agree.",
+      "generated": "2026-08-27",
+      "wrongBuildMethod": "Four defects were introduced into core-geth's params/mutations one at a time, by exact string replacement, each confirmed to change the source and to compile before being run. The unmodified build is the control and passes everything. The clone was restored and verified clean after every cycle.",
+      "wrongBuildScores": {
+        "control": "Unmodified core-geth: 28/28 pass.",
+        "era_boundary_off_by_one": "26/28 -- fails era_boundary_block_itself and era_second_boundary, the two vectors sitting exactly on a boundary, and nothing else.",
+        "reward_applied_as_a_repeated_4_5_step": "26/28 -- fails winner_era_21 and winner_era_22 and ONLY those. See below: this is the result that justifies the whole component form.",
+        "ommer_distance_formula_used_in_every_era": "25/28 -- fails all three era>=1 ommer vectors.",
+        "includer_bonus_flat_instead_of_era_adjusted": "26/28 -- fails includer_era_1_one_uncle and includer_era_2_two_uncles; era 0 is unaffected because the two forms coincide there.",
+        "theINPUTSAREWHATCATCHESTHEREWARDDEFECT": "Measured. The repeated-step defect agrees with the correct rule for every era up to 20 and diverges by ONE WEI at era 21. The only vectors that see it are winner_era_21 and winner_era_22, and they exist only because eraLength and baseReward are inputs -- a vector reaches era 21 in twenty-one blocks at eraLength 1. Scoped to Ethereum Classic's real era length that era is 105 million blocks away, so a network fixture cannot contain this vector and this defect would score 0/28 against it. The component form is not a tidier filing of the same coverage; it is coverage the network form cannot express."
+      }
+    },
+    "constants": {
+      "disinflationRateQuotient": "4",
+      "disinflationRateDivisor": "5",
+      "ommerDistanceDivisorEraZero": "8",
+      "ommerRewardDivisorFromEraOne": "32",
+      "includerBonusDivisor": "32",
+      "maxOmmersPerBlock": "2"
+    },
+    "eraVectors": [
+      {
+        "name": "era_block_zero",
+        "comment": "The genesis block. core-geth returns era 0 for any block below 1 rather than computing.",
+        "block": "0",
+        "eraLength": "5000000",
+        "era": "0"
+      },
+      {
+        "name": "era_first_block",
+        "comment": "The first mined block.",
+        "block": "1",
+        "eraLength": "5000000",
+        "era": "0"
+      },
+      {
+        "name": "era_last_of_era_zero",
+        "comment": "One before the boundary.",
+        "block": "4999999",
+        "eraLength": "5000000",
+        "era": "0"
+      },
+      {
+        "name": "era_boundary_block_itself",
+        "comment": "DISCRIMINATOR. The boundary block STILL pays era 0. A widely used block explorer gets this wrong.",
+        "block": "5000000",
+        "eraLength": "5000000",
+        "era": "0"
+      },
+      {
+        "name": "era_first_block_of_era_one",
+        "comment": "DISCRIMINATOR. The era begins at the boundary PLUS ONE.",
+        "block": "5000001",
+        "eraLength": "5000000",
+        "era": "1"
+      },
+      {
+        "name": "era_second_boundary",
+        "comment": "Still era 1, by the same rule.",
+        "block": "10000000",
+        "eraLength": "5000000",
+        "era": "1"
+      },
+      {
+        "name": "era_first_block_of_era_two",
+        "comment": "And era 2 begins one later.",
+        "block": "10000001",
+        "eraLength": "5000000",
+        "era": "2"
+      },
+      {
+        "name": "era_short_length_reaches_high_era",
+        "comment": "eraLength is an INPUT, so a vector can reach era 25 in 25 blocks. No network fixture can test this: on Ethereum Classic era 25 is 125 million blocks away.",
+        "block": "25",
+        "eraLength": "1",
+        "era": "25"
+      }
+    ],
+    "winnerRewardVectors": [
+      {
+        "name": "winner_era_0",
+        "comment": "The undiminished reward.",
+        "era": "0",
+        "baseReward": "5000000000000000000",
+        "winnerReward": "5000000000000000000"
+      },
+      {
+        "name": "winner_era_1",
+        "comment": "One 20% reduction.",
+        "era": "1",
+        "baseReward": "5000000000000000000",
+        "winnerReward": "4000000000000000000"
+      },
+      {
+        "name": "winner_era_2",
+        "comment": "Two.",
+        "era": "2",
+        "baseReward": "5000000000000000000",
+        "winnerReward": "3200000000000000000"
+      },
+      {
+        "name": "winner_era_20",
+        "comment": "The last era where both computation orders still agree.",
+        "era": "20",
+        "baseReward": "5000000000000000000",
+        "winnerReward": "57646075230342348"
+      },
+      {
+        "name": "winner_era_21",
+        "comment": "DISCRIMINATOR. The rule is baseReward * 4**era / 5**era -- ONE truncating division at the end. Applying the 4/5 step repeatedly truncates at every step and diverges here for the first time.",
+        "era": "21",
+        "baseReward": "5000000000000000000",
+        "winnerReward": "46116860184273879"
+      },
+      {
+        "name": "winner_era_22",
+        "comment": "Diverges again, so the first is not a coincidence.",
+        "era": "22",
+        "baseReward": "5000000000000000000",
+        "winnerReward": "36893488147419103"
+      },
+      {
+        "name": "winner_era_1_other_base_reward",
+        "comment": "A different baseReward, to show it is an input rather than a constant of this file.",
+        "era": "1",
+        "baseReward": "2000000000000000000",
+        "winnerReward": "1600000000000000000"
+      }
+    ],
+    "uncleRewardVectors": [
+      {
+        "name": "uncle_era_0_distance_1",
+        "comment": "Era 0 pays an ommer (8 - distance)/8 of the base reward.",
+        "era": "0",
+        "blockNumber": "1000001",
+        "uncleNumber": "1000000",
+        "distance": "1",
+        "baseReward": "5000000000000000000",
+        "uncleReward": "4375000000000000000"
+      },
+      {
+        "name": "uncle_era_0_distance_2",
+        "comment": "Era 0 pays an ommer (8 - distance)/8 of the base reward.",
+        "era": "0",
+        "blockNumber": "1000002",
+        "uncleNumber": "1000000",
+        "distance": "2",
+        "baseReward": "5000000000000000000",
+        "uncleReward": "3750000000000000000"
+      },
+      {
+        "name": "uncle_era_0_distance_3",
+        "comment": "Era 0 pays an ommer (8 - distance)/8 of the base reward.",
+        "era": "0",
+        "blockNumber": "1000003",
+        "uncleNumber": "1000000",
+        "distance": "3",
+        "baseReward": "5000000000000000000",
+        "uncleReward": "3125000000000000000"
+      },
+      {
+        "name": "uncle_era_0_distance_4",
+        "comment": "Era 0 pays an ommer (8 - distance)/8 of the base reward.",
+        "era": "0",
+        "blockNumber": "1000004",
+        "uncleNumber": "1000000",
+        "distance": "4",
+        "baseReward": "5000000000000000000",
+        "uncleReward": "2500000000000000000"
+      },
+      {
+        "name": "uncle_era_0_distance_5",
+        "comment": "Era 0 pays an ommer (8 - distance)/8 of the base reward.",
+        "era": "0",
+        "blockNumber": "1000005",
+        "uncleNumber": "1000000",
+        "distance": "5",
+        "baseReward": "5000000000000000000",
+        "uncleReward": "1875000000000000000"
+      },
+      {
+        "name": "uncle_era_0_distance_6",
+        "comment": "Era 0 pays an ommer (8 - distance)/8 of the base reward.",
+        "era": "0",
+        "blockNumber": "1000006",
+        "uncleNumber": "1000000",
+        "distance": "6",
+        "baseReward": "5000000000000000000",
+        "uncleReward": "1250000000000000000"
+      },
+      {
+        "name": "uncle_era_1_distance_1",
+        "comment": "DISCRIMINATOR. From era 1 the distance stops mattering: the ommer gets winnerReward/32.",
+        "era": "1",
+        "blockNumber": "1000001",
+        "uncleNumber": "1000000",
+        "distance": "1",
+        "baseReward": "5000000000000000000",
+        "uncleReward": "125000000000000000"
+      },
+      {
+        "name": "uncle_era_1_distance_6",
+        "comment": "DISCRIMINATOR. Same era, distance 6, and the SAME reward as distance 1 above. A client that keeps applying the era-0 distance formula pays a different amount here.",
+        "era": "1",
+        "blockNumber": "1000006",
+        "uncleNumber": "1000000",
+        "distance": "6",
+        "baseReward": "5000000000000000000",
+        "uncleReward": "125000000000000000"
+      },
+      {
+        "name": "uncle_era_2_distance_1",
+        "comment": "And it keeps decaying with the era.",
+        "era": "2",
+        "blockNumber": "1000001",
+        "uncleNumber": "1000000",
+        "distance": "1",
+        "baseReward": "5000000000000000000",
+        "uncleReward": "100000000000000000"
+      }
+    ],
+    "includerBonusVectors": [
+      {
+        "name": "includer_era_0_one_uncle",
+        "comment": "The including miner's bonus is winnerReward/32 per ommer.",
+        "era": "0",
+        "uncleCount": "1",
+        "baseReward": "5000000000000000000",
+        "includerBonus": "156250000000000000"
+      },
+      {
+        "name": "includer_era_0_two_uncles",
+        "comment": "Two ommers is twice that; two is the maximum.",
+        "era": "0",
+        "uncleCount": "2",
+        "baseReward": "5000000000000000000",
+        "includerBonus": "312500000000000000"
+      },
+      {
+        "name": "includer_era_1_one_uncle",
+        "comment": "DISCRIMINATOR. The bonus is derived from the ERA-ADJUSTED winner reward, so it decays too. A client using a flat baseReward/32 pays era 0's bonus forever.",
+        "era": "1",
+        "uncleCount": "1",
+        "baseReward": "5000000000000000000",
+        "includerBonus": "125000000000000000"
+      },
+      {
+        "name": "includer_era_2_two_uncles",
+        "comment": "Both effects together.",
+        "era": "2",
+        "uncleCount": "2",
+        "baseReward": "5000000000000000000",
+        "includerBonus": "200000000000000000"
+      }
+    ]
+  }
+}
