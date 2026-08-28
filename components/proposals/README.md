@@ -49,9 +49,11 @@ tree follows the corpora's conventions rather than the client's type names. Bene
 type** is a directory exactly as under a network, because a harness resolves by type before it
 resolves by subject.
 
-**This directory is empty of fixtures today** and that is a statement of the test above, not a gap:
-everything authored so far is either network-scoped or mechanism-scoped. The first proposal-scoped
-fixture that is genuinely a rule delta lands here.
+**This directory stood empty for a while, and that was a statement of the test above rather than a
+gap**: everything authored before it was either network-scoped or mechanism-scoped. What lands here
+is a rule delta and its observable effect, nothing else. **Do not read the current contents as the
+roster of what is covered** — derive that from the tree, per `../../FIXTURE-FORMAT.md`'s enumerator,
+which is the only thing that cannot go stale between edits.
 
 ## Why proposals are their own axis
 

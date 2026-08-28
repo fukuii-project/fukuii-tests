@@ -46,10 +46,16 @@ So that fixture answers *"where in this chain's schedule does the behavior chang
 network question, even though its subject is a proposal. It is filed by what it asserts, which is
 the rule.
 
-**A component-level test of the same proposal would assert something else**: the gas numbers
-themselves, the rule outcome, with no chain id and no schedule. That shape does not exist in this
-corpus yet, which is why `proposals/` currently holds no fixtures. **That is the test above being
-honest, not a gap somebody forgot to fill.**
+**A component-level test of the same proposal asserts something else**: the gas numbers themselves,
+the rule outcome, with no chain id and no schedule. That shape is
+`FIXTURE-FORMAT.md`'s **gas-and-outcome vectors**, and it exists because a root cannot publish a
+number — a state fixture measuring gas stores the measurement and hashes it, so a consumer that
+disagrees learns only that some root moved.
+
+**It did not exist while `proposals/` stood empty, and that emptiness was the test above being
+honest rather than a gap somebody forgot to fill.** The order matters and is worth keeping: the
+shape was designed once, against how upstream had solved it, before any suite was authored in it —
+authoring first would have made the second suite a rewrite of the first.
 
 ## Each component suite is self-contained
 

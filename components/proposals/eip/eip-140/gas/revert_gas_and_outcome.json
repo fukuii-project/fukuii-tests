@@ -1,0 +1,272 @@
+{
+  "eip140RevertGasAndOutcome": {
+    "_info": {
+      "comment": "EIP-140's REVERT as a pure function of its inputs: a body of bytecode, a gas budget and a stated rule set go in; the gas the invocation consumed, how it ended and what it handed back come out. No chain id, no height, no upgrade label, no state root.",
+      "whyThisIsAComponentAndNotANetworkFixture": "The rule set is a per-vector INPUT rather than a schedule position. `networks/ethereumclassic/mainnet/state/gas/` asks WHERE IN THIS CHAIN'S SCHEDULE a number changes; this file asks WHAT THE NUMBER IS and WHICH PROPOSAL CHANGES IT. Neither answers the other's question.",
+      "whatThisShapeAssertsThatAStateFixtureCANNOT": "The number itself. A state fixture measuring gas has to store the measurement and assert a state ROOT over it -- `sload_cost.json` runs `GAS SLOAD POP GAS SWAP1 SUB SSTORE` and hashes the result -- so the gas figure is inside a hash and a failing consumer learns only that some root moved. Here the figure is published, and so is the outcome that a root cannot express at all.",
+      "theUNITisASHORTBODYandNOTONEOPCODE": "An opcode cannot be executed without operands and the operands cost gas, so the measurable thing is always a body. That is also upstream's answer: `ethereum/execution-specs`' CodeGasMeasure wraps a fragment in `GAS ... GAS SWAP1 SUB` and subtracts a stated overhead. This file does not subtract anything -- it publishes the whole body's cost and pairs vectors that differ in one place, so the overhead cancels in the READER's subtraction rather than in the generator's.",
+      "oracle": "ethereum/go-ethereum's `evm run`, EXECUTED, one invocation per vector, configured by a genesis chain-config fragment.",
+      "oracle-version": "reference-material/ethereum/go-ethereum at e9e35a42f (branch master), reporting version 1.17.6-unstable-e9e35a42-20260826. Third-party upstream work -- never fukuii, which these fixtures exist to certify, and never a repo under work/repos/, which on this machine is the maintainer's own.",
+      "crossImplementation": "besu-eth/besu's evmtool, EXECUTED, at fdf1247c6d (branch main), version 26.8-develop. A Java implementation sharing no code with go-ethereum, and configured by a FORK NAME rather than by a config fragment -- the same rule set under two representations, which this suite already records as stronger evidence than two clients sharing a shape. 12 of 12 gas figures and 12 of 12 return payloads agree.",
+      "besuReportsNoOutcomeVOCABULARY": "evmtool emits `pass`, which is TRUE for a revert -- it means the run completed, not that it succeeded. So besu corroborates `gasUsed` and `returnData` and says nothing about the `outcome` field; that half rests on go-ethereum and on the transcription below.",
+      "independentTranscription": "Every figure was computed a third time in Python from the rule as the specification states it -- VERY_LOW 3, the memory-expansion function `3*words + words**2//512`, and REVERT charging memory alone -- with arbitrary-precision integers. 12 of 12 agree. This is a transcription of a formula and NOT a third execution: it catches an implementation drifting from the document and cannot catch the document being wrong.",
+      "theRULESETNAMESareLOCALandTHATISTHEPOINT": "`withEip140` and `withoutEip140` are defined by the journals under `ruleSets`, inside this file. They borrow no network's upgrade label, which is what would have made this a network fixture wearing a component's directory. A harness resolves a vector by looking the name up here, never in a schedule.",
+      "theJOURNALisORDEREDandISNOTASET": "`proposals` is the list of proposals ADOPTED, in order, following the client's own model -- a proposal can be adopted, withdrawn and re-adopted on a live chain, so membership is not a question this list answers. Nothing in this file needs that distinction today; it is stated so a later suite does not quietly turn the field into a set.",
+      "neitherOracleCanActivateOneProposalAlone": "This is the real limit on the minimal pair and it is stated rather than smoothed over. go-ethereum's chain config has no per-proposal switch inside Byzantium and besu's evmtool takes a fork name, so the smallest step either can make is the whole upgrade -- nine proposals, not one. The attribution to EIP-140 rests on TWO things instead: the control pair `return_is_unchanged_by_the_proposal_when_present`/`_when_absent`, which is identical across the same step and so shows the step alone changes nothing; and the bodies containing none of the other EVM-visible members of that upgrade. Verified by walking the bytecode with PUSH data skipped: no 0x3d or 0x3e (EIP-211) and no 0xfa (EIP-214) in any body, with the walk calibrated against a probe that does carry a matching opcode. EIP-100, EIP-649 and EIP-658 are outside the machine entirely, and EIP-196, EIP-197 and EIP-198 are precompiles no body calls.",
+      "aSINGLEPROPOSALPAIRisREACHABLEandTHISSUITEDIDNOTREACHFORIT": "Recorded so the limit above is not read as permanent. The Parity-lineage chainspec carries PER-PROPOSAL activation keys, and `eip140Transition` is load-bearing in two implementations held here: openethereum/openethereum sets `schedule.have_revert = block_number >= self.eip140_transition` and gates the opcode on it, and NethermindEth/nethermind sets `releaseSpec.IsEip140Enabled` from the same key. So a rule set differing from its neighbour by EXACTLY EIP-140 is constructible, and this suite does not use one -- it uses two oracles that cannot express it, and carries the control-plus-bytecode-walk attribution instead. A later suite whose subject shares an upgrade with a proposal its bodies COULD reach should use that lineage rather than inherit this weaker form.",
+      "chainIdIsNOTAnInputAndTHATWASMEASURED": "The whole set was regenerated at chain id 61 and every result is identical. So is a run at timestamp 1,700,000,000, and one with the coinbase and difficulty changed. Calibrated in the other direction: removing byzantiumBlock from both rule sets DIFFERS on exactly the four REVERT vectors, so a run of IDENTICALs is a measurement rather than a broken comparison.",
+      "heightCOULDNOTBEMEASUREDandTHATISTHESEAMSLIMIT": "`evm run` panics on a genesis carrying `number > 0` (`can't commit genesis block with number > 0`, core/genesis.go), so height cannot be varied through it. The claim is carried structurally instead: this file has no height field for a vector to key on, and no body contains BLOCKHASH, NUMBER, TIMESTAMP, DIFFICULTY, GASLIMIT, CHAINID or any state-reading opcode -- the same calibrated walk cited above.",
+      "aHALTEDVECTORSgasUsedRESTATESTHEBUDGET": "An exceptional halt consumes everything, so on those five vectors `gasUsed` EQUALS `gasBudget` by definition and asserts nothing on its own. What those vectors assert is the `outcome` and the `halt`. Two of them exist purely to make that visible: `revert_undefined_consumes_the_whole_budget` runs the same body at five times the budget and the figure follows it, while `revert_gas_does_not_depend_on_the_budget` does the same to a revert and the figure does not move.",
+      "callValueISAREALINPUTandTHERESTARENOT": "Measured: changing the caller, the receiver or the calldata leaves every result identical, and a non-zero call value does NOT -- go-ethereum answers `insufficient balance for transfer` at gas 0, because no account here is funded. Every vector therefore states `callValue` explicitly at zero rather than leaving it to a default.",
+      "twoINSTRUMENTTRAPSFOUNDWHILEGENERATING": "Both return a confident wrong answer rather than an error. (1) besu's evmtool SILENTLY falls back to its newest fork when it does not recognise a `--fork` name: `--fork=SpuriousDragon` in four spellings ran BPO5, exactly as a deliberately invented name did, and the first pass read as besu disagreeing with go-ethereum about pre-adoption REVERT. The generator now reads back the `fork` field evmtool echoes and refuses a run whose echo does not match. (2) go-ethereum's `--gas` flag is INERT whenever `--prestate` carries a non-zero `gasLimit`, which the genesis then supplies instead; the budget in this file is set through the genesis for that reason.",
+      "generated": "2026-08-28",
+      "wrongBuildMethod": "Five defects were introduced into go-ethereum one at a time, each confirmed to change the source and compile, with the unmodified build as a control. The reference clone was NEVER mutated: every defect is a `go build -overlay` replacement of one file, so a clean clone is a property of the method rather than of a restore step somebody could skip. `git status --porcelain` in the clone returned zero lines afterwards. A patch whose anchor text is not found raises rather than building an unchanged binary, because a build that silently applied nothing would score 12/12 and read exactly like a coverage gap.",
+      "wrongBuildScores": {
+        "control": "Unmodified go-ethereum at e9e35a42f: 12/12 pass.",
+        "revert_consumes_all_gas_like_a_halt": "8/12 -- fails every REVERT vector and no other. Routing ErrExecutionReverted through the halt exit instead of the revert exit; the failure this proposal exists to distinguish from an exceptional one.",
+        "revert_is_available_before_it_was_adopted": "10/12 -- fails exactly the two `withoutEip140` REVERT vectors. THIS IS THE SCORE THAT MAKES THE RULE-SET FIELD LOAD-BEARING: registering the operation in the Homestead instruction set changes nothing a single-rule-set fixture could see, and this file catches it because the same body is asserted under two stated journals.",
+        "revert_does_not_pay_for_the_memory_it_names": "1 of 12 -- and the narrowness is the point rather than a weakness. Only `revert_pays_for_the_memory_it_names` names a range wider than the memory already in use; in every other REVERT vector the memory was expanded by an earlier MSTORE or not at all, so REVERT's own expansion charge is genuinely zero there and a build that skips it is not wrong at those vectors. One vector exists for exactly this defect.",
+        "revert_hands_back_no_payload": "9/12 -- fails the three vectors whose revert payload is non-empty, and correctly passes `revert_with_an_empty_payload_is_still_a_revert`, whose payload is empty in a correct build too.",
+        "an_exceptional_halt_keeps_its_remaining_gas": "7/12 -- fails all five halted vectors. The mirror of the first defect, and the reason the `invalid_opcode_halts_*` and `out_of_gas_*` vectors are here: without them a build could return gas from every failure and still pass everything this file asserts about REVERT."
+      }
+    },
+    "invocationContext": {
+      "comment": "The frame every vector runs in. Stated because it is not derivable from the vectors and a reader guessing differently gets different gas.",
+      "depth": "0",
+      "static": false,
+      "codeIsDeployedAtTheCalleeNotExecutedAsInitcode": "Each `code` is the callee's deployed code and the invocation is a CALL, never a CREATE. Running it as initcode charges a deposit per byte and asserts something else entirely.",
+      "callerAndCalleeAreNOTInputs": "MEASURED: the two oracles used different defaults for both and agree on all twelve vectors, and setting them explicitly in go-ethereum changes nothing.",
+      "noAccountIsFunded": "Which is why every `callValue` is zero -- see `_info.callValueISAREALINPUTandTHERESTARENOT`."
+    },
+    "ruleSets": {
+      "withoutEip140": {
+        "comment": "A rule set that has not adopted the proposal. The name is LOCAL to this file and is defined by the journal below, not by any network's word for an upgrade.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7"
+        ],
+        "generatedWith": {
+          "go-ethereum": "a genesis chain config carrying homesteadBlock 0 and nothing later",
+          "besu": "evmtool --fork=Homestead"
+        },
+        "widerSetsWereMEASUREDToGiveTheSameAnswer": "Widening this to Spurious Dragon in go-ethereum (adding eip150Block, eip155Block and eip158Block at 0) leaves all twelve results byte-identical, so nothing here turns on stopping at Homestead. Homestead is stated because it is the one pre-adoption set BOTH oracles can address: besu's evmtool has no name for Spurious Dragon."
+      },
+      "withEip140": {
+        "comment": "The same journal with the proposal adopted, plus the rest of the upgrade that carried it. The extra members are listed because they were genuinely in force during generation -- see `_info.neitherOracleCanActivateOneProposalAlone`.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658"
+        ],
+        "generatedWith": {
+          "go-ethereum": "a genesis chain config carrying homesteadBlock, eip150Block, eip155Block, eip158Block and byzantiumBlock, all at 0",
+          "besu": "evmtool --fork=Byzantium"
+        }
+      }
+    },
+    "vectors": [
+      {
+        "name": "revert_returns_its_payload_and_keeps_the_unspent_gas",
+        "comment": "THE SUBJECT. The invocation fails, the caller gets the bytes it named, and all but 18 gas comes back.",
+        "ruleSet": "withEip140",
+        "code": "0x7f00000000000000000000000000000000000000000000000000000000deadbeef60005260206000fd",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "18",
+        "outcome": "reverted",
+        "returnData": "0x00000000000000000000000000000000000000000000000000000000deadbeef",
+        "tags": [
+          "subject"
+        ]
+      },
+      {
+        "name": "revert_gas_does_not_depend_on_the_budget",
+        "comment": "DISCRIMINATOR against a build that treats REVERT as consuming everything: five times the budget, the same 18 gas.",
+        "ruleSet": "withEip140",
+        "code": "0x7f00000000000000000000000000000000000000000000000000000000deadbeef60005260206000fd",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "500000",
+        "gasUsed": "18",
+        "outcome": "reverted",
+        "returnData": "0x00000000000000000000000000000000000000000000000000000000deadbeef",
+        "tags": [
+          "discriminator"
+        ]
+      },
+      {
+        "name": "revert_with_an_empty_payload_is_still_a_revert",
+        "comment": "No memory is touched, so only the two pushes are paid for. Separates 'reverted with no data' from 'halted'.",
+        "ruleSet": "withEip140",
+        "code": "0x60006000fd",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "6",
+        "outcome": "reverted",
+        "returnData": "0x",
+        "tags": [
+          "discriminator"
+        ]
+      },
+      {
+        "name": "revert_pays_for_the_memory_it_names",
+        "comment": "The proposal's own words: the contract 'only has to pay for memory'. Naming 64 bytes never written costs 6 more than naming none.",
+        "ruleSet": "withEip140",
+        "code": "0x60406000fd",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "12",
+        "outcome": "reverted",
+        "returnData": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "discriminator",
+          "memory"
+        ]
+      },
+      {
+        "name": "revert_opcode_is_undefined_without_the_proposal",
+        "comment": "MINIMAL PAIR with the first vector: the same body, one proposal absent. 0xfd is not an operation, so the frame halts and keeps nothing.",
+        "ruleSet": "withoutEip140",
+        "code": "0x7f00000000000000000000000000000000000000000000000000000000deadbeef60005260206000fd",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "100000",
+        "outcome": "halted",
+        "returnData": "0x",
+        "halt": "InvalidOpcode",
+        "tags": [
+          "minimal-pair",
+          "discriminator"
+        ]
+      },
+      {
+        "name": "revert_undefined_consumes_the_whole_budget",
+        "comment": "PAIRS WITH revert_gas_does_not_depend_on_the_budget. Here gasUsed DOES track the budget, which is what an exceptional halt means.",
+        "ruleSet": "withoutEip140",
+        "code": "0x7f00000000000000000000000000000000000000000000000000000000deadbeef60005260206000fd",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "500000",
+        "gasUsed": "500000",
+        "outcome": "halted",
+        "returnData": "0x",
+        "halt": "InvalidOpcode",
+        "tags": [
+          "minimal-pair"
+        ]
+      },
+      {
+        "name": "return_is_unchanged_by_the_proposal_when_present",
+        "comment": "CONTROL. Same body shape, RETURN instead of REVERT.",
+        "ruleSet": "withEip140",
+        "code": "0x7f00000000000000000000000000000000000000000000000000000000deadbeef60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "18",
+        "outcome": "stopped",
+        "returnData": "0x00000000000000000000000000000000000000000000000000000000deadbeef",
+        "tags": [
+          "control"
+        ]
+      },
+      {
+        "name": "return_is_unchanged_by_the_proposal_when_absent",
+        "comment": "CONTROL, and the one that carries the attribution: identical to the vector above at both rule sets, so the difference the pair above measures is EIP-140 and not another member of the same upgrade.",
+        "ruleSet": "withoutEip140",
+        "code": "0x7f00000000000000000000000000000000000000000000000000000000deadbeef60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "18",
+        "outcome": "stopped",
+        "returnData": "0x00000000000000000000000000000000000000000000000000000000deadbeef",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "invalid_opcode_halts_when_the_proposal_is_present",
+        "comment": "0xfe halts at both rule sets. Adopting EIP-140 does not soften an exceptional halt.",
+        "ruleSet": "withEip140",
+        "code": "0xfe",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "100000",
+        "outcome": "halted",
+        "returnData": "0x",
+        "halt": "InvalidOpcode",
+        "tags": [
+          "control"
+        ]
+      },
+      {
+        "name": "invalid_opcode_halts_when_the_proposal_is_absent",
+        "comment": "The answer revert_opcode_is_undefined_without_the_proposal gives, reached by an opcode that is undefined at EVERY rule set -- so that vector is not a special case.",
+        "ruleSet": "withoutEip140",
+        "code": "0xfe",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "100000",
+        "outcome": "halted",
+        "returnData": "0x",
+        "halt": "InvalidOpcode",
+        "tags": [
+          "control"
+        ]
+      },
+      {
+        "name": "stop_costs_nothing_at_either_rule_set",
+        "comment": "CALIBRATION. The gas field can report zero, so a zero elsewhere is a measurement rather than an unrun probe.",
+        "ruleSet": "withEip140",
+        "code": "0x00",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "0",
+        "outcome": "stopped",
+        "returnData": "0x",
+        "tags": [
+          "calibration"
+        ]
+      },
+      {
+        "name": "out_of_gas_is_a_halt_and_not_a_revert",
+        "comment": "DISCRIMINATOR on the halt reason: the same body that reverts at 100000 cannot afford its own PUSH32 at 10. Both are failures; only one keeps gas.",
+        "ruleSet": "withEip140",
+        "code": "0x7f00000000000000000000000000000000000000000000000000000000deadbeef60005260206000fd",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "10",
+        "gasUsed": "10",
+        "outcome": "halted",
+        "returnData": "0x",
+        "halt": "OutOfGasError",
+        "tags": [
+          "discriminator",
+          "halt-reason"
+        ]
+      }
+    ]
+  }
+}
