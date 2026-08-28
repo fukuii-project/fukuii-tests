@@ -1,0 +1,151 @@
+{
+  "ecip1010DifficultyBombPause": {
+    "_info": {
+      "comment": "ECIP-1010's pause of the difficulty bomb, as a pure function. The bomb's reference point freezes at the pause block, and once the window closes the whole window length is subtracted -- so the bomb RESUMES where it stopped rather than catching up.",
+      "whyThisIsAComponentAndNotANetworkFixture": "`pauseBlock` and `continueBlock` are per-vector INPUTS. Ethereum Classic's own window (3,000,000 to 5,000,000) appears as one anchor among synthetic ones, and the network-scoped difficulty fixtures keep the schedule-bound half.",
+      "andTHATMATTERSMORETHANUSUALHERE": "The network-scoped fixture for this rule records its oracle as THREE INDEPENDENT IMPLEMENTATIONS READ LINE BY LINE RATHER THAN RUN, because the generator producing its other values could not be configured for those heights. Making the window an input removes that obstacle: every value in this file was EXECUTED. The component form did not merely reorganise the coverage, it upgraded the oracle from a reading to a run.",
+      "theRESUMEISCONTINUOUS": "At the last block of the window the reference is the pause block, and at the continue block it is blockNumber minus the window length -- the SAME value. one_before_continue_still_frozen and at_continue_block_window_subtracted are that pair, and they are what separates a correct resume from a client that lets the bomb catch up.",
+      "whatISASSERTEDandWhatIsDERIVED": "`explosionReference` is core-geth's own output, produced by its ecip1010Explosion under the call-site gate from consensus.go. `periodCount` and `bombTerm` are DERIVED by the generator from the published formula 2**((reference // 100000) - 2), and cross-checked against a separate transcription in the independent implementation. They are published so a failing consumer can see which step went wrong; they are two agreeing transcriptions of a formula rather than a third execution of it, and should be read that way.",
+      "theBOMBGUARDISSTRICT": "bombTerm is zero unless periodCount is greater than one -- not greater than or equal. bomb_term_zero_below_the_guard sits at periodCount 1 with a term of zero, and bomb_term_first_nonzero at periodCount 2 with a term of one. Its window is set far away so the pause is inactive and the vector isolates the guard.",
+      "oracle": "core-geth's own consensus/ethash/consensus_classic.go ecip1010Explosion, EXECUTED not read, driven through a CoreGethChainConfig carrying each vector's window. The call-site gate from consensus.go is replicated, because a fixture asserting the function in isolation would describe something no client experiences.",
+      "oracle-version": "reference-material/ethereumclassic/core-geth at 4185df450 (branch master) -- the production client. Never fukuii, which these fixtures exist to certify, and never a repo under work/repos/, which on this machine is the maintainer's own work.",
+      "aREPRESENTATIONALDIFFERENCEWASEXERCISEDNOTAVOIDED": "core-geth stores the window as (pauseBlock, LENGTH) and derives the continue block as their sum; this file states (pauseBlock, continueBlock) and the generator converts. That is the same rule under two representations, which FIXTURE-FORMAT.md notes is stronger evidence than two implementations sharing a shape.",
+      "crossImplementation": "Every value was computed a second time in Python from the rule as stated in ECIP-1010, with arbitrary-precision integers rather than big.Int. 12 of 12 agree.",
+      "generated": "2026-08-27",
+      "wrongBuildMethod": "Defects were introduced into core-geth's ecip1010Explosion one at a time, each confirmed to change the source and compile, with the unmodified build as a control. The clone was restored and verified clean after every cycle.",
+      "wrongBuildScores": {
+        "control": "Unmodified core-geth: 12/12 pass.",
+        "freeze_at_continue_instead_of_pause": "8/12 -- fails every vector inside a window, and no other.",
+        "window_never_subtracted_so_the_bomb_catches_up": "8/12 -- fails every vector past a window.",
+        "window_length_off_by_one": "8/12 -- fails the same four post-window vectors, one block out.",
+        "aFOURTHMUTATIONWASINERTANDTHATISAFINDING": "Changing the window test from `next < continue` to `next <= continue` scored 12/12, and the honest reading is NOT that this file misses it. The two branches COINCIDE at the continue block: freezing at the pause block and subtracting the window length both yield the pause block, which is the continuity property this rule is built on. Scanning every block around the boundary finds no height at which the two spellings differ, so the mutation cannot produce a wrong answer anywhere and is not a defect. It was replaced with window_length_off_by_one, which does change behaviour. Recorded because a changed-and-compiling patch that scores zero looks exactly like a coverage gap, and here it was the patch that was empty."
+      }
+    },
+    "constants": {
+      "expDiffPeriod": "100000",
+      "bombTermIsZeroUnlessPeriodCountExceeds": "1"
+    },
+    "explosionReferenceVectors": [
+      {
+        "name": "before_pause_reference_is_the_block_itself",
+        "comment": "The rule is not yet active, so the reference is the block being computed and the bomb grows normally.",
+        "blockNumber": "2999999",
+        "pauseBlock": "3000000",
+        "continueBlock": "5000000",
+        "explosionReference": "2999999",
+        "periodCount": "29",
+        "bombTerm": "134217728"
+      },
+      {
+        "name": "at_pause_block_reference_freezes",
+        "comment": "DISCRIMINATOR. The pause is INCLUSIVE: at the pause block itself the reference is already frozen.",
+        "blockNumber": "3000000",
+        "pauseBlock": "3000000",
+        "continueBlock": "5000000",
+        "explosionReference": "3000000",
+        "periodCount": "30",
+        "bombTerm": "268435456"
+      },
+      {
+        "name": "mid_window_reference_still_frozen",
+        "comment": "A million blocks later the reference has not moved. This is the whole point of the proposal -- the bomb stops growing.",
+        "blockNumber": "4000000",
+        "pauseBlock": "3000000",
+        "continueBlock": "5000000",
+        "explosionReference": "3000000",
+        "periodCount": "30",
+        "bombTerm": "268435456"
+      },
+      {
+        "name": "one_before_continue_still_frozen",
+        "comment": "The last block of the pause window.",
+        "blockNumber": "4999999",
+        "pauseBlock": "3000000",
+        "continueBlock": "5000000",
+        "explosionReference": "3000000",
+        "periodCount": "30",
+        "bombTerm": "268435456"
+      },
+      {
+        "name": "at_continue_block_window_subtracted",
+        "comment": "DISCRIMINATOR. At the continue block the reference jumps from the frozen value to blockNumber minus the window length -- which is the same value, so the bomb RESUMES rather than catching up.",
+        "blockNumber": "5000000",
+        "pauseBlock": "3000000",
+        "continueBlock": "5000000",
+        "explosionReference": "3000000",
+        "periodCount": "30",
+        "bombTerm": "268435456"
+      },
+      {
+        "name": "after_continue_grows_again",
+        "comment": "Past the window the reference tracks the block again, permanently offset by the window length.",
+        "blockNumber": "5500000",
+        "pauseBlock": "3000000",
+        "continueBlock": "5000000",
+        "explosionReference": "3500000",
+        "periodCount": "35",
+        "bombTerm": "8589934592"
+      },
+      {
+        "name": "far_after_continue",
+        "comment": "Far past it, to show the offset is permanent rather than decaying.",
+        "blockNumber": "12000000",
+        "pauseBlock": "3000000",
+        "continueBlock": "5000000",
+        "explosionReference": "10000000",
+        "periodCount": "100",
+        "bombTerm": "316912650057057350374175801344"
+      },
+      {
+        "name": "synthetic_window_before_pause",
+        "comment": "The same rule with a different window: inputs, not constants.",
+        "blockNumber": "99999",
+        "pauseBlock": "100000",
+        "continueBlock": "400000",
+        "explosionReference": "99999",
+        "periodCount": "0",
+        "bombTerm": "0"
+      },
+      {
+        "name": "synthetic_window_frozen",
+        "comment": "Frozen inside the synthetic window.",
+        "blockNumber": "250000",
+        "pauseBlock": "100000",
+        "continueBlock": "400000",
+        "explosionReference": "100000",
+        "periodCount": "1",
+        "bombTerm": "0"
+      },
+      {
+        "name": "synthetic_window_after_continue",
+        "comment": "And resumed after it.",
+        "blockNumber": "600000",
+        "pauseBlock": "100000",
+        "continueBlock": "400000",
+        "explosionReference": "300000",
+        "periodCount": "3",
+        "bombTerm": "2"
+      },
+      {
+        "name": "bomb_term_zero_below_the_guard",
+        "comment": "DISCRIMINATOR. periodCount is 1 here, and the bomb term is ZERO rather than 2**-1: the guard is `> 1`, not `>= 1`. The pause is inactive at this height, so this vector isolates the guard.",
+        "blockNumber": "150000",
+        "pauseBlock": "10000000",
+        "continueBlock": "20000000",
+        "explosionReference": "150000",
+        "periodCount": "1",
+        "bombTerm": "0"
+      },
+      {
+        "name": "bomb_term_first_nonzero",
+        "comment": "periodCount 2, the first height where the bomb term is non-zero at all.",
+        "blockNumber": "200000",
+        "pauseBlock": "10000000",
+        "continueBlock": "20000000",
+        "explosionReference": "200000",
+        "periodCount": "2",
+        "bombTerm": "1"
+      }
+    ]
+  }
+}

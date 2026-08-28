@@ -1330,6 +1330,48 @@ including a refusal for a rule the vector is not about.
 `expectedSigners` and carries no information a reader needs; it is there so a human reading a
 divergence sees `B` rather than a second 20-byte address.
 
+### `ecip1010DifficultyBombPause` — the bomb's reference point, frozen then resumed
+
+One vector list. `pauseBlock` and `continueBlock` are per-vector **inputs**, so the same file
+certifies any chain adopting the rule.
+
+```jsonc
+{
+  "ecip1010DifficultyBombPause": {
+    "_info": { }, "constants": { "expDiffPeriod": "100000",
+                                 "bombTermIsZeroUnlessPeriodCountExceeds": "1" },
+    "explosionReferenceVectors": [
+      { "name": "…", "blockNumber": "4000000",
+        "pauseBlock": "3000000", "continueBlock": "5000000",
+        "explosionReference": "3000000",     // ASSERTED -- the client's own output
+        "periodCount": "30", "bombTerm": "268435456" }   // DERIVED, see below
+    ]
+  }
+}
+```
+
+The rule: below the pause the reference is the block itself; from the pause until the continue
+block it is frozen at the pause block; from the continue block on it is `blockNumber - (continue -
+pause)`.
+
+**The resume is continuous, and that is the assertion.** At the last block of the window the
+reference is the pause block; at the continue block it is the same value again. The bomb picks up
+where it stopped rather than catching up, and the two vectors either side of that boundary are what
+separate a correct resume from a client that lets it jump.
+
+**`explosionReference` is asserted; `periodCount` and `bombTerm` are derived.** The reference is the
+client's own output. The other two are computed from the published `2**((reference // 100000) - 2)`
+by the generator and cross-checked against a separate transcription, so they are two agreeing
+readings of a formula rather than a third execution of it. Publish-and-derive, exactly as
+`derivedIntermediates` elsewhere: a harness that reads them instead of computing them asserts
+nothing.
+
+> **A boundary mutation here is inert, and it is worth knowing why before reporting it as a gap.**
+> Changing the window test from `<` to `<=` produces no wrong answer at any height, because the two
+> branches coincide at the continue block by exactly the continuity property above. A
+> changed-and-compiling patch that catches nothing usually means a coverage gap; here it meant an
+> empty patch.
+
 ### `ecip1017EmissionSchedule` — Ethereum Classic's monetary policy as pure functions
 
 **Four vector lists, four separate claims**, with `eraLength` and `baseReward` as per-vector
