@@ -534,6 +534,38 @@ runner does not know is visible as a case** — counted and reported — rather 
 entry per label, with the reason. A reader skips it with the rest of `_info`; a human reads it to
 tell a gap from an omission.
 
+### A label selects a RULE SET, so bind a configuration PER LABEL
+
+**The label is not a lookup into one chain's schedule, and `currentBlockNumber` is a free
+parameter.** This is the published corpus's own convention — its `dfFrontier` and `dfByzantium`
+tiers both span heights 100,000 to 4,900,000, so Frontier is tested at 4,900,000 and Byzantium at
+100,000. A harness must therefore construct a configuration for each label rather than run every
+label against the network's real schedule.
+
+The binding has two halves and they are not symmetric:
+
+- **The label's adjustment rule is IN FORCE**, so its transition is `0`, not its mainnet height.
+  `ETC_Atlantis` means EIP-100's `sigma` at whatever height the case names.
+- **Rules the label carries keep their REAL parameters.** ECIP-1010's pause window and ECIP-1041's
+  removal height are parameters *of those rules*, not selectors of the label, so a case below
+  3,000,000 under `ETC_DieHard` carries the ordinary bomb rather than the paused one.
+
+**Measured, because the failure mode is quiet and convincing.** Run
+`networks/ethereumclassic/mainnet/difficulty/bomb_pause_and_removal.json` through core-geth's own
+`DifficultyTest.Run` against a single `params.ClassicChainConfig` and it scores **65 of 192**; bind
+per label and it scores **192 of 192**. The single-config reading does not fail randomly — every
+disagreement is exactly one adjustment step of `parentDifficulty/2048` in the same direction, which
+reads like a systematic defect in the file. It was reported as one on 2026-08-29. The tell that it
+is not: those disagreements land *entirely* on the labels carrying EIP-100 and on no other, because
+a nine-second interval is precisely where EIP-100's `sigma` is `1 - 9//9 = 0`, while EIP-2's is
+`1 - 9//10 = +1` and Frontier's `delta < 13` threshold also gives `+1`.
+
+**A client that binds a calculator per protocol spec rather than branching on height must gate on
+the heights its own schedule activates each calculator at** — otherwise the same label-versus-rule
+confusion appears in a second shape. That file's
+`_info.whatALabelMEANS_andWhereImplementationsDisagree` records what an ungated build of that shape
+scores and what gating recovers; read it there rather than from a figure copied to here.
+
 ---
 
 ## fork-identifier vectors (`forkid/`)
