@@ -1,0 +1,62 @@
+{
+  "messWindowMainnet": {
+    "_info": {
+      "comment": "Mainnet's ECBP-1100 window, and ONLY the window: the heights at which a client's BUNDLED CONFIGURATION enables the chain-selection defense. SPLIT OUT OF mess_artificial_finality.json on 2026-08-29 because that file mixed two different kinds of claim. Its curve, decision and subchain layers pin arithmetic that is consensus-relevant and identical for every client; this layer pins a CLIENT POLICY CHOICE, and a client shipping MESS on does not fork from one shipping it off. Running the arithmetic layers against a client tests conformance; running this one tests which client and version you have. Mordor's window has always been its own file -- ../../mordor/chainselection/mess_window.json -- so this makes mainnet match a shape the suite already had rather than inventing one. The vectors are unchanged and none was deleted: they remain the record of what the rule was.",
+      "whatAHarnessShouldAssert": "That the named client's bundled default has MESS enabled at these heights and not at the others. Do NOT read `active` as 'a conformant node refuses reorgs here' -- that fails a node which is merely configured differently. A harness certifying CONFORMANCE should not consume this file at all; it should consume mess_artificial_finality.json, which after the split carries only claims every client must satisfy.",
+      "MESSIsOPTIONALAndTheseBlocksAreADEFAULTNotAnActivation": "READ THIS BEFORE TREATING ANY VECTOR HERE AS MANDATORY. ECBP-1100 is a local chain-selection POLICY, not a consensus rule. A node running with it switched off is not thereby producing an invalid chain and is not non-conformant -- it is accepting reorganizations that a defended node would refuse. Nothing in a block header records whether the producer had MESS on. The two block numbers in this file are the window in which the client's BUNDLED configuration turns it on. They are not an activation in the sense every other height in this suite is.",
+      "theGateHasTWOLayersAndBothMustHold": "MESS fires only when the chain configuration's window is open AND the runtime toggle is on. The client's own comment on EnableArtificialFinality is explicit that the runtime layer sits BELOW the configuration: if the config has not activated ECBP-1100 at the current height, enabling it at runtime is a no-op. Conversely IsArtificialFinalityEnabled is documented as 'agnostic of feature activation by chain configuration', so the two states are tracked separately and a harness that models only one of them will mispredict.",
+      "everyPartOfTheWindowIsOperatorOverridable": {
+        "--ecbp1100": "Uint64. 'Manually specify the ECBP-1100 (MESS) block activation number, overriding the bundled setting.'",
+        "--override.ecbp1100.deactivate": "Uint64. The same for the deactivation block.",
+        "--ecbp1100.nodisable": "Bool, and in the client's DEPRECATED flag category. 'Short-circuit ECBP-1100 (MESS) disable mechanisms; yields a permanent-once-activated state, deactivating auto-shutoff mechanisms.'",
+        "whatThatImplies": "The client has AUTO-SHUTOFF mechanisms of its own, so even a node on stock settings inside the window may have MESS off at a given moment. 'Inside the window' is therefore not a prediction about any particular node."
+      },
+      "theBlocksThemselvesAreCorrect": "Verified against the production client 2026-08-25: ECBP1100FBlock is 11,380,000 and ECBP1100DeactivateFBlock is 19,250,000, the latter coinciding with the Spiral hard fork. Only the FRAMING needed correcting -- this file previously described the window as the rule being 'active', which reads as consensus and is a stronger claim than the client makes.",
+      "aSECONDCLIENTNOWSHIPSADIFFERENTWINDOW": "OBSERVED 2026-08-29, and it CONFIRMS this file's framing rather than falsifying a vector. A client now ships ECBP-1100 with NO deactivation block at all, so windowVectors' active=false at 19,250,000 and beyond does not describe it. ATTRIBUTE IT PRECISELY, because the report that surfaced it did not: the client is white-b0x/core-geth at version 1.13.0, branch modernize/go-1.26 -- a FORK, and this project's own work. It is NOT upstream ethereumclassic/core-geth, which still carries ECBP1100DeactivateFBlock 19,250,000. Verified both ways on 2026-08-29: read from the pinned production clone at 4185df450, and against the upstream remote's own tag list, whose newest tag is v1.12.20 -- there is no upstream v1.13.0 for the claim to attach to. That distinction is the trap this repository already warns about for activation heights, arriving from the other direction: a fork read as the production client answers confidently and wrongly, and here it would have rewritten a correct vector. NOTHING HERE IS WRONG AND NO VECTOR CHANGED. A client shipping the defense on does not fork from one shipping it off -- no block's validity reads either value -- so both clients are conformant and the divergence is exactly the configuration-not-consensus property that MESSIsOPTIONALAndTheseBlocksAreADEFAULTNotAnActivation and whatAHarnessSHOULDAssertFromThisFile already state. WHAT CHANGES IS THE SCOPE OF THE WORD 'BUNDLED': active means the bundled default of ONE NAMED CLIENT AT A NAMED VERSION -- here the production client, core-geth v1.12.21-unstable at 4185df450 -- and no longer 'the' bundled default, which is now ambiguous because more than one answer is correct. A harness running windowVectors is testing which client and version it has, not whether that client conforms; run the curve, decision and subchain layers for conformance and expect this layer to diverge. Do NOT restate the fork's choice as the expectation here: the production client is this suite's oracle.",
+      "oracle": "The production client's ClassicChainConfig, read field by field: ECBP1100FBlock and ECBP1100DeactivateFBlock.",
+      "oracle-version": "core-geth production v1.12.21-unstable @ 4185df450",
+      "generated": "2026-08-24",
+      "split": "Separated from mess_artificial_finality.json on 2026-08-29. No vector value changed in either file."
+    },
+    "activationBlock": "11380000",
+    "deactivationBlock": "19250000",
+    "windowVectors": [
+      {
+        "block": "0",
+        "active": false
+      },
+      {
+        "block": "11379999",
+        "active": false
+      },
+      {
+        "block": "11380000",
+        "active": true
+      },
+      {
+        "block": "11380001",
+        "active": true
+      },
+      {
+        "block": "15000000",
+        "active": true
+      },
+      {
+        "block": "19249999",
+        "active": true
+      },
+      {
+        "block": "19250000",
+        "active": false
+      },
+      {
+        "block": "19250001",
+        "active": false
+      },
+      {
+        "block": "25000000",
+        "active": false
+      }
+    ]
+  }
+}

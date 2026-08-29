@@ -962,18 +962,23 @@ Several vector lists, and **each is a different claim** — a harness may implem
 independently and should report them separately. Read which exist off the file rather than off
 this sentence; the block below shows the ones it carried when this was written:
 
+**Two files per network, and the split is the contract.** Conformance and policy are different
+claims and no longer share a file: `mess_artificial_finality.json` carries the arithmetic every
+client must satisfy, and `mess_window.json` beside it carries the heights at which one named
+client's *bundled configuration* turns the defense on. **A harness certifying conformance consumes
+the first and not the second.** Split on 2026-08-29; Mordor's window had always been its own file,
+so this made mainnet match a shape the suite already had. Before the split a consumer had to know
+to skip the window layer — the production client vendored the whole file and skipped it in code.
+
 ```jsonc
+// mess_artificial_finality.json — CONFORMANCE. Every client must satisfy this.
 {
   "messArtificialFinality": {
     "_info": { … },
-    "activationBlock":   "11380000",
-    "deactivationBlock": "19250000",
     "curveDenominator":  "128",
     "curveXCap":         "25132",
     "curveAmplitude":    "15",
     "curveHeight":       "3840",
-
-    "windowVectors":   [ { "block": "11380000", "active": true } ],
 
     "curveVectors":    [ { "timeDeltaSeconds": "12566", "curveNumerator": "2048",
                            "requiredMultipleOfLocalTd": "16.000000" } ],
@@ -1004,11 +1009,22 @@ this sentence; the block below shows the ones it carried when this was written:
 }
 ```
 
-**`windowVectors`** — is the rule in force at this height? The window is **inclusive at the start
-and exclusive at the end**: the bundled default configuration enables it from `activationBlock` up
-to but *not including* `deactivationBlock`. Both edges are covered because either could be off by one
-without the other
-showing it.
+**`windowVectors`** — in `mess_window.json`, not in the conformance file. Is the rule in force at
+this height? The window is **inclusive at the start and exclusive at the end**: the bundled default
+configuration enables it from `activationBlock` up to but *not including* `deactivationBlock`. Both
+edges are covered because either could be off by one without the other showing it.
+
+```jsonc
+// mess_window.json — POLICY. One named client's bundled default, at a named version.
+{
+  "messWindowMainnet": {                  // "messWindowMordor" on Mordor
+    "_info": { … },
+    "activationBlock":   "11380000",
+    "deactivationBlock": "19250000",
+    "windowVectors":   [ { "block": "11380000", "active": true } ]
+  }
+}
+```
 
 **`curveVectors`** — the polynomial alone, with no header attached to its input:
 
@@ -1100,6 +1116,21 @@ reorganization.** The curve, the comparison and the subchain derivation are wron
 if they are wrong at all, and that is the useful thing to certify. `windowVectors`' `active` field
 means *the bundled default has it enabled at this height* — read as "a conformant node refuses
 reorgs here", it will fail a node that is merely configured differently.
+
+**`active` describes ONE NAMED CLIENT AT A NAMED VERSION, and more than one answer is now
+correct.** Observed 2026-08-29: a client ships ECBP-1100 with no deactivation block at all, so
+`active=false` past `deactivationBlock` does not describe it. Neither client is wrong — no block's
+validity reads either value, so a node with the defense on does not fork from one with it off. Read
+the fixture's `oracle-version` to learn whose default the vectors record, and **expect this file to
+diverge across clients while `mess_artificial_finality.json` does not.** A harness running
+`windowVectors` is establishing which client and version it has; a harness certifying conformance
+consumes the other file and never opens this one. That is what the split buys — the skip is
+structural now rather than a thing each consumer has to remember.
+
+**Do not "correct" `windowVectors` to whichever client is in front of you.** The divergence observed
+above came from a *fork*, and was first reported against the upstream client's name. Confirm which
+checkout produced a window before treating it as the schedule — a fork read as the production client
+answers confidently and wrongly.
 
 ## proof-of-work epoch vectors (`pow/`)
 
