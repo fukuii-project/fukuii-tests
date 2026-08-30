@@ -1,0 +1,648 @@
+{
+  "eip1052ExtCodeHashGasAndOutcome": {
+    "_info": {
+      "comment": "EIP-1052's EXTCODEHASH as a pure function of its inputs: a stated rule set, a stated pre-state, a body of bytecode and a gas budget go in; the gas the invocation consumed, how it ended and what it handed back come out. No chain id, no height, no upgrade label, no state root. THE SECOND SUITE IN THIS SHAPE, and the first whose answers come from ACCOUNT STATE -- the first suite's bodies deliberately read none, so the state-dependent half of the shape was unexercised until this file.",
+      "whyThisIsAComponentAndNotANetworkFixture": "The rule set is a per-vector INPUT rather than a schedule position, and so is the pre-state. Nothing here moves if the chain id or an activation height changes. `networks/.../state/` asks WHERE IN THIS CHAIN'S SCHEDULE a behavior changes; this file asks WHAT THE BEHAVIOR IS and WHICH PROPOSAL CHANGES IT.",
+      "theNewFieldIsPreAndItIsREQUIRED": "`pre` is the shape's provision for account state, added with this suite. It is REQUIRED on every vector and its account object is EXACTLY `state/`'s -- same field names, same hex spelling, `storage` optional -- because a second spelling for the same thing would be the defect. An EMPTY MAP IS AN ASSERTION, not an omission: `\"pre\": {}` says no account exists beyond the one the frame runs in, which is what nine vectors here need to say. That is why it is required rather than optional; under this file's own rule for a missing optional field, an absent `pre` would assert nothing and the absent-account vectors would be claiming nothing at all.",
+      "preDoesNotNameTheEXECUTINGAccount": "The address a runner deploys `code` at is a runner's own business and this shape states no such address, so no `pre` entry can name it and none does. MEASURED, and the answer was not the expected one: all three oracles happen to use the same address, the ASCII bytes of the word 'receiver'. The two vectors that read the executing account reach it through ADDRESS rather than through a literal, so they stay correct under a runner that chooses differently. Every stated address is also above 0x09, so none can collide with a precompile.",
+      "oracle": "core-geth (etclabscore lineage, upstream master), EXECUTED through `evm run`, one invocation per vector, configured ONE PROPOSAL AT A TIME. THIS KEY IS NOT THE WHOLE PROVENANCE -- see crossImplementation, secondOracleInTheSameLineage, independentTranscription and theSpecificationPublishesItsOwnValues, each of which records a different part of how these figures came to be trusted. Reading this key alone under-reports the file as single-source.",
+      "oracle-version": "reference-material/ethereumclassic/core-geth at 4185df450364973bbf99efa3923791f5ba40b351 (branch master), v1.12.21-unstable. Third-party upstream work -- never fukuii, which these fixtures exist to certify, and never a repo under work/repos/, which on this machine is the maintainer's own. Built with `go build -overlay`, which excises the three lines of internal/debug/flags.go that import github.com/fjl/memsize and otherwise fail to link under Go 1.26; the clone is not mutated.",
+      "aGenuineSingleProposalMinimalPairANDWhyThatIsNew": "`withoutEip1052` and `withEip1052` differ by EXACTLY ONE JSON KEY, `eip1052FBlock`. The attribution to EIP-1052 is therefore carried BY CONSTRUCTION and not by argument. The first suite in this shape could not do that -- go-ethereum has no per-proposal switch inside an upgrade and besu's evmtool takes a fork name, so its smallest step was a whole upgrade of nine proposals, and it owed the reader a control plus a walk of its bytecode instead. Both are still here (`extcodesize_of_the_same_account_when_the_proposal_is_absent` and `..._present`), because a construction and a control are different evidence and the pair is cheap.",
+      "whichOraclesCanAddressWhichRuleSet": "core-geth addressed all 24 vectors. go-ethereum and besu could address 11 -- every vector under `withoutEip1052` and `withEip1052InConstantinople` -- and agreed on all 11. NEITHER CAN ADDRESS `withEip1052` AT ALL, which is the whole reason that rule set needed a third oracle. This is stated per rule set in `ruleSets[].generatedWith`, where an oracle that cannot reach a rule set is absent rather than silently implied.",
+      "theThirdRuleSetExistsSoAnIndependentImplementationCanCorroborate": "`withEip1052InConstantinople` is the same subject reached by the upgrade that carried the proposal, and it exists because the ONLY oracle able to express the minimal pair is in go-ethereum's own lineage. Every distinct account shape this file states -- with code, absent, empty, codeless-with-balance, codeless-with-nonce -- and every mechanism -- the high-bit mask, an account created during the invocation, the executing account itself -- appears once under the minimal pair and once here, so each is asserted under a rule set an implementation sharing no code with the geth lineage can run. The gas and the payload are identical across each pair, which is also the evidence that the other members of that upgrade do not touch this rule.",
+      "theExecutableSingleProposalORACLEisNOTIndependentANDThatIsMeasured": "core-geth, multi-geth and go-ethereum share a root commit, so core-geth corroborates NOTHING about a value that go-ethereum also produces -- it supplies ATTRIBUTION, which is a different thing, and besu supplies the independence. The per-proposal activation key is not unique to that lineage: `eip1052Transition` is present in openethereum/openethereum, openethereum/parity-ethereum and NethermindEth/nethermind (23, 22 and 42 files; a control key matching nothing returned 0 in each, so the instrument discriminates). NONE OF THOSE THREE IS EXECUTABLE AT THIS SHAPE'S SEAM ON THIS MACHINE, and that is a measurement rather than a claim about the world: the two Parity-lineage clients are Rust and `cargo` resolves to nothing here, and Nethermind is .NET with `dotnet` present but ships exactly one EVM command, `tools/Evm` with a single `t8n` subcommand -- a TRANSACTION-level seam, which is the seam this shape explicitly is not. DO NOT READ THAT AS ONE TOOLCHAIN INSTALL AWAY. openethereum/parity-ethereum is frozen with no recorded toolchain and is assessed here as not building even with Rust present; openethereum/openethereum has not been assessed at all. The nearest route to an INDEPENDENT single-proposal pair is Nethermind at a transaction-level seam -- which is the seam the transaction-level shape needs anyway, and not this one.",
+      "crossImplementation": "besu-eth/besu's evmtool, EXECUTED, at fdf1247c6d (branch main), version 26.8-develop. A Java implementation sharing no code with the geth lineage, configured by a FORK NAME rather than by a config fragment or a per-proposal key -- so this file's values are reached through THREE different representations of a rule set. 11 of 11 gas figures and 11 of 11 payloads agree. besu emits `pass`, which reports that the run completed and is not an outcome vocabulary, so besu corroborates `gasUsed` and `returnData` and says nothing about `outcome`.",
+      "secondOracleInTheSameLineage": "ethereum/go-ethereum's `evm run`, EXECUTED, at e9e35a42f (branch master), reporting 1.17.6-unstable-e9e35a42-20260826, configured by a genesis chain-config fragment. 11 of 11 agree with core-geth on gas, outcome, halt and payload. Same lineage as the oracle, so this is a check that the per-proposal configuration reproduces the fork-block one, not an independent opinion.",
+      "independentTranscription": "Every figure was computed a fourth time in Python from the rules as the specifications state them -- EIP-1052's 400 and its two published constants, EIP-161's three-part emptiness test, EIP-150's 700 for EXTCODESIZE, and the Yellow Paper's G_base 2, G_verylow 3, G_create 32000, G_codedeposit 200 per byte and memory cost 3*words + words**2//512 -- with arbitrary-precision integers. 24 of 24 agree. CALIBRATED IN BOTH DIRECTIONS: pricing EXTCODEHASH at 700 makes it disagree on 17 vectors, and dropping EIP-161's emptiness test makes it disagree on exactly the two empty-account vectors and nothing else. This is a transcription of a formula and NOT a fourth execution: it catches an implementation drifting from the document and cannot catch the document being wrong.",
+      "theSpecificationPublishesItsOwnValues": "EIP-1052 states the gas cost (400), writes out the empty-data hash in full (c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470), and carries ten numbered test cases of its own. Four of them are asserted here and tagged: case 1 (an account without code), case 2 (a non-existent account), case 4 (EXTCODEHASH of A + 2**160 equals EXTCODEHASH of A) and case 7 (an account created in the current transaction). Where a specification publishes a value, this suite anchors to it rather than to a client's agreement with itself.",
+      "theSpecificationsOwnCasesTHISFILEDOESNOTREACH": "Recorded so the four above are not read as all of them. Case 3, a precompile, is unreachable AND UNDEFINED: the EIP itself says the answer 'is either c5d246... or 0', so there is nothing to assert -- and measured here, a precompile that no `pre` entry names is simply an absent account and answers 0 at every rule set and in all three oracles, which would look like coverage and assert nothing about precompiles. Cases 5, 6 and 8 need SELFDESTRUCT or a reverted sub-frame, and case 10 needs the state-clearing rule to run, all of which are settled at the END of a transaction rather than inside a frame -- the same boundary that puts intrinsic gas and transaction-level refunds outside this shape. Case 9 needs an account to be touched into existence mid-frame. None is a defect in this file; each names a seam this shape does not have.",
+      "theEIP161DependencyWasMeasuredRatherThanAssumed": "EIP-1052's front matter declares `requires: 161` and its empty-account clause is defined by reference to EIP-161. So a reader is entitled to ask whether the two empty-account vectors are really asserting EIP-1052 or accidentally asserting EIP-161's activation. MEASURED: adding and removing `eip161FBlock` alongside `eip1052FBlock` leaves both answers unchanged in the oracle, which applies the emptiness test unconditionally. Every rule set in this file carries EIP-161 in its journal regardless, so the vectors state a world the specification defines rather than relying on that leniency.",
+      "theQuadraticMemoryTermIsINERTHere": "Every body touches exactly one word of memory, and one squared over 512 is zero, so the quadratic half of the memory-expansion formula contributes nothing anywhere in this file. Established by perturbation: deleting that term from the independent transcription changes not one of the 24 figures, while perturbing the EXTCODEHASH price changes 17. A recorded condition rather than a case -- a vector added at a memory size where the two formulas coincide would look like coverage and assert nothing.",
+      "twoInstrumentTrapsFoundWhileGenerating": "Both return a confident wrong answer rather than an error. (1) core-geth SNIFFS which chain-config type a genesis carries. A go-ethereum-SHAPED config that also carries `eip1052FBlock` is read as the go-ethereum type and EVERY per-proposal key is SILENTLY DROPPED -- measured, such a run reports `invalid opcode: EXTCODEHASH`, which is exactly what a rule set that never adopted the proposal reports. The generator therefore runs a canary that must fire in three directions before any vector is produced: the key must flip the opcode on, a misspelling of it must be silently ignored, and a go-ethereum-shaped config must silently drop it. Note the parser fails LOUDLY only when BOTH config types are negated at once, so the loud path is not the one to rely on. (2) besu's evmtool silently ignores a `--fork` name it does not recognise. THE DOCUMENTED FORM OF THIS TRAP IS NARROWER THAN THE TRAP: with a `--prestate` present it runs the fork THE PRESTATE IMPLIES rather than besu's newest -- measured 2026-08-30 against three different prestates, an invented name ran Homestead, Byzantium and Petersburg respectively. That is a far more plausible wrong answer than falling back to the newest fork. Every besu run here reads back the `fork` field evmtool echoes and refuses a run whose echo does not match; calibrated, the guard also refuses the alias `ConstantinopleFix`, which genuinely runs Petersburg.",
+      "generated": "2026-08-30",
+      "wrongBuildMethod": "Ten defects were introduced into core-geth one at a time, each confirmed to change the source and to compile, with the unmodified build as a control. THE REFERENCE CLONE WAS NEVER MUTATED: every defect is a `go build -overlay` replacement of one file, so a clean clone is a property of the method rather than of a restore step somebody could skip; `git status --porcelain` in the clone returned zero lines afterwards. A patch whose anchor text is not found, or which matches more than once, RAISES rather than building an unchanged binary -- a build that silently applied nothing would score 24 of 24 and read exactly like a coverage gap. core-geth is the client wrong-built rather than go-ethereum because it is the only one of the three that can address all 24 vectors.",
+      "wrongBuildScores": {
+        "control": "Unmodified core-geth at 4185df450: 24/24 pass.",
+        "the_empty_account_check_is_removed": "22/24 -- Answers the code hash of an account that EIP-161 calls empty instead of zero. THIS IS THE SCORE THAT MAKES THE PRE-STATE FIELD LOAD-BEARING: the two vectors it fails exist only because `pre` can state an account that is PRESENT AND EMPTY, which the first suite in this shape had no way to express. It correctly passes the absent-account vectors, whose zero comes from the account not existing at all rather than from this check.",
+        "an_account_that_merely_has_no_code_is_treated_as_empty": "20/24 -- Conflates 'has no code' with 'is empty' -- the confusion the specification spends two separate paragraphs on. Fails every codeless-but-not-empty vector and nothing else.",
+        "emptiness_is_tested_without_the_nonce": "22/24 -- Tests only balance and code. Fails EXACTLY the nonce-bearing pair.",
+        "emptiness_is_tested_without_the_balance": "22/24 -- Tests only nonce and code. Fails EXACTLY the balance-bearing pair. READ THESE TWO SCORES TOGETHER: each catches what the other misses, which is the evidence that the balance vector and the nonce vector are not two spellings of one case. EIP-161 makes emptiness a conjunction over three things and a build getting two of them right looks entirely correct against a fixture that states only one.",
+        "the_top_96_bits_of_the_argument_are_not_ignored": "22/24 -- Rejects an argument whose top twelve bytes are non-zero instead of masking them off. Fails exactly the two vectors carrying the specification's test case 4, which is the only part of the rule with no observable effect on a well-formed argument -- so without them this defect would ship.",
+        "the_executing_account_is_special_cased_to_zero": "22/24 -- Answers zero when the argument is the frame's own address, the shape a 'do not look at yourself' guard would take. Fails exactly the two self-reading vectors.",
+        "an_absent_account_answers_the_hash_of_no_code": "21/24 -- The mirror of the second defect, from the other side: a non-existent account answers keccak256 of empty data rather than zero. Fails exactly the absent-account vectors, including the one that differs from a passing vector ONLY in its `pre`.",
+        "the_hash_is_taken_of_the_running_code_not_the_target_account": "13/24 -- Hashes the executing frame's own code whatever address was asked for. It PASSES both self-reading vectors, which is the point of recording it: those two vectors alone would certify a build that ignores its argument entirely, and it takes the account-shaped vectors beside them to catch it.",
+        "the_opcode_is_available_before_the_proposal_was_adopted": "22/24 -- Registers the operation unconditionally. THIS IS THE SCORE THAT MAKES THE RULE-SET FIELD LOAD-BEARING: nothing a single-rule-set fixture asserts would move, and this file catches it because the same body is asserted under two stated journals one key apart. It correctly leaves the EXTCODESIZE control passing at both.",
+        "the_opcode_costs_the_price_a_later_proposal_gave_it": "6/24 -- Prices the operation at the 700 a later proposal gave it rather than the 400 this one names. The broadest score here, and it is the only defect that reaches `extcodehash_is_affordable_at_a_budget_of_five_hundred` -- where it does not merely change a number but turns a returned payload into an out-of-gas halt."
+      },
+      "whichVectorsNoDefectCatchesANDWhyThatIsCorrect": "Four of the 24 survive every defect above, and three of them are supposed to. `extcodesize_of_the_same_account_when_the_proposal_is_absent` and `..._present` are the attribution control: a control that moved under a defect in this proposal's rule would not be a control. `stop_costs_nothing_at_every_rule_set` is the calibration that shows a zero in the gas field is a measurement. The fourth, `extcodehash_cannot_afford_itself_and_halts`, is different and is stated plainly: at a budget of 100 the body cannot pay for the opcode at 400 OR at 700, so even the repricing defect leaves it halting out of gas. It asserts the halt VOCABULARY rather than a price, and the price boundary is carried by `extcodehash_is_affordable_at_a_budget_of_five_hundred` instead, where a repriced build turns a returned payload into an out-of-gas halt."
+    },
+    "invocationContext": {
+      "comment": "The frame every vector runs in. Stated because it is not derivable from the vectors and a reader guessing differently gets different gas.",
+      "depth": "0",
+      "static": false,
+      "codeIsDeployedAtTheCalleeNotExecutedAsInitcode": "Each `code` is the callee's deployed code and the invocation is a CALL, never a CREATE. Two vectors DEPEND on that: `extcodehash_of_the_executing_account_is_the_hash_of_its_own_code` reads the account the frame runs in through ADDRESS, and its answer is the keccak256 of that vector's own `code` field.",
+      "callerAndCalleeAreNOTInputs": "MEASURED for the first suite in this shape and unchanged here: the caller, the callee and the calldata do not move any result. `pre` is a real input and `callValue` is a real input; those two are not.",
+      "noAccountIsFundedBeyondWhatPreStates": "Every `callValue` is zero. A non-zero value would need the CALLER funded, and this shape has no field for the caller's balance -- `pre` describes the accounts a body READS, not the account it is called from."
+    },
+    "ruleSets": {
+      "withoutEip1052": {
+        "comment": "The journal WITHOUT the proposal. All three oracles can address it and agree.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658"
+        ],
+        "generatedWith": {
+          "core-geth": "a genesis whose config names each proposal separately: eip2FBlock, eip7FBlock, eip150Block, eip155Block, eip160Block, eip161FBlock, eip170FBlock, eip100FBlock, eip140FBlock, eip198FBlock, eip211FBlock, eip212FBlock, eip213FBlock, eip214FBlock and eip658FBlock, all at 0",
+          "go-ethereum": "a genesis chain config carrying homesteadBlock, eip150Block, eip155Block, eip158Block and byzantiumBlock, all at 0",
+          "besu": "evmtool --fork=Byzantium"
+        },
+        "twoConfigKeysAreNamedByISSUENumberAndNOTByEIPNumber": "`eip212FBlock` and `eip213FBlock` look cross-wired against the EIP-196 and EIP-197 in the journal above, and they are not. core-geth names these two after their GitHub ISSUE numbers: its own comments read `eip212FBlock` = 'Precompiled contract for pairing check', which is EIP-197, and `eip213FBlock` = 'Precompiled contracts for addition and scalar multiplication on the elliptic curve alt_bn128', which is EIP-196. So the config fragment and the journal agree in substance and no value here is affected. Stated because a reader mapping the digits to digits concludes the opposite, and because the same swap has to be resisted in the other direction -- it is not a discrepancy to 'fix'.",
+        "twoJournalEntriesTheSecondOracleCannotName": "core-geth's configuration cannot name EIP-649: those fields carry `json:\"-\"` in params/types/coregeth/chain_config.go, so no genesis can set them, while the fork names the other two oracles use do carry them. Both are block-reward and bomb-delay rules, settled outside the frame this shape executes. THAT THE DIFFERENCE IS INERT IS MEASURED RATHER THAN ARGUED: the three oracles, configured these three different ways, agree on every vector at this rule set."
+      },
+      "withEip1052": {
+        "comment": "The journal above with EIP-1052 adopted AND NOTHING ELSE -- the two core-geth configurations differ by exactly one JSON key. No fork-name oracle can express this rule set, which is why `generatedWith` names only one.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-658",
+          "EIP-1052"
+        ],
+        "generatedWith": {
+          "core-geth": "the `withoutEip1052` configuration plus eip1052FBlock at 0, and NOTHING else changed"
+        }
+      },
+      "withEip1052InConstantinople": {
+        "comment": "The proposal reached through the upgrade that carried it, which is the only route the two fork-name oracles have. Present so an implementation sharing no code with the geth lineage can corroborate every value the minimal pair produces.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658",
+          "EIP-145",
+          "EIP-1014",
+          "EIP-1052",
+          "EIP-1234"
+        ],
+        "generatedWith": {
+          "core-geth": "the `withoutEip1052` configuration plus eip145FBlock, eip1014FBlock and eip1052FBlock at 0",
+          "go-ethereum": "the same config fragment plus constantinopleBlock and petersburgBlock at 0",
+          "besu": "evmtool --fork=Petersburg"
+        },
+        "twoJournalEntriesTheSecondOracleCannotName": "core-geth's configuration cannot name EIP-649 or EIP-1234: those fields carry `json:\"-\"` in params/types/coregeth/chain_config.go, so no genesis can set them, while the fork names the other two oracles use do carry them. Both are block-reward and bomb-delay rules, settled outside the frame this shape executes. THAT THE DIFFERENCE IS INERT IS MEASURED RATHER THAN ARGUED: the three oracles, configured these three different ways, agree on every vector at this rule set.",
+        "besuIsAskedForPetersburgAndNOTConstantinople": "besu's `--fork=Constantinople` adopts EIP-1283 and go-ethereum's `constantinopleBlock` does not -- MEASURED, a 0-to-0 SSTORE costs 206 under the first and 5006 under the second. Two clients' word for one upgrade naming different rule sets is exactly why this shape defines its journals locally. Petersburg is the name under which the two agree, and this journal is purely additive as a result: nothing in it was adopted and later withdrawn, so this file does not need a spelling for withdrawal. The first suite that reaches for Constantinople-then-Petersburg will."
+      }
+    },
+    "vectors": [
+      {
+        "name": "extcodehash_of_an_account_with_code_is_the_hash_of_that_code",
+        "comment": "THE SUBJECT, and the first vector in this shape whose answer comes from `pre`. The account holds two bytes of code and the frame hands back their keccak256.",
+        "ruleSet": "withEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x309c67890bde4c575dc23d2cc3b5c3a3d599e312e980e9b61b5bc8f3cd87c8bb",
+        "tags": [
+          "subject"
+        ]
+      },
+      {
+        "name": "extcodehash_of_the_same_body_is_zero_when_the_account_is_absent",
+        "comment": "THE PRE-STATE PROVISION'S OWN DISCRIMINATOR. Byte-identical to the vector above in `code`, `callData`, `callValue`, `gasBudget` and `ruleSet`; ONLY `pre` differs, and the answer differs with it. A runner that ignored `pre` could not tell these two apart.",
+        "ruleSet": "withEip1052",
+        "pre": {},
+        "code": "0x7300000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "discriminator",
+          "prestate-is-load-bearing"
+        ]
+      },
+      {
+        "name": "extcodehash_of_an_absent_account_is_zero",
+        "comment": "The specification's own test case 2. The address is named by no `pre` entry in any vector of this file, so its absence is stated rather than inherited.",
+        "ruleSet": "withEip1052",
+        "pre": {},
+        "code": "0x7300000000000000000000000000000000000000bb3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "subject",
+          "spec-test-case-2"
+        ]
+      },
+      {
+        "name": "extcodehash_of_an_empty_account_is_zero_even_though_the_account_exists",
+        "comment": "THE SUBTLE ONE. `pre` places this account in state with zero balance, zero nonce and no code -- EIP-161's definition of empty -- and the specification says an empty account answers 0, the same as an account that does not exist at all. VERIFIED PRESENT rather than assumed: go-ethereum's own state dump lists it with the empty code hash, so this is not the absent case under another name. Read it against the two vectors below, which differ from it by one non-zero field each and answer differently.",
+        "ruleSet": "withEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000ee": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000ee3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "subject",
+          "discriminator",
+          "empty-vs-absent"
+        ]
+      },
+      {
+        "name": "extcodehash_of_a_codeless_account_holding_a_balance_is_the_hash_of_no_code",
+        "comment": "The specification's own test case 1, and the first half of the empty-account boundary: a balance of 1 wei makes the account non-empty, so it answers keccak256 of no data instead of zero.",
+        "ruleSet": "withEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000cc": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000cc3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        "tags": [
+          "subject",
+          "spec-test-case-1"
+        ]
+      },
+      {
+        "name": "extcodehash_of_a_codeless_account_holding_a_nonce_is_the_hash_of_no_code",
+        "comment": "The other half of the boundary, and it is not redundant with the balance case: EIP-161 makes emptiness a conjunction over nonce, balance AND code, so a build testing only two of the three passes one of these vectors and fails the other.",
+        "ruleSet": "withEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000dd": {
+            "balance": "0x00",
+            "nonce": "0x01",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000dd3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        "tags": [
+          "subject",
+          "discriminator"
+        ]
+      },
+      {
+        "name": "extcodehash_ignores_the_top_96_bits_of_its_argument",
+        "comment": "The specification's own test case 4 -- `EXTCODEHASH` of `A + 2**160` is `EXTCODEHASH` of `A`. The argument is a PUSH32 whose top twelve bytes are all 0xff and whose low twenty are the account above, and the answer is identical to the first vector's.",
+        "ruleSet": "withEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7fffffffffffffffffffffffff00000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x309c67890bde4c575dc23d2cc3b5c3a3d599e312e980e9b61b5bc8f3cd87c8bb",
+        "tags": [
+          "subject",
+          "spec-test-case-4"
+        ]
+      },
+      {
+        "name": "extcodehash_of_an_account_created_in_this_invocation",
+        "comment": "The specification's own test case 7, and the only vector here whose subject account is in no `pre` at all -- it is CREATEd by the body and the hash is read back from the address CREATE returns. The deposited code is 0x5b5b5b and not account aa's 0x6001, so a build answering with some other account's hash fails rather than coinciding.",
+        "ruleSet": "withEip1052",
+        "pre": {},
+        "code": "0x7f625b5b5b6000526003601df30000000000000000000000000000000000000000600052600c60006000f03f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "33051",
+        "outcome": "stopped",
+        "returnData": "0x6c929b762c4f544ea35d9fd317b622ec6c318067baf0f405aeaa32b4f5b428f6",
+        "tags": [
+          "subject",
+          "spec-test-case-7"
+        ]
+      },
+      {
+        "name": "extcodehash_of_the_executing_account_is_the_hash_of_its_own_code",
+        "comment": "Reads the account the frame is running in, via ADDRESS, and so names no address at all. It rests on the schema's existing statement that `code` is the callee's DEPLOYED code. The value is the keccak256 of this vector's own `code` field, which a reader can check without an oracle.",
+        "ruleSet": "withEip1052",
+        "pre": {},
+        "code": "0x303f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "417",
+        "outcome": "stopped",
+        "returnData": "0x21f598107b7a2510c8c4fcc23ae4ba4592b77f94b42ada0862b7e0d9cb036848",
+        "tags": [
+          "subject"
+        ]
+      },
+      {
+        "name": "extcodehash_is_undefined_without_the_proposal",
+        "comment": "MINIMAL PAIR with the first vector, and a genuine one: the two rule sets differ by exactly one JSON key. 0x3f is not an operation here, so the frame halts and keeps nothing.",
+        "ruleSet": "withoutEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "100000",
+        "outcome": "halted",
+        "returnData": "0x",
+        "halt": "InvalidOpcode",
+        "tags": [
+          "minimal-pair",
+          "discriminator"
+        ]
+      },
+      {
+        "name": "extcodehash_undefined_consumes_the_whole_budget",
+        "comment": "The same body at five times the budget. `gasUsed` follows the budget, which is what an exceptional halt means -- and what the reverting and succeeding vectors do NOT do.",
+        "ruleSet": "withoutEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "500000",
+        "gasUsed": "500000",
+        "outcome": "halted",
+        "returnData": "0x",
+        "halt": "InvalidOpcode",
+        "tags": [
+          "minimal-pair"
+        ]
+      },
+      {
+        "name": "extcodesize_of_the_same_account_when_the_proposal_is_absent",
+        "comment": "CONTROL. EXTCODESIZE reads the same account through the same wrapper and is not the proposal's. Pairs with the vector below.",
+        "ruleSet": "withoutEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3b60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "718",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000002",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "extcodesize_of_the_same_account_when_the_proposal_is_present",
+        "comment": "CONTROL, and this pair carries the attribution. The single JSON key separating these two rule sets changes EXTCODEHASH from undefined to defined and leaves this reading of the same account byte-identical, so the difference the minimal pair measures is EIP-1052 and not something else adopted alongside it.",
+        "ruleSet": "withEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3b60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "718",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000002",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "extcodehash_cannot_afford_itself_and_halts",
+        "comment": "DISCRIMINATOR on the halt reason. The body that answers at 100000 cannot pay the 400 the specification prices this opcode at, so it halts out of gas -- and unlike a revert it keeps nothing.",
+        "ruleSet": "withEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100",
+        "gasUsed": "100",
+        "outcome": "halted",
+        "returnData": "0x",
+        "halt": "OutOfGasError",
+        "tags": [
+          "discriminator",
+          "halt-reason"
+        ]
+      },
+      {
+        "name": "extcodehash_is_affordable_at_a_budget_of_five_hundred",
+        "comment": "THE PRICE BOUNDARY, and it turns a wrong number into a wrong OUTCOME. The whole body costs 418 at the 400 the specification names, and 718 at the 700 a later proposal gave this opcode -- so at a budget of 500 a correct build returns a payload and a repriced one runs out of gas. A consumer comparing only outcomes still catches the price here.",
+        "ruleSet": "withEip1052",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "500",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x309c67890bde4c575dc23d2cc3b5c3a3d599e312e980e9b61b5bc8f3cd87c8bb",
+        "tags": [
+          "discriminator",
+          "price-boundary"
+        ]
+      },
+      {
+        "name": "extcodehash_of_an_account_with_code_when_the_whole_upgrade_is_adopted",
+        "comment": "The first vector's body and `pre` under the journal the two FORK-NAME oracles can address. Identical gas and identical payload, which is what lets an implementation sharing no code with the geth lineage corroborate a value the minimal pair produced.",
+        "ruleSet": "withEip1052InConstantinople",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x309c67890bde4c575dc23d2cc3b5c3a3d599e312e980e9b61b5bc8f3cd87c8bb",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "extcodehash_of_an_empty_account_when_the_whole_upgrade_is_adopted",
+        "comment": "The empty-account answer, corroborated the same way. This is the vector worth having a second implementation on: it is the one an implementation is most likely to get wrong.",
+        "ruleSet": "withEip1052InConstantinople",
+        "pre": {
+          "0x00000000000000000000000000000000000000ee": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000ee3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "extcodehash_of_an_absent_account_when_the_whole_upgrade_is_adopted",
+        "comment": "The absent-account answer, corroborated the same way, and the pair to the vector above: both answer zero, and they reach it from opposite states.",
+        "ruleSet": "withEip1052InConstantinople",
+        "pre": {},
+        "code": "0x7300000000000000000000000000000000000000bb3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "extcodehash_of_a_codeless_account_holding_a_balance_when_the_whole_upgrade_is_adopted",
+        "comment": "The balance half of the empty-account boundary, corroborated by an implementation sharing no code with the geth lineage.",
+        "ruleSet": "withEip1052InConstantinople",
+        "pre": {
+          "0x00000000000000000000000000000000000000cc": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000cc3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "extcodehash_of_a_codeless_account_holding_a_nonce_when_the_whole_upgrade_is_adopted",
+        "comment": "The nonce half of the same boundary, corroborated the same way. Together with the vector above and the empty-account one, every distinct account shape this file states is asserted under a rule set two independent implementations can address.",
+        "ruleSet": "withEip1052InConstantinople",
+        "pre": {
+          "0x00000000000000000000000000000000000000dd": {
+            "balance": "0x00",
+            "nonce": "0x01",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000dd3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "extcodehash_ignores_the_top_96_bits_when_the_whole_upgrade_is_adopted",
+        "comment": "The specification's test case 4, corroborated. Worth a second implementation because the masking is the one part of the rule with no observable effect on a well-formed argument.",
+        "ruleSet": "withEip1052InConstantinople",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7fffffffffffffffffffffffff00000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "418",
+        "outcome": "stopped",
+        "returnData": "0x309c67890bde4c575dc23d2cc3b5c3a3d599e312e980e9b61b5bc8f3cd87c8bb",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "extcodehash_of_an_account_created_in_this_invocation_when_the_whole_upgrade_is_adopted",
+        "comment": "The specification's test case 7, corroborated. This is the vector reaching state that exists only during the invocation, so a second implementation matters most here.",
+        "ruleSet": "withEip1052InConstantinople",
+        "pre": {},
+        "code": "0x7f625b5b5b6000526003601df30000000000000000000000000000000000000000600052600c60006000f03f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "33051",
+        "outcome": "stopped",
+        "returnData": "0x6c929b762c4f544ea35d9fd317b622ec6c318067baf0f405aeaa32b4f5b428f6",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "extcodehash_of_the_executing_account_when_the_whole_upgrade_is_adopted",
+        "comment": "The self-reading vector, corroborated -- which also confirms all three runners deploy `code` at the account the frame executes in, as the schema says they must.",
+        "ruleSet": "withEip1052InConstantinople",
+        "pre": {},
+        "code": "0x303f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "417",
+        "outcome": "stopped",
+        "returnData": "0x21f598107b7a2510c8c4fcc23ae4ba4592b77f94b42ada0862b7e0d9cb036848",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "stop_costs_nothing_at_every_rule_set",
+        "comment": "CALIBRATION. The gas field can report zero, so a zero elsewhere in this file is a measurement rather than a probe that never ran.",
+        "ruleSet": "withEip1052",
+        "pre": {},
+        "code": "0x00",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "100000",
+        "gasUsed": "0",
+        "outcome": "stopped",
+        "returnData": "0x",
+        "tags": [
+          "calibration"
+        ]
+      }
+    ]
+  }
+}
