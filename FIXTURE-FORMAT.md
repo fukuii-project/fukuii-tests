@@ -356,6 +356,16 @@ An existing format. One file holds one or more named cases:
 | `post.<label>[].expectException` | no | see "two vocabularies" |
 | `post.<label>[].replay-protected` | no | documentation of how the case was signed; **no reader acts on it** |
 
+### A state fixture asserts no receipt, so receipt rules are out of its reach
+
+A `post` entry carries `hash`, `logs`, `txbytes` and `indexes` — a post-state root, not a receipt.
+**Nothing in this shape can observe a receipt's status field**, so EIP-658's rule (a status byte
+where a receipt formerly held an intermediate state root) is untestable here by construction.
+Measured from the consumer side, 2026-08-29: inverting that rule leaves every one of a client's 21
+state cases passing. That is a scope boundary rather than a coverage gap — the rule is asserted in
+`blocks/receipt_status_encoding.json`, which is where a harness must look for it. **A green state
+tier is not evidence about receipts**, and reading it as such is the error this note exists to stop.
+
 ### `currentDifficulty` is non-zero and must stay that way
 
 Ethereum Classic is proof-of-work. Post-Merge Ethereum fixtures carry `"currentDifficulty":
@@ -2001,6 +2011,52 @@ length; a start/end **pair** whose resume delay is *derived* as `(continue - pau
 three named calculators carrying no reference point at all. Because the second derives what the
 first states, **a shared transcription of one constant cannot explain their agreement** — which is
 exactly what two implementations of the same shape can never rule out.
+
+**State a parameter in its most INDEPENDENT form; a derived form makes an axis untestable.** This
+is about what the fixture *states*, not about which oracles agree, and the two are easy to conflate.
+Where a rule has two degrees of freedom, write both — a window as `(pauseBlock, continueBlock)`, not
+as an origin plus a span. A client storing the derived form collapses one degree of freedom, and no
+fixture can test it on that axis at any height.
+
+Worked instance, and it is the reason this paragraph exists. `ECIP1010PauseBlock` moved by `+1` in a
+client that stores `(pauseBlock, length)` and derives the continue block as their sum is an
+**equivalent mutant**: the continue block moves with the pause, `length` is unchanged, so the
+post-window reference never moves. Scanned 0 to 20,000,000, the patched rule computes an identical
+difficulty everywhere. Under this corpus's `(pauseBlock, continueBlock)` statement the same `+1`
+shortens the window and diverges at nine heights of the form `k*100,000 - 1`, one of which this
+suite already covers. **Same rule, same mutation, observable under one statement and unobservable
+under the other.**
+
+**An untestable axis has three causes and only the first is a representation defect.** The rule
+above covers the first cleanly and reads as though it covers the other two, which it does not:
+
+1. **A client COLLAPSED a degree of freedom the document separates.** ECIP-1010's `Constants` names
+   both heights and derives the span; a client storing `(pause, length)` keeps one. That is the case
+   above, and the corpus fixes it by stating both — confirmed independently in a second client whose
+   `(pausedFrom, continuesFrom)` type catches the same mutation the derived form cannot.
+2. **Clients INVENTED a degree of freedom the document does not have.** ECIP-1017's specification
+   section names no block number at all — *"Era 1 (blocks 1 - 5,000,000)"*, *"Every Era will last
+   for 5,000,000 blocks"* — yet two of three implementations gate the ladder on an activation while
+   the third carries none. A fixture stating length alone would be mirroring the document, not
+   collapsing anything. **Nothing here is a defect to fix; state the invented axis if clients
+   disagree on it, and say why it cannot be asserted.**
+3. **Both axes are stated and the axis is still inert, because of the network's own numbers.** This
+   is ECIP-1017's actual situation here and it is the easiest to misread as (2). Both era fixtures
+   *do* state `eraLength` and `activationBlock`. The gate is still unobservable: gated and ungated
+   differ only below the activation, era 0 pays exactly what an ungated client pays, and both
+   networks set activation at or below their era length — mainnet 5,000,000 and 5,000,000, Mordor 0
+   and 2,000,000. It becomes observable only where a network sets an activation **above** its own
+   era length, and none does.
+
+**Categories 2 and 3 end in a recorded condition, never a case.** A case at a height where the two
+configurations coincide is the mirror of the `pauseBlock + 1` case this suite already declined — it
+looks like coverage and asserts nothing.
+
+**Do not read that as "sub-period errors are always invisible."** They are not — the nine
+divergences above are one-block errors that change a difficulty. The in-window half is invisible
+only because ECIP-1010's pause block is itself a multiple of the 100,000 period, so `pause` and
+`pause + 1` floor alike; a pause at 3,099,999 would make the same shift observable in-window. The
+discriminator is representation, and period quantization is a local coincidence rather than a rule.
 
 **Match the oracle to the era.** A client that never ran a rule is not a witness to it. The two
 Parity-lineage clients were frozen before this chain's reorg-defense rule activated; multi-geth
