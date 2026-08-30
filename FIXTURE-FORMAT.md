@@ -1354,7 +1354,12 @@ field into a set.
 > same key. Measured with a control key that matches nothing, which returned nothing.
 >
 > **So a genuine single-proposal minimal pair is reachable, and a suite that needs one should reach
-> for that lineage rather than accept the weaker form below.**
+> for that lineage rather than accept the weaker form below.** It has since been reached: the
+> EIP-1052 suite's pair is two core-geth genesis files differing by exactly one JSON key. That
+> lineage is a **third** answer, neither of the two named above — core-geth's own chain config
+> carries the same idea as the Parity chainspec, and unlike either Parity-lineage client it is
+> executable here. The route, its canary and its limits are in "The GENERATOR does not have to step
+> a whole upgrade", below.
 >
 > What remains true is the narrower statement. go-ethereum's chain config has no per-proposal switch
 > inside an upgrade, and besu's evmtool takes a fork name, so **the smallest step either of those can
@@ -1388,6 +1393,12 @@ field into a set.
     "vectors": [
       { "name": "…", "comment": "…",
         "ruleSet":    "withEip140",           // a key of `ruleSets`, above
+        "pre": {                              // accounts that EXIST when the body runs;
+          "0x…": { "balance": "0x00",         //   `{}` says none does, and that is a CLAIM
+                   "nonce":   "0x00",
+                   "code":    "0x",
+                   "storage": { } }
+        },
         "code":       "0x7f…fd",              // the callee's DEPLOYED code
         "callData":   "0x",
         "callValue":  "0",
@@ -1405,6 +1416,7 @@ field into a set.
 | field | required | says |
 |---|---|---|
 | `ruleSet` | yes | a key of this file's `ruleSets`. A name that resolves to no entry is a **malformed fixture**, never a case to skip |
+| `pre` | yes | the accounts that exist when the body runs — **`state/`'s `pre` object, unchanged**. `{}` is an assertion, not an omission; see below |
 | `code` | yes | the callee's **deployed** code, executed as a CALL. Running it as initcode charges a deposit per byte and asserts something else |
 | `callData` / `callValue` | yes | stated explicitly rather than defaulted — see below |
 | `gasBudget` | yes | the gas supplied to the frame |
@@ -1441,6 +1453,74 @@ identical, and a **non-zero call value does not** — no account in a component 
 transfer fails before the body runs. Every vector therefore states `callValue` rather than leaving it
 to a runner's default.
 
+### `pre` is REQUIRED, it is `state/`'s object, and `{}` is a claim
+
+**A body that reads account state needs the state stated, so a vector carries a `pre` map.**
+It is required on **every** vector, including the many that read nothing.
+
+**It is `state/`'s `pre` object and not a second spelling of one.** Same field names, same
+`0x`-prefixed 20-byte address key, same hex quantities, same optional `storage` — so a reader
+that already parses a state fixture's `pre` reuses that code verbatim. The rules there apply
+here unchanged, including that a slot holding `"0x00"` is written rather than skipped.
+
+> **This does mean one file mixes spellings — `"gasBudget": "100000"` beside
+> `"balance": "0x01"` — and that is deliberate.** Both are legal everywhere (see "Quantities are
+> strings"), and the alternative was worse: re-spelling a borrowed object in decimal would make
+> two incompatible ways to write an account, and the *shape* consistency a reader might expect
+> is not something this file has ever let a reader rely on.
+
+**`{}` means no account exists, and that is an assertion.** This is why the field is required
+rather than optional. An absent optional field asserts nothing — this document says so under
+"What a MISSING expectation means" — so an optional `pre` would leave a fixture unable to state
+the very thing several vectors exist to state. The EIP-1052 suite pairs two vectors that are
+**byte-identical in `ruleSet`, `code`, `callData`, `callValue` and `gasBudget` and differ only in
+`pre`**, and they answer differently. That pair is what shows a runner is reading the field at
+all.
+
+**`pre` never names the account the body runs in.** This shape states no address for it — the
+schema says only that `code` is *deployed* there — so a fixture cannot name it and must not try.
+Reach it through `ADDRESS` instead, which is portable; measured across all three oracles used so
+far, they happen to agree on the address itself, and no fixture should depend on that. Keep
+stated addresses above `0x09` so none can collide with a precompile.
+
+**A precompile is out of reach here, and the specification agrees it should be.** Measured: an
+address in the precompile range that no `pre` entry names behaves as an absent account in every
+oracle, so a "precompile" vector would be the absent case under another name — coverage in
+appearance and nothing in substance. EIP-1052 itself declines to fix the answer, saying it "is
+either `c5d246…` or `0`". Record the condition; do not write the case.
+
+### The GENERATOR does not have to step a whole upgrade — one lineage steps one proposal
+
+The EIP-140 suite could only move a whole upgrade at a time and said so. **That was a property of
+the two oracles it used, and a third makes the minimal pair real.** core-geth's chain config
+carries **per-proposal activation keys** — `eip1052FBlock`, `eip145FBlock`, `eip2929FBlock` and
+some sixty more — so two genesis files differing by **exactly one JSON key** are two rule sets one
+proposal apart, and the attribution is then carried by construction rather than by argument.
+
+A suite reaching for it owes three things:
+
+1. **A canary that fires before any vector is produced.** core-geth *sniffs* which chain-config
+   type a genesis carries, and a go-ethereum-shaped config that also carries a per-proposal key is
+   read as the other type with **every such key silently dropped** — reporting exactly what a rule
+   set that never adopted the proposal reports. Show the key flipping the behavior, show a
+   misspelling being ignored, and show the misread shape dropping it. The parser fails *loudly*
+   only when both config types are negated at once, so the loud path is not the one to rely on.
+2. **Honesty about what the pair buys.** core-geth shares a root commit with go-ethereum, so it
+   supplies **attribution, not independence**. An implementation sharing no code still has to
+   corroborate the values, and it can only do so at a rule set it can address — which is why a
+   suite using this route carries a third rule set reached by a fork name.
+3. **The smaller true claim about the rest.** `eip1052Transition` is equally load-bearing in
+   `openethereum/openethereum`, `openethereum/parity-ethereum` and `NethermindEth/nethermind`, so
+   an *independent* single-proposal pair exists in principle. Whether one is **reachable** is a
+   question about the machine rather than about the world, and the answer today is no: measured
+   2026-08-30, the Parity-lineage pair needs a Rust toolchain that is absent here, and Nethermind
+   ships exactly one EVM command whose only subcommand is `t8n` — a transaction-level seam, which
+   is not this one. **Nor is it one toolchain install away**, which is the tempting reading:
+   `openethereum/parity-ethereum` is frozen with no recorded toolchain and is separately assessed
+   as not building even with Rust present, and `openethereum/openethereum` has not been assessed
+   at all. The nearest route runs through Nethermind at a transaction-level seam — the seam the
+   transaction-level shape needs anyway.
+
 ### What this shape cannot reach
 
 **Everything above the frame.** Intrinsic transaction gas, calldata pricing, access lists carried on
@@ -1463,15 +1543,61 @@ twelve results byte-identical, which the fixture records.
 
 > **Two instrument traps, both of which return a confident wrong answer rather than an error.**
 >
-> **besu's evmtool silently falls back to its newest fork when it does not recognise a `--fork`
-> name.** `--fork=SpuriousDragon` in four spellings ran `BPO5` — exactly as a deliberately invented
-> name did — and the first generation pass read as besu disagreeing with go-ethereum about
-> pre-adoption REVERT. evmtool echoes the fork it actually ran in its output; **read it back and
-> refuse a run whose echo does not match**, or the fallback is invisible.
+> **besu's evmtool silently ignores a `--fork` name it does not recognise.**
+> `--fork=SpuriousDragon` in four spellings ran `BPO5` — exactly as a deliberately invented name
+> did — and the first generation pass read as besu disagreeing with go-ethereum about pre-adoption
+> REVERT. evmtool echoes the fork it actually ran in its output; **read it back and refuse a run
+> whose echo does not match**, or the fallback is invisible.
+>
+> **"Falls back to its newest fork" is narrower than the trap, and the narrow form is the
+> comforting one.** Re-measured 2026-08-30 with a `--prestate` present, an invented name ran the
+> fork **the prestate's own config implies** — Homestead, Byzantium and Petersburg against three
+> different prestates — not besu's newest. A fallback to `BPO5` announces itself the moment you
+> look; a fallback to the fork you were nearly asking for does not. The echo check catches both and
+> is the only thing that does. Calibrated: it also refuses `ConstantinopleFix`, which is a genuine
+> alias that runs `Petersburg` — a guard that could not refuse an alias would not be reading the
+> echo at all.
 >
 > **go-ethereum's `evm run --gas` is inert whenever `--prestate` carries a non-zero `gasLimit`**,
 > which the genesis then supplies instead. A budget set through the flag is silently ignored, and an
 > out-of-gas vector authored that way measures nothing. Set the budget in the genesis.
+
+### `eip1052ExtCodeHashGasAndOutcome` — the first suite whose answers come from state
+
+The second suite in this shape, and it was chosen because the first one's bodies read no account
+state at all. **A shape proven against one subject is not proven**, and the half EIP-140 left
+unexercised is where `pre` lives.
+
+Its subject is a rule with a boundary that is easy to get *nearly* right. EIP-1052 answers
+`keccak256(code)` for an account with code, `keccak256("")` for an account without, and **zero for
+an account that either does not exist or is empty** — where empty is EIP-161's conjunction over
+nonce, balance and code. So four account shapes give three answers, and the two that give zero
+reach it from opposite states. The suite states one account per shape, and a wrong build that tests
+two of EIP-161's three terms fails exactly one vector.
+
+**Three rule sets, because no single oracle gives both attribution and independence.** The minimal
+pair `withoutEip1052` / `withEip1052` is two core-geth genesis files one key apart, which is
+attribution by construction — and core-geth shares a root commit with go-ethereum, so it is not a
+second opinion about any value. `withEip1052InConstantinople` exists so besu, which shares no code
+with that lineage, can corroborate every value by the only route it has. Each distinct account
+shape and each mechanism appears once under each, and the gas and payload are identical across
+every such pair — which is *also* the evidence that the rest of that upgrade does not touch this
+rule.
+
+**One of that third set's names had to be chosen by measurement.** besu's `--fork=Constantinople`
+adopts EIP-1283 and go-ethereum's `constantinopleBlock` does not — a 0-to-0 `SSTORE` costs 206
+under the first and 5006 under the second. Two clients using one upgrade's name for two different
+rule sets is the plainest possible argument for defining journals **locally**, which this shape
+already does. `Petersburg` is the name under which the two agree, and picking it also kept the
+journal purely additive: nothing in it was adopted and later withdrawn, so this suite did not have
+to invent a spelling for withdrawal. **The first suite that reaches for Constantinople-and-then-
+Petersburg will have to**, and that is the open question this one left behind — the ordered-journal
+rule above anticipates it and no fixture has needed it yet.
+
+**Four of the specification's own ten test cases are asserted and tagged**; the other six name seams
+this shape does not have — SELFDESTRUCT, a reverted sub-frame, a mid-frame touch, and the
+end-of-transaction state-clearing rule — and the file lists them one at a time rather than leaving
+the four to read as all of them.
 
 ---
 
