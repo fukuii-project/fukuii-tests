@@ -1599,6 +1599,37 @@ this shape does not have — SELFDESTRUCT, a reverted sub-frame, a mid-frame tou
 end-of-transaction state-clearing rule — and the file lists them one at a time rather than leaving
 the four to read as all of them.
 
+### `eip2929ColdAndWarmAccess` — the first suite whose answer depends on what the frame already touched
+
+The third suite in this shape. EIP-140's bodies read no state; EIP-1052's read only what `pre`
+states; **this one's answer changes depending on what the same body did a few opcodes earlier**, so
+it is the first to exercise state that exists only inside the invocation.
+
+The rule is easy to get *nearly* right in four separate ways, and the wrong builds separate them:
+charging warm on a first touch, never recording warmth so a repeat pays cold again, collapsing the
+two cold constants (2100 and 2600 differ by 500 and every warm reading stays correct), and tracking
+warmth as a **flag rather than a set** — that last one passes every cold-then-warm pair and is
+caught by exactly one vector, a *second* cold account in the same frame.
+
+**A specification-versus-implementation divergence decided this file's shape, and it is the clearest
+argument yet for the component layer.** EIP-2929 says `accessed_addresses` is initialised with the
+transaction's sender, its target and every precompile. core-geth gates that initialisation on
+**EIP-2930's** activation key while gating the cold/warm pricing on EIP-2929's; Nethermind gates it
+on EIP-2929's, matching the specification. Measured: `BALANCE` of precompile `0x01` costs 2618 under
+EIP-2929 alone and 118 once EIP-2930 is added.
+
+**No live chain can see this** — Berlin activates both proposals — so it is invisible to every
+network-scoped fixture and surfaces only because this layer makes the proposal an input. The suite's
+response is the one this document already prescribes for a contested axis: **assert the pricing
+under the minimal pair, assert the warm-up only at the whole upgrade where every implementation
+agrees, and record the condition.** Asserting the warm-up under the minimal pair would encode one
+client's key layout as the rule and fail a client that read the specification.
+
+**It also reaches something the EIP-1052 suite recorded as out of reach.** A precompile is
+indistinguishable from an absent account *by value*, which is why that file declines to assert one.
+Under this rule it is distinguishable *by cost* — pre-warmed at 100 where an ordinary cold account
+pays 2600. Same seam, same address: the earlier note is about that subject, not about the shape.
+
 ---
 
 ## consensus-mechanism vectors (`consensus-algorithms/`, and `consensus/` under a network)
