@@ -2058,6 +2058,16 @@ only because ECIP-1010's pause block is itself a multiple of the 100,000 period,
 `pause + 1` floor alike; a pause at 3,099,999 would make the same shift observable in-window. The
 discriminator is representation, and period quantization is a local coincidence rather than a rule.
 
+**Provenance is the UNION of a file's `_info` provenance keys, not the `oracle` key alone.** A
+fixture may carry `oracle`, `oracle-version`, `second-derivation`, `crossImplementation`,
+`implementations` and `wrongBuildScores`, and each states a different part of how its values came to
+be trusted. **`oracle` reads like a complete statement and is not one.** Two difficulty files here
+record a client-generated pass under `oracle` and an independent re-derivation *from the
+specifications rather than from any client* under `second-derivation`; read alone, the first
+under-reports them as single-source. That happened on 2026-08-29, to a consumer who had the file
+open — and it is the same partial-read shape as reading a difficulty case's `currentDifficulty`
+without the label that selects its rules. **Enumerate the keys; do not sample one.**
+
 **Match the oracle to the era.** A client that never ran a rule is not a witness to it. The two
 Parity-lineage clients were frozen before this chain's reorg-defense rule activated; multi-geth
 was frozen three months after it and never implemented it.
