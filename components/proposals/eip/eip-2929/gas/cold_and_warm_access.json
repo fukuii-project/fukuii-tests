@@ -1,0 +1,592 @@
+{
+  "eip2929ColdAndWarmAccess": {
+    "_info": {
+      "comment": "EIP-2929's cold and warm state access as a pure function of its inputs: a stated rule set, a stated pre-state, a body of bytecode and a gas budget go in; the gas the invocation consumed, how it ended and what it handed back come out. THE THIRD SUITE IN THIS SHAPE, and the first whose answer depends on WHAT THE FRAME HAS ALREADY TOUCHED -- EIP-140's bodies read no state at all and EIP-1052's read only what `pre` states, so a rule with memory inside one invocation was unexercised until this file.",
+      "whyThisIsAComponentAndNotANetworkFixture": "The rule set and the pre-state are per-vector INPUTS rather than schedule positions. Nothing here moves if the chain id or an activation height changes. `networks/ethereumclassic/mainnet/state/gas/sload_cost.json` has the same proposal as its subject and asserts a state ROOT at twelve labels -- it answers WHERE IN THIS CHAIN'S SCHEDULE the number changes; this file answers WHAT THE NUMBER IS.",
+      "oracle": "core-geth (etclabscore lineage, upstream master), EXECUTED through `evm run`, one invocation per vector, configured ONE PROPOSAL AT A TIME. THIS KEY IS NOT THE WHOLE PROVENANCE -- see crossImplementation, secondOracleInTheSameLineage, independentTranscription and theSpecificationPublishesItsOwnConstants. Reading it alone under-reports the file as single-source.",
+      "oracle-version": "reference-material/ethereumclassic/core-geth at 4185df450364973bbf99efa3923791f5ba40b351 (branch master), v1.12.21-unstable. Third-party upstream work -- never fukuii, which these fixtures exist to certify, and never a repo under work/repos/, which on this machine is the maintainer's own. Built with `go build -overlay`; the clone is not mutated.",
+      "theSpecificationPublishesItsOwnConstants": "EIP-2929 states COLD_SLOAD_COST 2100, COLD_ACCOUNT_ACCESS_COST 2600 and WARM_STORAGE_READ_COST 100 in a table of its own, and every figure in this file reconstructs from those three plus the Yellow Paper's schedule. Where a specification publishes a value, this suite anchors to it rather than to a client's agreement with itself.",
+      "theWarmUpIsATTRIBUTEDDIFFERENTLYByTwoImplementationsANDThatSHAPEDThisFile": "THE FINDING, and it is why the pre-warmed vectors sit under `withEip2929InBerlin` rather than under the minimal pair. EIP-2929 says: 'When a transaction execution begins, accessed_storage_keys is initialized to empty, and accessed_addresses is initialized to include the tx.sender, tx.to ... and the set of all precompiles.' That initialisation is EIP-2929's by the specification's own text. IMPLEMENTATIONS DISAGREE ABOUT WHICH PROPOSAL OWNS IT. core-geth gates the whole of it -- sender, target AND precompiles -- on EIP-2930's activation key: `core/state_transition.go` reads `GetEIP2930Transition` into a flag and `core/state/statedb.go`'s `Prepare` wraps every AddAddress in `if eip2930`, while the cold/warm PRICING is gated on EIP-2929's key in `core/vm/jump_table.go`. Nethermind does the opposite and matches the specification: `WarmUpTxAccesses` returns early on `!spec.UseHotAndColdStorage` -- its own comment in `SpecGasCosts.cs` reads 'spec.UseHotAndColdStorage;  // EIP-2929' -- and consults `UseTxAccessLists` (EIP-2930) only for the transaction's own access list. MEASURED HERE, not inferred: BALANCE of precompile 0x01 costs 2618 under EIP-2929 alone in core-geth and 118 once EIP-2930 is added. NO LIVE CHAIN CAN SEE THIS -- Berlin activates both -- so it is invisible to every network-scoped fixture and surfaces only because this layer makes the proposal an input. This file therefore asserts the warm-up ONLY at the whole upgrade, where all three oracles agree; asserting it under the minimal pair would encode one client's key layout as the rule and fail a client that read the specification.",
+      "aGenuineSingleProposalMinimalPairANDWhatItCovers": "`withoutEip2929` and `withEip2929` differ by EXACTLY ONE JSON KEY, `eip2929FBlock`, so the attribution of the PRICING half is carried by construction rather than by argument. That half is also shown to be clean of the dispute above: every pricing figure here is IDENTICAL under EIP-2929 alone, under EIP-2929 plus EIP-2930, and under the whole of Berlin. The control pair `a_body_touching_no_account_is_unchanged_*` carries the same claim the older way, and both are cheap.",
+      "whichOraclesCanAddressWhichRuleSet": "core-geth addressed all 21 vectors. go-ethereum and besu could address 12 -- every vector under `withoutEip2929` and `withEip2929InBerlin` -- and agreed on all 12. NEITHER CAN ADDRESS `withEip2929` AT ALL, which is why that rule set needed a per-proposal oracle. Stated per rule set in `ruleSets[].generatedWith`, where an oracle that cannot reach a rule set is absent rather than silently implied.",
+      "theExecutableSingleProposalORACLEisNOTIndependent": "core-geth, multi-geth and go-ethereum share a root commit, so core-geth corroborates NOTHING about a value go-ethereum also produces -- it supplies ATTRIBUTION, and besu supplies the independence. That is also why the finding above needed a THIRD reading: Nethermind's source was read to establish that the disagreement is real rather than core-geth being the only implementation with an opinion.",
+      "crossImplementation": "besu-eth/besu's evmtool, EXECUTED, at fdf1247c6d (branch main), version 26.8-develop. A Java implementation sharing no code with the geth lineage, configured by a FORK NAME. 12 of 12 gas figures agree. besu emits `pass`, which reports that the run completed and is not an outcome vocabulary.",
+      "secondOracleInTheSameLineage": "ethereum/go-ethereum's `evm run`, EXECUTED, at e9e35a42f (branch master), reporting 1.17.6-unstable-e9e35a42-20260826, configured by a genesis chain-config fragment. 12 of 12 agree. Same lineage as the oracle, so this checks that the per-proposal configuration reproduces the fork-block one; it is not an independent opinion.",
+      "independentTranscription": "Every figure was computed a fourth time in Python from the rules as the specifications state them -- EIP-2929's three published constants, EIP-1884's flat 700 and 800 for the pre-adoption side, and the Yellow Paper's G_base 2, G_verylow 3 and memory cost -- with arbitrary-precision integers. 21 of 21 agree. IT FOLLOWS THE SPECIFICATION ON THE DISPUTED WARM-UP, initialising accessed_addresses under EIP-2929 as the EIP says; it agrees with core-geth on all 21 anyway, precisely because no vector under `withEip2929` touches the executing account or a precompile. Run it with `--show-divergence` and it prints the case that would disagree: 118 by the specification against core-geth's 2618.",
+      "whatThisFileDoesNotReach": "The SSTORE half of EIP-2929 -- it modifies EIP-2200's parameters and a faithful vector would be asserting EIP-2200's rule through EIP-2929's change, which needs its own pairing and is not attempted here. The CALL family's cold/warm surcharge, which is real and which this file leaves to a suite that can also state a callee. SELFDESTRUCT's extra cold charge, which changes state the shape cannot observe. And everything above the frame: the transaction's own access list is EIP-2930's, is settled around an invocation rather than inside one, and belongs to the transaction-level seam this shape explicitly is not.",
+      "aPrecompileIsReachableHEREbyCOSTwhereEIP1052CouldNotReachItBYVALUE": "`components/proposals/eip/eip-1052/` records that a precompile is out of that suite's reach: an address in the precompile range that no `pre` entry names behaves as an absent account, and both answer the same hash, so a vector would look like coverage and assert nothing. The same address is reachable HERE because this rule prices it differently: pre-warmed, it costs 100 on the first touch where an ordinary cold account costs 2600. Same seam, same address, unreachable by value and reachable by cost -- which is worth stating so the earlier note is not read as a property of the shape.",
+      "generated": "2026-08-30",
+      "wrongBuildMethod": "Seven defects were introduced into core-geth one at a time, each confirmed to change the source and to compile, with the unmodified build as a control. THE REFERENCE CLONE WAS NEVER MUTATED: every defect is a `go build -overlay` replacement of one file; `git status --porcelain` in the clone returned zero lines afterwards. A patch whose anchor is not found, or which matches more than once, RAISES rather than building an unchanged binary -- a build that silently applied nothing would score 21 of 21 and read exactly like a coverage gap.",
+      "wrongBuildScores": {
+        "control": "Unmodified core-geth at 4185df450: 21/21 pass.",
+        "every_account_access_is_charged_the_warm_price": "12/21 -- The cold surcharge is never added. The broadest score here, and it fails every first-touch account vector while correctly leaving the pre-adoption ones alone.",
+        "account_warmth_is_never_recorded_so_every_touch_is_cold": "16/21 -- The address is never added to the set, so a repeat access pays cold again. The exact mirror of the defect above, and between them they bracket the rule from both sides.",
+        "account_warmth_is_a_single_flag_rather_than_a_set": "17/21 -- Warmth is tracked as one boolean rather than per address: the first account access is cold and every later one, WHATEVER THE ADDRESS, is warm. THIS IS THE SCORE THAT JUSTIFIES `balance_of_a_second_cold_account_pays_the_cold_price_again`, which is otherwise the least obvious vector in the file -- without it this build passes every cold-then-warm pair.",
+        "the_cold_storage_price_is_the_cold_account_price": "17/21 -- COLD_SLOAD_COST is replaced by COLD_ACCOUNT_ACCESS_COST. The two constants differ by 500 and a build collapsing them still gets every warm reading right, so only the cold storage vectors catch it.",
+        "storage_warmth_is_keyed_on_the_account_and_not_the_slot": "20/21 -- The slot is dropped from the key, so warming any slot warms them all. Fails EXACTLY `sload_of_a_second_cold_slot_pays_the_cold_price_again` -- one vector, and it is the only thing in this corpus standing between that defect and a clean run.",
+        "the_proposal_is_active_before_it_was_adopted": "18/21 -- The instruction set is rewired unconditionally. THIS IS THE SCORE THAT MAKES THE RULE-SET FIELD LOAD-BEARING: nothing a single-rule-set fixture asserts would move, and this file catches it because the same bodies are asserted under two stated journals one key apart.",
+        "precompiles_are_not_pre_warmed": "19/21 -- The precompile loop in the access-list initialisation is emptied. Fails exactly the two precompile vectors, and leaves the executing-account one passing -- which is the evidence that those two vectors assert the precompile clause specifically rather than the warm-up in general."
+      },
+      "whichVectorsNoDefectCatchesANDWhyThatIsCorrect": "Three of the 21 survive every defect above and all three are supposed to. The two `a_body_touching_no_account_is_unchanged_*` vectors are the attribution control: a control that moved under a defect in this proposal's rule would not be a control. `stop_costs_nothing_at_every_rule_set` is the calibration that shows a zero in the gas field is a measurement rather than a probe that never ran."
+    },
+    "invocationContext": {
+      "comment": "The frame every vector runs in. Stated because it is not derivable from the vectors and a reader guessing differently gets different gas.",
+      "depth": "0",
+      "static": false,
+      "codeIsDeployedAtTheCalleeNotExecutedAsInitcode": "Each `code` is the callee's deployed code and the invocation is a CALL, never a CREATE.",
+      "theAccessSetsStartFRESHForEachVector": "Every vector is one invocation with its own `accessed_addresses` and `accessed_storage_keys`. The sets are transaction-scoped in the specification and no vector here spans two invocations, so a runner must not carry warmth between vectors -- doing so turns every cold reading in this file into a warm one.",
+      "callerAndCalleeAreNOTInputs": "MEASURED for the first suite in this shape and unchanged: the caller, the callee and the calldata do not move any result. `pre` and `callValue` are real inputs; those are not. One vector reads the executing account through ADDRESS rather than a literal, so it stays correct under a runner that deploys `code` at a different address."
+    },
+    "ruleSets": {
+      "withoutEip2929": {
+        "comment": "The journal WITHOUT the proposal. All three oracles address it and agree. EIP-1884 already prices BALANCE and EXTCODEHASH at a flat 700 and SLOAD at a flat 800 here, which is what the first half of each minimal pair reads.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658",
+          "EIP-145",
+          "EIP-1014",
+          "EIP-1052",
+          "EIP-1234",
+          "EIP-152",
+          "EIP-1108",
+          "EIP-1344",
+          "EIP-1884",
+          "EIP-2028",
+          "EIP-2200"
+        ],
+        "generatedWith": {
+          "core-geth": "a genesis whose config names each proposal separately: eip2FBlock, eip7FBlock, eip150Block, eip155Block, eip160Block, eip161FBlock, eip170FBlock, eip100FBlock, eip140FBlock, eip198FBlock, eip211FBlock, eip212FBlock, eip213FBlock, eip214FBlock, eip658FBlock, eip145FBlock, eip1014FBlock, eip1052FBlock, eip152FBlock, eip1108FBlock, eip1344FBlock, eip1884FBlock, eip2028FBlock and eip2200FBlock, all at 0",
+          "go-ethereum": "a genesis chain config carrying homesteadBlock, eip150Block, eip155Block, eip158Block, byzantiumBlock, constantinopleBlock, petersburgBlock and istanbulBlock, all at 0",
+          "besu": "evmtool --fork=Istanbul"
+        },
+        "twoConfigKeysAreNamedByISSUENumberAndNOTByEIPNumber": "`eip212FBlock` and `eip213FBlock` look cross-wired against the EIP-196 and EIP-197 in the journal and are not: core-geth names those two after their GitHub ISSUE numbers -- its own comments read `eip212FBlock` = 'Precompiled contract for pairing check', which is EIP-197, and `eip213FBlock` = the alt_bn128 addition and scalar multiplication one, which is EIP-196. No value here is affected, and it is not a discrepancy to 'fix' in either direction.",
+        "oneJournalEntryThePerProposalOracleCannotName": "core-geth's configuration cannot name EIP-649: that field carries `json:\"-\"` in params/types/coregeth/chain_config.go, so no genesis can set it, while the fork names the other two oracles use do carry it. It is a block-reward and bomb-delay rule, outside the frame this shape executes. THAT THE DIFFERENCE IS INERT IS MEASURED RATHER THAN ARGUED: the three oracles, configured these three different ways, agree on every vector at this rule set."
+      },
+      "withEip2929": {
+        "comment": "The journal above with EIP-2929 adopted AND NOTHING ELSE -- the two core-geth configurations differ by exactly one JSON key. No fork-name oracle can express this rule set. Note what is NOT asserted under it: the pre-warming of the executing account and the precompiles, which implementations attribute differently -- see `_info.theWarmUpIsATTRIBUTEDDIFFERENTLYByTwoImplementationsANDThatSHAPEDThisFile`.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658",
+          "EIP-145",
+          "EIP-1014",
+          "EIP-1052",
+          "EIP-1234",
+          "EIP-152",
+          "EIP-1108",
+          "EIP-1344",
+          "EIP-1884",
+          "EIP-2028",
+          "EIP-2200",
+          "EIP-2929"
+        ],
+        "generatedWith": {
+          "core-geth": "the `withoutEip2929` configuration plus eip2929FBlock at 0, and NOTHING else changed"
+        }
+      },
+      "withEip2929InBerlin": {
+        "comment": "The proposal reached through the upgrade that carried it, which is the only route the two fork-name oracles have -- and the only rule set under which the pre-warming is asserted, because it is the only one where every implementation agrees about it.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658",
+          "EIP-145",
+          "EIP-1014",
+          "EIP-1052",
+          "EIP-1234",
+          "EIP-152",
+          "EIP-1108",
+          "EIP-1344",
+          "EIP-1884",
+          "EIP-2028",
+          "EIP-2200",
+          "EIP-2565",
+          "EIP-2718",
+          "EIP-2929",
+          "EIP-2930"
+        ],
+        "generatedWith": {
+          "core-geth": "the `withoutEip2929` configuration plus eip2565FBlock, eip2718FBlock, eip2929FBlock and eip2930FBlock at 0",
+          "go-ethereum": "the same config fragment plus berlinBlock at 0",
+          "besu": "evmtool --fork=Berlin"
+        },
+        "whyEIP2565andEIP2718areINTHEJOURNALandUNREACHABLEHere": "Berlin carried four proposals and this journal names all four, because all four were genuinely in force during generation. Two cannot be reached by any body here: EIP-2565 reprices the modexp precompile, which no body calls, and EIP-2718 is a transaction envelope, which is outside the frame. EIP-2930 CAN be reached, and that is the finding this file records rather than a detail -- see `_info`."
+      }
+    },
+    "vectors": [
+      {
+        "name": "balance_of_a_cold_account_costs_the_cold_price",
+        "comment": "THE SUBJECT. The specification's COLD_ACCOUNT_ACCESS_COST is 2600 and this is the first touch of that account in the frame.",
+        "ruleSet": "withEip2929",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2618",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "tags": [
+          "subject"
+        ]
+      },
+      {
+        "name": "balance_of_the_same_account_twice_pays_cold_then_warm",
+        "comment": "THE RULE'S WHOLE POINT, and the first vector in this shape whose answer depends on what the frame ALREADY TOUCHED rather than on what `pre` states. Read against the vector above: the second reading of the same account adds a PUSH20, a POP and WARM_STORAGE_READ_COST, not a second 2600.",
+        "ruleSet": "withEip2929",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa31507300000000000000000000000000000000000000aa3160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2723",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "tags": [
+          "subject",
+          "discriminator"
+        ]
+      },
+      {
+        "name": "balance_of_a_second_cold_account_pays_the_cold_price_again",
+        "comment": "DISCRIMINATOR against reading the vector above as 'the second access is cheap'. Warmth is per address: a different account in the same frame is cold and pays 2600. A build that warmed a flag rather than a set passes the pair above and fails here.",
+        "ruleSet": "withEip2929",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000bb": {
+            "balance": "0x02",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa31507300000000000000000000000000000000000000bb3160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "5223",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000002",
+        "tags": [
+          "discriminator"
+        ]
+      },
+      {
+        "name": "sload_of_a_cold_slot_costs_the_cold_price",
+        "comment": "COLD_SLOAD_COST is 2100 and is a different constant from the account one. The slot is unset, so the value returned is zero and the whole of this vector is the price.",
+        "ruleSet": "withEip2929",
+        "pre": {},
+        "code": "0x60005460005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2118",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "subject"
+        ]
+      },
+      {
+        "name": "sload_of_the_same_slot_twice_pays_cold_then_warm",
+        "comment": "The storage half of the warm rule. WARM_STORAGE_READ_COST is the SAME 100 the account path uses while the cold prices differ, so a build collapsing the two cold constants fails the first-touch vectors and still passes both of these.",
+        "ruleSet": "withEip2929",
+        "pre": {},
+        "code": "0x6000545060005460005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2223",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "subject",
+          "discriminator"
+        ]
+      },
+      {
+        "name": "sload_of_a_second_cold_slot_pays_the_cold_price_again",
+        "comment": "The storage mirror of the second-cold-account vector: warmth is per (address, slot) pair, not per account.",
+        "ruleSet": "withEip2929",
+        "pre": {},
+        "code": "0x6000545060015460005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "4223",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "discriminator"
+        ]
+      },
+      {
+        "name": "extcodehash_of_a_cold_account_costs_the_cold_price",
+        "comment": "The same 2600 reaches EXTCODEHASH, which `components/proposals/eip/eip-1052/` prices at 400 under its own adoption journal. Two suites, one opcode, and the rule set is what separates them -- which is the case for naming rule sets locally.",
+        "ruleSet": "withEip2929",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2618",
+        "outcome": "stopped",
+        "returnData": "0x309c67890bde4c575dc23d2cc3b5c3a3d599e312e980e9b61b5bc8f3cd87c8bb",
+        "tags": [
+          "subject"
+        ]
+      },
+      {
+        "name": "balance_of_a_cold_account_before_the_proposal",
+        "comment": "MINIMAL PAIR with the first vector, and a genuine one: the two rule sets differ by exactly one JSON key. EIP-1884 already priced BALANCE at a flat 700 here.",
+        "ruleSet": "withoutEip2929",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "718",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "tags": [
+          "minimal-pair"
+        ]
+      },
+      {
+        "name": "balance_of_the_same_account_twice_before_the_proposal",
+        "comment": "THE SHARPEST READING IN THE FILE. Without the proposal there is no warm discount, so the second access costs exactly what the first did. Against its counterpart above, that is the rule arriving.",
+        "ruleSet": "withoutEip2929",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa31507300000000000000000000000000000000000000aa3160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "1423",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "tags": [
+          "minimal-pair",
+          "discriminator"
+        ]
+      },
+      {
+        "name": "sload_of_the_same_slot_twice_before_the_proposal",
+        "comment": "The storage half of the same reading: a flat 800 twice, EIP-1884's price, with no discount for the repeat.",
+        "ruleSet": "withoutEip2929",
+        "pre": {},
+        "code": "0x6000545060005460005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "1623",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "minimal-pair"
+        ]
+      },
+      {
+        "name": "a_body_touching_no_account_is_unchanged_when_the_proposal_is_absent",
+        "comment": "CONTROL. Pure stack arithmetic through the same wrapper, touching no account and no slot.",
+        "ruleSet": "withoutEip2929",
+        "pre": {},
+        "code": "0x600160020160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "24",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000003",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "a_body_touching_no_account_is_unchanged_when_the_proposal_is_present",
+        "comment": "CONTROL, and this pair carries the attribution: the single JSON key separating the two rule sets reprices every state touch and leaves a body that touches nothing byte-identical.",
+        "ruleSet": "withEip2929",
+        "pre": {},
+        "code": "0x600160020160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "24",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000003",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "balance_of_a_precompile_is_warm_from_the_first_touch",
+        "comment": "The specification initialises `accessed_addresses` with every precompile, so the FIRST touch already pays the warm price. NOTE THE RULE SET: this is asserted at the whole upgrade and NOT under the minimal pair, because implementations disagree about which proposal owns the initialisation -- see `_info.theWarmUpIsAttributedDifferentlyByTwoImplementations`. Also note what this reaches that the EIP-1052 suite recorded as out of reach: a precompile is indistinguishable from an absent account BY VALUE, and distinguishable here BY COST.",
+        "ruleSet": "withEip2929InBerlin",
+        "pre": {},
+        "code": "0x7300000000000000000000000000000000000000013160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "118",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "subject",
+          "prewarmed"
+        ]
+      },
+      {
+        "name": "a_precompile_is_warm_while_an_ordinary_account_in_the_same_frame_is_cold",
+        "comment": "One body, both prices, so the comparison needs no second vector: the precompile pays warm on its first touch and the ordinary account pays cold on its first touch, in the same frame.",
+        "ruleSet": "withEip2929InBerlin",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x73000000000000000000000000000000000000000131507300000000000000000000000000000000000000aa3160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2723",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "tags": [
+          "discriminator",
+          "prewarmed"
+        ]
+      },
+      {
+        "name": "balance_of_the_executing_account_is_warm_from_the_first_touch",
+        "comment": "The transaction target is initialised warm too. Reached through ADDRESS, so this vector names no address and stays correct under a runner that deploys `code` elsewhere.",
+        "ruleSet": "withEip2929InBerlin",
+        "pre": {},
+        "code": "0x303160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "117",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "subject",
+          "prewarmed"
+        ]
+      },
+      {
+        "name": "balance_of_a_cold_account_when_the_whole_upgrade_is_adopted",
+        "comment": "The cold price under the journal the two FORK-NAME oracles can address. Identical to the minimal pair's figure, which is what lets an implementation sharing no code with the geth lineage corroborate it.",
+        "ruleSet": "withEip2929InBerlin",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2618",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "balance_of_the_same_account_twice_when_the_whole_upgrade_is_adopted",
+        "comment": "The cold-then-warm reading, corroborated the same way.",
+        "ruleSet": "withEip2929InBerlin",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa31507300000000000000000000000000000000000000aa3160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2723",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000001",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "balance_of_a_second_cold_account_when_the_whole_upgrade_is_adopted",
+        "comment": "The per-address discriminator, corroborated -- the one most likely to separate a build that tracks warmth as a flag rather than as a set.",
+        "ruleSet": "withEip2929InBerlin",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000bb": {
+            "balance": "0x02",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa31507300000000000000000000000000000000000000bb3160005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "5223",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000002",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "sload_of_the_same_slot_twice_when_the_whole_upgrade_is_adopted",
+        "comment": "The storage half, corroborated.",
+        "ruleSet": "withEip2929InBerlin",
+        "pre": {},
+        "code": "0x6000545060005460005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2223",
+        "outcome": "stopped",
+        "returnData": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "extcodehash_of_a_cold_account_when_the_whole_upgrade_is_adopted",
+        "comment": "The EXTCODEHASH repricing, corroborated.",
+        "ruleSet": "withEip2929InBerlin",
+        "pre": {
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x01",
+            "nonce": "0x00",
+            "code": "0x6001",
+            "storage": {}
+          }
+        },
+        "code": "0x7300000000000000000000000000000000000000aa3f60005260206000f3",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "2618",
+        "outcome": "stopped",
+        "returnData": "0x309c67890bde4c575dc23d2cc3b5c3a3d599e312e980e9b61b5bc8f3cd87c8bb",
+        "tags": [
+          "corroboration"
+        ]
+      },
+      {
+        "name": "stop_costs_nothing_at_every_rule_set",
+        "comment": "CALIBRATION. The gas field can report zero, so a zero elsewhere is a measurement rather than a probe that never ran.",
+        "ruleSet": "withEip2929",
+        "pre": {},
+        "code": "0x00",
+        "callData": "0x",
+        "callValue": "0",
+        "gasBudget": "1000000",
+        "gasUsed": "0",
+        "outcome": "stopped",
+        "returnData": "0x",
+        "tags": [
+          "calibration"
+        ]
+      }
+    ]
+  }
+}
