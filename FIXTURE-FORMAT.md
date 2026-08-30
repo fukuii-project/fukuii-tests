@@ -1630,6 +1630,109 @@ indistinguishable from an absent account *by value*, which is why that file decl
 Under this rule it is distinguishable *by cost* — pre-warmed at 100 where an ordinary cold account
 pays 2600. Same seam, same address: the earlier note is about that subject, not about the shape.
 
+## transaction-gas vectors (`components/proposals/<series>/<proposal>/txgas/`)
+
+**Specified here.** One signed transaction against a stated pre-state, under a rule set the fixture
+names and defines itself, asserting **what the receipt reports** — the gas it consumed and its
+status.
+
+**This shape exists because the gas-and-outcome shape is frame-level and some rules are not.**
+Intrinsic gas, calldata pricing, the access-list term and transaction-level refund capping are all
+charged *around* an invocation, before or after any opcode runs. That section already refused to
+stretch to them — *"a fixture stating a `gasBudget` and a `code` and silently meaning a whole
+transaction is asserting something its own fields do not describe"* — and this is the shape it was
+pointing at. The two share the `ruleSets` idea and nothing else.
+
+### Upstream has the concept and publishes no format
+
+`ethereum/execution-spec-tests` models exactly this assertion: `Transaction.expected_receipt`, a
+`TransactionReceipt` carrying `gas_used`, compared against the transition tool's output. **It is
+declared `Field(None, exclude=True)`** — deliberately excluded from serialization — so it never
+reaches an exported fixture, and no upstream fixture JSON carries it. A consumer of upstream
+fixtures therefore never sees a transaction's gas figure, which is the same gap the frame-level
+shape found for gas. **Follow EEST's naming rather than inventing one**; what is new here is
+publishing it.
+
+### The schema
+
+```jsonc
+{
+  "<proposal><Subject>": {                    // e.g. eip2028CalldataGasAndReceipt
+    "_info": { },
+    "transactionContext": {                   // what every vector's transaction shares
+      "type": "legacy", "replayProtected": true,
+      "gasLimit": "100000", "gasPrice": "1000000000", "nonce": "0", "value": "0"
+    },
+    "ruleSets": { "withoutEip2028": { "proposals": [ … ], "generatedWith": { … } } },
+    "vectors": [
+      { "name": "…", "comment": "…",
+        "ruleSet":  "withEip2028InIstanbul",
+        "pre": { "0x…": { "balance": "0x…", "nonce": "0x…", "code": "0x", "storage": { } } },
+        "transaction": {                      // the READABLE decoding of `txbytes`
+          "to": "0x…", "data": "0x…", "value": "0",
+          "gasLimit": "100000", "gasPrice": "1000000000", "nonce": "0"
+        },
+        "txbytes":  "0x…",                    // THE AUTHORITY — execute these bytes
+        "gasUsed":  "21160",                  // what the RECEIPT reports
+        "status":   "1",                      // 1 success, 0 failure
+        "tags":     [ "subject" ] }
+    ]
+  }
+}
+```
+
+| field | required | says |
+|---|---|---|
+| `ruleSet` | yes | a key of this file's `ruleSets`, resolved **here** and never in a schedule |
+| `pre` | yes | the same object as everywhere else in this corpus. It must fund the sender |
+| `transaction` | yes | the decoded transaction — readable, and **not** the authority |
+| `txbytes` | yes | the signed transaction. **Execute these bytes**; do not re-sign from the fields |
+| `gasUsed` | yes | the receipt's gas, which is intrinsic gas plus whatever execution occurred |
+| `status` | yes | the receipt's status — `"1"` success, `"0"` failure |
+| `tags` | no | free-form; a reader must not depend on one |
+
+**`txbytes` is the authority, and no signing key is published.** The sender is recoverable from the
+signature, so a consumer needs no key to run the file — the same rule this document already states
+for `state/`'s `txbytes`. It also makes the cross-implementation check stronger than the frame-level
+shape can manage: **both oracles execute the same bytes**, so an agreement is not two tools encoding
+one description the same way.
+
+**A replay-protected signature commits to a chain id and that is not a network dependency.** The
+bytes carry one; intrinsic gas does not depend on it. A consumer running them under a different
+chain id gets a *signature failure*, which is loud, rather than a different number, which would not
+be.
+
+### This seam has NO minimal pair, and that is the trade against the frame-level shape
+
+`evm run` takes a genesis **config**, so a per-proposal rule set is expressible and the two suites in
+the gas-and-outcome shape have genuine minimal pairs. **`t8n` and an RPC node both take a fork
+NAME** — `--state.fork` and `--hardfork` are the only rule-set controls either exposes, and neither
+accepts a config fragment. So the smallest step available here is a whole upgrade.
+
+A suite in this shape therefore owes the two things the older form owes — a control across the same
+step, and evidence its transactions cannot reach the step's other members — and for a
+transaction-level subject the second is available in a **stronger** form than a bytecode walk:
+**send to an account whose `pre` states `"code": "0x"`, and execution never begins.** No opcode
+runs, so no in-frame proposal in that upgrade can be reached at all, and the receipt's gas is the
+intrinsic gas alone.
+
+### `eip2028CalldataGasAndReceipt` — the first suite in this shape
+
+Its subject is two sentences long — *"The gas per non-zero byte is reduced from 68 to 16. Gas cost of
+zero bytes is unchanged."* — and **the second sentence is the control**, asserted as a pair that must
+be byte-identical across the step. A control the specification itself publishes is better evidence
+than one an author chose.
+
+Its attribution is the codeless-target argument above: Istanbul's other five members (EIP-152,
+EIP-1108, EIP-1344, EIP-1884, EIP-2200) all act inside the frame, and no transaction in the file
+begins execution.
+
+> **One contrast with the frame-level suites, recorded so it is not misread.** No vector here
+> survives every wrong build — the base-price defect reaches all ten, because every figure sits on
+> the same 21000. That is a property of intrinsic gas having one common term, **not** evidence that
+> the frame-level suites are under-covered: there, a control surviving every defect is exactly what
+> a control is for.
+
 ---
 
 ## consensus-mechanism vectors (`consensus-algorithms/`, and `consensus/` under a network)
