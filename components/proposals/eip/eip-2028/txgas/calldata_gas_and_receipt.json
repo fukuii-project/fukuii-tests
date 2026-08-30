@@ -1,0 +1,448 @@
+{
+  "eip2028CalldataGasAndReceipt": {
+    "_info": {
+      "comment": "EIP-2028's calldata pricing as a pure function of its inputs: a stated rule set, a stated pre-state and a signed transaction go in; the gas the RECEIPT reports and its status come out. THE FIRST SUITE IN THE TRANSACTION-GAS SHAPE. The gas-and-outcome shape is frame-level and structurally cannot reach this rule -- intrinsic gas is charged around an invocation, before any opcode runs, so no `gasBudget` and `code` pair can express it.",
+      "whyThisNeededAShapeOfItsOwnRatherThanAWiderSchema": "`FIXTURE-FORMAT.md`'s gas-and-outcome section already refused to stretch: 'a fixture stating a gasBudget and a code and silently meaning a whole transaction is asserting something its own fields do not describe.' This shape states a TRANSACTION and asserts a RECEIPT, and the two shapes share their `ruleSets` idea and nothing else.",
+      "whatUpstreamHasAndWhatItDoesNotPUBLISH": "The concept is not invented here and the format is. ethereum/execution-spec-tests models exactly this assertion -- `Transaction.expected_receipt`, a `TransactionReceipt` carrying `gas_used`, checked against the transition tool at fill time. It is declared `Field(None, exclude=True)`, so it is DELIBERATELY EXCLUDED FROM SERIALISATION and reaches no exported fixture; no upstream fixture JSON carries it. So a consumer of upstream fixtures never sees a transaction's gas figure, exactly as the frame-level case found for gas. The field naming here follows theirs rather than inventing a vocabulary.",
+      "thereIsNoMINIMALPAIRatTHISSEAMandTHATisTHESEAMSLIMIT": "Stated plainly because the two frame-level suites in this corpus DO have one and a reader will expect it. `evm t8n` and an RPC node both take a fork NAME -- neither `evm t8n` nor `evm t8n` in the per-proposal lineage accepts a chain-config fragment, and `--state.fork` is the only rule-set control either exposes. So the smallest step available here is a whole upgrade, and this file cannot enforce the attribution its own filing claims by construction the way `eip1052` and `eip2929` can.",
+      "theATTRIBUTIONinsteadRESTSonTHETRANSACTIONRUNNINGNOCODEATALL": "And that is a STRONGER argument than the bytecode walk the first suite in the other shape used, not a weaker one. Every transaction here targets an account whose `pre` entry states `\"code\": \"0x\"`, so execution never begins: no opcode runs, and the receipt's gasUsed IS the intrinsic gas. Istanbul's other members are EIP-152 (a precompile), EIP-1108 (precompile repricing), EIP-1344 (an opcode), EIP-1884 (opcode repricing) and EIP-2200 (an opcode). NONE of them can be reached by a transaction that executes nothing. EIP-2028 is the only member of that step that acts before execution.",
+      "theCONTROLisPUBLISHEDbyTHESPECIFICATION": "EIP-2028's specification is two sentences: 'The gas per non-zero byte is reduced from 68 to 16. Gas cost of zero bytes is unchanged.' THE SECOND SENTENCE IS THE CONTROL, and this file asserts it as a pair -- `a_zero_byte_costs_four_before_the_proposal` and `a_zero_byte_still_costs_four_after_the_proposal` are byte-identical across the step. A control the specification itself states is better evidence than one a fixture author chose.",
+      "oracle": "ethereum/go-ethereum's `evm t8n`, EXECUTED, reporting the receipt's gasUsed and status. THIS KEY IS NOT THE WHOLE PROVENANCE -- see crossImplementation, independentTranscription and theCONTROLisPUBLISHEDbyTHESPECIFICATION.",
+      "oracle-version": "reference-material/ethereum/go-ethereum at e9e35a42f (branch master), reporting 1.17.6-unstable-e9e35a42-20260826. Third-party upstream work -- never fukuii, and never a repo under work/repos/, which on this machine is the maintainer's own.",
+      "crossImplementation": "Foundry's anvil, EXECUTED, 1.5.1-stable -- the revm engine, Rust, sharing no code with the geth lineage. 10 of 10 gasUsed and 10 of 10 status agree. AND THE CROSS-CHECK IS STRONGER HERE THAN IN THE FRAME-LEVEL SUITES: both seams executed THE SAME SIGNED BYTES. Each vector's transaction was signed once and published to both, so an agreement cannot be two tools encoding one description the same way, and a disagreement could not have been an artefact of two different encodings. The bytes are in the fixture as `txbytes`.",
+      "independentTranscription": "Every figure was computed a third time in Python from the specifications: EIP-2028's two constants and the Yellow Paper's G_transaction 21000, G_txdatazero 4 and G_txdatanonzero 68. 10 of 10 agree. The transcription is four lines because intrinsic gas for a call to a codeless account has no other term -- which is itself evidence these vectors isolate the rule rather than a composite. CALIBRATED: pricing the post-adoption non-zero byte at 17 or at 68 makes it disagree on 3 vectors, and repricing the zero byte to 16 makes it disagree on 4, including both halves of the specification's own control.",
+      "txbytesISTHEAUTHORITY": "Each vector carries the signed transaction it was generated from, and a consumer should execute those bytes rather than re-signing from the decoded fields -- the same rule this corpus already states for `state/`'s `txbytes`. The `transaction` block is the readable decoding of the same thing. NO SIGNING KEY IS PUBLISHED: the sender is recoverable from the signature, and a consumer needs no key to run this file.",
+      "theCHAINIDinTHESIGNATUREisNOTANINPUTtoANYASSERTEDVALUE": "A replay-protected signature commits to a chain id, so these bytes carry one -- which looks network-scoped in a component fixture and is not. Intrinsic gas is a function of the payload bytes and the base cost; the chain id reaches only signature validity. A consumer running these bytes under a different chain id gets a signature failure, not a different gas figure, which is a loud failure rather than a wrong number.",
+      "generated": "2026-08-30",
+      "wrongBuildMethod": "Five defects were introduced into go-ethereum's IntrinsicGas one at a time, each confirmed to change the source and to compile, with the unmodified build as a control. THE REFERENCE CLONE WAS NEVER MUTATED: every defect is a `go build -overlay` replacement of one file, and `git status --porcelain` in the clone returned zero lines afterwards. A patch whose anchor is not found, or which matches more than once, RAISES rather than building an unchanged binary. go-ethereum is wrong-built rather than the per-proposal lineage because the per-proposal configuration is unreachable at this seam, which is the same limit recorded above.",
+      "wrongBuildScores": {
+        "control": "Unmodified go-ethereum at e9e35a42f: 10/10 pass.",
+        "a_non_zero_byte_keeps_the_pre_adoption_price": "7/10 -- The repricing never takes effect. Fails exactly the three post-adoption vectors carrying a non-zero byte, and correctly leaves every pre-adoption reading and both zero-byte readings alone.",
+        "the_proposal_is_active_before_it_was_adopted": "7/10 -- The repricing applies unconditionally. THIS IS THE SCORE THAT MAKES THE RULE-SET FIELD LOAD-BEARING: a fixture asserting only post-adoption figures would not move, and this file catches it because the same payloads are asserted under two stated journals.",
+        "a_zero_byte_is_repriced_alongside_the_non_zero_one": "6/10 -- Zero bytes are charged at whatever the non-zero byte costs. THIS IS THE DEFECT THE SPECIFICATION'S SECOND SENTENCE EXISTS TO FORBID, and it is caught by both halves of the control pair plus both mixed payloads -- at BOTH rule sets, because the defect is wrong before adoption too.",
+        "a_zero_byte_is_not_charged_at_all": "6/10 -- Zero bytes are free. The mirror of the defect above, and between them they bracket the zero byte's price from both sides rather than only asserting it once.",
+        "the_base_transaction_price_is_wrong": "0/10 -- The 21000 every vector sits on top of is off by 8. Fails all ten, INCLUDING THE CONTROLS -- which is a real difference from the frame-level suites, where a control survives every defect. Here the base price is common to every figure, so no vector is immune to it. The controls still do their job, which is to be identical ACROSS THE STEP: they are, under this defect too."
+      },
+      "everyVectorIsCaughtByAtLeastOneDefect": "Unlike the two frame-level suites, no vector here survives every defect -- the base-price defect reaches all ten. That is a property of intrinsic gas having one common term rather than of this file being better covered, and it is recorded so the contrast is not read as the frame-level suites having gaps: there, a control surviving every defect is exactly what a control is for.",
+      "whatThisShapeDoesNotREACH": "The refund cap -- EIP-3529 changes what a receipt reports for a refunding transaction, and a faithful vector needs a body that refunds, which is a different subject. The access-list term -- EIP-2930 prices list entries into intrinsic gas and needs a typed transaction, which this file's legacy signing path does not build; `cast mktx --access-list` can, and that is the next suite. And anything inside the frame, which is the gas-and-outcome shape's."
+    },
+    "transactionContext": {
+      "comment": "What every vector's transaction holds in common. Stated because it is not derivable from the vectors and a reader guessing differently gets different gas.",
+      "type": "legacy",
+      "replayProtected": true,
+      "gasLimit": "100000",
+      "gasPrice": "1000000000",
+      "nonce": "0",
+      "value": "0",
+      "theTARGETisCODELESSandTHATisLOADBEARING": "Every transaction goes to an account whose `pre` entry states `\"code\": \"0x\"`, so execution never begins and the receipt's gasUsed is the intrinsic gas alone. Point one at a funded contract and this file stops measuring EIP-2028.",
+      "theSENDERisFUNDEDinPre": "A transaction needs its sender to afford gasLimit * gasPrice, so `pre` funds it. That balance is not an input to any asserted value; it is a precondition for the transaction being executed at all."
+    },
+    "ruleSets": {
+      "withoutEip2028": {
+        "comment": "The journal WITHOUT the proposal. Both seams address it and agree.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658",
+          "EIP-145",
+          "EIP-1014",
+          "EIP-1052",
+          "EIP-1234"
+        ],
+        "generatedWith": {
+          "go-ethereum": "evm t8n --state.fork=ConstantinopleFix, which is go-ethereum's own name for the Petersburg rule set -- `Petersburg` is NOT an accepted value and is rejected loudly",
+          "anvil": "anvil --hardfork petersburg"
+        }
+      },
+      "withEip2028InIstanbul": {
+        "comment": "The proposal reached through the upgrade that carried it, which is the only route either seam has -- see `_info.thereIsNoMINIMALPAIRatTHISSEAMandTHATisTHESEAMSLIMIT`.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658",
+          "EIP-145",
+          "EIP-1014",
+          "EIP-1052",
+          "EIP-1234",
+          "EIP-152",
+          "EIP-1108",
+          "EIP-1344",
+          "EIP-1884",
+          "EIP-2028",
+          "EIP-2200"
+        ],
+        "generatedWith": {
+          "go-ethereum": "evm t8n --state.fork=Istanbul",
+          "anvil": "anvil --hardfork istanbul"
+        },
+        "fiveOfTheseSixCannotBeReachedByAnyVectorHere": "EIP-152, EIP-1108, EIP-1344, EIP-1884 and EIP-2200 all act inside the frame, and no transaction here begins execution -- see `_info.theATTRIBUTIONinsteadRESTSonTHETRANSACTIONRUNNINGNOCODEATALL`."
+      }
+    },
+    "vectors": [
+      {
+        "name": "an_empty_payload_costs_the_base_price_before_the_proposal",
+        "comment": "CONTROL. No calldata, so no per-byte term exists to reprice, and the receipt is the bare 21000 this shape's whole subject sits on top of.",
+        "ruleSet": "withoutEip2028",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86480843b9aca00830186a09400000000000000000000000000000000000000aa808025a0f731777055a424acca5ab45aa6065c307d7eb713870894271acd2ee07daddea3a069872253743188d63034e3818418a9629913d5ec6f1f37520d4fb90af6880c14",
+        "gasUsed": "21000",
+        "status": "1",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "an_empty_payload_costs_the_base_price_after_the_proposal",
+        "comment": "CONTROL, paired with the vector above. The proposal does not touch the base price.",
+        "ruleSet": "withEip2028InIstanbul",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86480843b9aca00830186a09400000000000000000000000000000000000000aa808025a0f731777055a424acca5ab45aa6065c307d7eb713870894271acd2ee07daddea3a069872253743188d63034e3818418a9629913d5ec6f1f37520d4fb90af6880c14",
+        "gasUsed": "21000",
+        "status": "1",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "a_zero_byte_costs_four_before_the_proposal",
+        "comment": "THE CONTROL THE SPECIFICATION ITSELF PUBLISHES: 'Gas cost of zero bytes is unchanged.' Ten zero bytes at 4 each.",
+        "ruleSet": "withoutEip2028",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x00000000000000000000",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86e80843b9aca00830186a09400000000000000000000000000000000000000aa808a0000000000000000000026a0b0813d779e3fbba7251af5b6b05b5e1619ac9d426654899858c97dd2fd8dc1faa05552e9b7daf496f53c3836d68942e5c0ca7fa1f4cfb74b0ade304abc4be3b87b",
+        "gasUsed": "21040",
+        "status": "1",
+        "tags": [
+          "control",
+          "attribution",
+          "spec-published-control"
+        ]
+      },
+      {
+        "name": "a_zero_byte_still_costs_four_after_the_proposal",
+        "comment": "The other half of that control, and the pair is what carries the attribution here: the step that moves the non-zero price leaves this reading byte-identical, so the difference the subject vectors measure is EIP-2028 and not another member of the same upgrade.",
+        "ruleSet": "withEip2028InIstanbul",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x00000000000000000000",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86e80843b9aca00830186a09400000000000000000000000000000000000000aa808a0000000000000000000026a0b0813d779e3fbba7251af5b6b05b5e1619ac9d426654899858c97dd2fd8dc1faa05552e9b7daf496f53c3836d68942e5c0ca7fa1f4cfb74b0ade304abc4be3b87b",
+        "gasUsed": "21040",
+        "status": "1",
+        "tags": [
+          "control",
+          "attribution",
+          "spec-published-control"
+        ]
+      },
+      {
+        "name": "a_non_zero_byte_costs_sixty_eight_before_the_proposal",
+        "comment": "THE SUBJECT, first half. Ten non-zero bytes at the pre-adoption 68.",
+        "ruleSet": "withoutEip2028",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0xffffffffffffffffffff",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86e80843b9aca00830186a09400000000000000000000000000000000000000aa808affffffffffffffffffff25a009edbed9ebb78e0d47b98a213203120f6970261c055890f60af3c2eeaa296267a024067e21927b3c37364119ebe20d0bdc7fd8f17a4105bd0faa5e947c6539d08f",
+        "gasUsed": "21680",
+        "status": "1",
+        "tags": [
+          "subject",
+          "minimal-pair"
+        ]
+      },
+      {
+        "name": "a_non_zero_byte_costs_sixteen_after_the_proposal",
+        "comment": "THE SUBJECT, second half, and the whole of the proposal's rule. The difference from the vector above is exactly ten times the 52 the specification's two constants differ by.",
+        "ruleSet": "withEip2028InIstanbul",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0xffffffffffffffffffff",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86e80843b9aca00830186a09400000000000000000000000000000000000000aa808affffffffffffffffffff25a009edbed9ebb78e0d47b98a213203120f6970261c055890f60af3c2eeaa296267a024067e21927b3c37364119ebe20d0bdc7fd8f17a4105bd0faa5e947c6539d08f",
+        "gasUsed": "21160",
+        "status": "1",
+        "tags": [
+          "subject",
+          "minimal-pair"
+        ]
+      },
+      {
+        "name": "a_single_non_zero_byte_before_the_proposal",
+        "comment": "DISCRIMINATOR on the per-byte arithmetic rather than on a lump: one byte, so the whole per-byte term is a single 68 and a build that mispriced the term by a factor still fails.",
+        "ruleSet": "withoutEip2028",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0xff",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000000aa8081ff25a0adc249b52cd9cab1432e69db00a13e33ba1950701f1d5ae3f388bf448ddf1e04a0329099bba7032665cc93582343e9380a5c86c724d204358bb225847a2cb0bba3",
+        "gasUsed": "21068",
+        "status": "1",
+        "tags": [
+          "discriminator"
+        ]
+      },
+      {
+        "name": "a_single_non_zero_byte_after_the_proposal",
+        "comment": "The same reading after adoption: a single 16. Together with the ten-byte pair this fixes both the coefficient and its multiplier, which one length alone cannot.",
+        "ruleSet": "withEip2028InIstanbul",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0xff",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86580843b9aca00830186a09400000000000000000000000000000000000000aa8081ff25a0adc249b52cd9cab1432e69db00a13e33ba1950701f1d5ae3f388bf448ddf1e04a0329099bba7032665cc93582343e9380a5c86c724d204358bb225847a2cb0bba3",
+        "gasUsed": "21016",
+        "status": "1",
+        "tags": [
+          "discriminator"
+        ]
+      },
+      {
+        "name": "a_mixed_payload_prices_each_byte_by_its_own_value_before_the_proposal",
+        "comment": "DISCRIMINATOR against a build that prices a payload by its length rather than byte by byte: five non-zero and five zero bytes, interleaved.",
+        "ruleSet": "withoutEip2028",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0xff00ff00ff00ff00ff00",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86e80843b9aca00830186a09400000000000000000000000000000000000000aa808aff00ff00ff00ff00ff0026a0cd3c726cf3f982863c52a3e2dfdaeaf9d125465ed0bcf6199f2dcc91f962dcc3a0302b88e3a0b8c681ad87fbc8fe50058b707611c9eb81a6aa3fcc3e1d842f7246",
+        "gasUsed": "21360",
+        "status": "1",
+        "tags": [
+          "discriminator"
+        ]
+      },
+      {
+        "name": "a_mixed_payload_prices_each_byte_by_its_own_value_after_the_proposal",
+        "comment": "The same payload after adoption. Only the five non-zero bytes move, which is the sharpest single reading in the file: one payload, one step, and exactly half of it repriced.",
+        "ruleSet": "withEip2028InIstanbul",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0xff00ff00ff00ff00ff00",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86e80843b9aca00830186a09400000000000000000000000000000000000000aa808aff00ff00ff00ff00ff0026a0cd3c726cf3f982863c52a3e2dfdaeaf9d125465ed0bcf6199f2dcc91f962dcc3a0302b88e3a0b8c681ad87fbc8fe50058b707611c9eb81a6aa3fcc3e1d842f7246",
+        "gasUsed": "21100",
+        "status": "1",
+        "tags": [
+          "discriminator"
+        ]
+      }
+    ]
+  }
+}
