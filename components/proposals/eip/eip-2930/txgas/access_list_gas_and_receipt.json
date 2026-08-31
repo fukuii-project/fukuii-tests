@@ -1,0 +1,696 @@
+{
+  "eip2930AccessListGasAndReceipt": {
+    "_info": {
+      "comment": "EIP-2930's access-list intrinsic-gas term as a pure function of its inputs: a stated rule set, a stated pre-state and a signed transaction go in; the gas the RECEIPT reports and its status come out. THE SECOND SUITE IN THE TRANSACTION-GAS SHAPE, and the first anywhere in this corpus to use a TYPED transaction.",
+      "whichHALFofEIP2930thisASSERTS": "THE INTRINSIC-GAS HALF, NOT THE WARM-UP, and the distinction is load-bearing because this corpus already publishes a finding about the other half. EIP-2930 does two things: it prices access-list entries into intrinsic gas, and it seeds EIP-2929's accessed_addresses and accessed_storage_keys sets. THIS FILE ASSERTS ONLY THE FIRST. `components/proposals/eip/eip-2929/gas/cold_and_warm_access.json` records that core-geth gates the warm-up of sender, target and precompiles on EIP-2930's activation key while the specification and Nethermind put it on EIP-2929's. THAT DISPUTE CANNOT TOUCH THIS FILE: the warm-up is observable only through an executing opcode, and no vector here executes one. A reader meeting both files should not conclude that one of them is wrong -- they asserts different halves of the same proposal, at different seams.",
+      "whyThisNeededTheTRANSACTIONGASshapeANDnotTHEFRAMELEVELone": "The charge is levied at the beginning of execution, before any opcode runs -- the specification says so in as many words: 'At the beginning of execution (ie. at the same time as the 21000 + 4 * zeroes + 16 * nonzeroes start gas is charged according to EIP-2028 rules)'. So no `gasBudget` and `code` pair can express it, which is the same limit that produced this shape for EIP-2028.",
+      "theSPECIFICATIONpublishesITSOWNCONSTANTSandONEWORKEDEXAMPLE": "EIP-2930 states ACCESS_LIST_ADDRESS_COST 2400 and ACCESS_LIST_STORAGE_KEY_COST 1900 in a table of its own, and every figure in this file reconstructs from those two plus the base and calldata terms the EIP itself quotes. NO CLIENT WAS CONSULTED FOR A CONSTANT. It also prints ONE worked example -- a two-address, two-key list it says 'would be charged ACCESS_LIST_ADDRESS_COST * 2 + ACCESS_LIST_STORAGE_KEY_COST * 2 gas' -- and `the_specifications_own_worked_example` is that list, with its LITERAL addresses and storage keys rather than placeholders of the same shape.",
+      "theCONTROLtheOBVIOUSDESIGNwouldREACHforDOESnotEXIST": "The natural control for this subject is a typed transaction carrying an EMPTY access list, asserted unchanged across the step. IT CANNOT BE BUILT: measured on both seams, EVERY type-1 transaction is REJECTED at Istanbul -- `evm t8n` answers 'transaction type not supported' and anvil answers 'Access list received but is not supported by the current hardfork'. The before-side of this step is legacy-only. Two replacements, both from the specification. ACROSS THE STEP: a LEGACY transaction, byte-identical gas at Istanbul and Berlin, which is the only control the step admits. WITHIN BERLIN: an empty access list costs exactly what the legacy transaction costs, which is the specification's own formula evaluated at zero entries. THE SECOND IS THE SHARPER OF THE TWO -- it separates EIP-2718's envelope from EIP-2930's charge, and the cross-step control structurally cannot.",
+      "theATTRIBUTIONisWEAKERthanTHEEIP2028suitesANDthatISSTATED": "The codeless-target argument transfers: every transaction here targets an account whose `pre` states `\"code\": \"0x\"`, so execution never begins and the receipt's gasUsed is the intrinsic gas alone. MEASURED, not assumed -- the empty-list vector reads exactly 21000. BUT BERLIN IS NOT ISTANBUL. Of Berlin's four members, EIP-2565 (a precompile repricing) and EIP-2929 (state-access opcode repricing) are unreachable for the usual reason -- no opcode runs and no precompile is called. EIP-2718 IS REACHABLE BY CONSTRUCTION: a type-1 transaction cannot exist without the typed envelope it introduces, and ten of these fourteen vectors are type-1. So this file claims TWO OF FOUR unreachable, not the clean five of six the EIP-2028 file claims. The envelope's contribution is nonetheless bounded and measured: it is ZERO, which is what `an_empty_access_list_costs_nothing_beyond_the_base_price` establishes.",
+      "theRULESETfieldISLOADBEARINGdifferentlyHEREthanINEIP2028": "Stated because a reader who knows the first suite in this shape will expect the other pattern. There, the same payload under two rule sets yields two DIFFERENT numbers. Here it yields the SAME number for the legacy bytes -- an INVARIANCE claim, that the step introducing the access-list term moves nothing for a transaction that does not carry one -- and the typed vectors are expressible at only ONE rule set at all, which is an EXISTENCE claim. Both are real and neither is EIP-2028's shape.",
+      "oracle": "ethereum/go-ethereum's `evm t8n`, EXECUTED, reporting the receipt's gasUsed and status. THIS KEY IS NOT THE WHOLE PROVENANCE -- see crossImplementation, independentTranscription and theSPECIFICATIONpublishesITSOWNCONSTANTSandONEWORKEDEXAMPLE.",
+      "oracle-version": "reference-material/ethereum/go-ethereum at e9e35a42f (branch master), reporting 1.17.6-unstable-e9e35a42-20260826. Third-party upstream work -- never fukuii, and never a repo under work/repos/, which on this machine is the maintainer's own.",
+      "crossImplementation": "Foundry's anvil, EXECUTED, 1.5.1-stable -- the revm engine, Rust, sharing no code with the geth lineage. 14 of 14 gasUsed and 14 of 14 status agree. BOTH SEAMS EXECUTED THE SAME SIGNED BYTES: each transaction was signed once and fed to both, so an agreement cannot be two tools encoding one description the same way. The two also agree on what they REFUSE -- both reject every type-1 transaction at Istanbul, in independently worded errors -- though this shape cannot assert that; see theSHAPEcannotASSERTaREJECTEDtransaction.",
+      "independentTranscription": "Every figure was computed a third time in Python from EIP-2930's own text: its two published constants, its statement that the charge is 'per address' and 'per storage key', its rule that non-unique entries 'will be charged for multiple times', its rule that the list is 'NOT charged per-byte fees like tx data is', and the 21000 + 4*zeroes + 16*nonzeroes formula it quotes. 14 of 14 agree. CALIBRATED IN BOTH DIRECTIONS: ten separate perturbations were each confirmed to make it DISAGREE -- perturbing the address cost by one disagrees on 9 of 14, the key cost by one on 4 of 14, the base by eight on 14 of 14, de-duplicating entries on 2 of 14, and charging the list per byte on 9 of 14 -- and the unperturbed transcription disagrees on 0 of 14. A transcription that cannot disagree is not a check.",
+      "theRLPwrappingOFaTYPEDtransactionISNOTtheLEGACYone": "Consumer-relevant, and it cost the authoring session real time. `txbytes` is the authority here as everywhere in this corpus, but a typed transaction is not spliced into a block's transaction list the way a legacy one is: a legacy transaction is already an RLP LIST and goes in directly, while a typed transaction is `0x01 || rlp([...])`, which is not RLP at all and must be wrapped as an RLP BYTE STRING first. THE TWO ENCODINGS ARE MUTUALLY EXCLUSIVE AND THIS FILE CARRIES BOTH FORMS, so a consumer feeding these bytes to a transition tool must choose the wrapping from each transaction's own leading byte. Getting it backwards is not symmetric: a legacy transaction under the typed wrapping is rejected loudly, while a typed transaction under the legacy wrapping makes go-ethereum walk the payload byte by byte and emit roughly 7.7 MILLION 'typed transaction too short' warnings before exiting 0.",
+      "anACCESSLISTENTRYneedNOTNAMEanEXISTINGaccount": "`pre` names the sender and the target and nothing else, while the listed addresses are the specification's own example addresses, which no `pre` entry funds. They are charged the same 2400 as `an_access_list_naming_the_transactions_own_target`, whose address IS in `pre`. So the charge is per ENTRY and depends on neither the account's existence nor which address it is -- and a consumer must not add the listed addresses to `pre` to make this file run.",
+      "txbytesISTHEAUTHORITY": "Each vector carries the signed transaction it was generated from, and a consumer should execute those bytes rather than re-signing from the decoded fields -- the same rule this corpus already states for `state/`'s `txbytes`. The `transaction` block is the readable decoding of the same thing. NO SIGNING KEY IS PUBLISHED: the sender is recoverable from the signature, and a consumer needs no key to run this file.",
+      "theCHAINIDinTHESIGNATUREisNOTANINPUTtoANYASSERTEDVALUE": "Both transaction forms here commit to a chain id -- the legacy ones through EIP-155 replay protection, the typed ones through the `chainId` field EIP-2930's payload carries outright. That looks network-scoped in a component fixture and is not: intrinsic gas is a function of the payload bytes, the access-list entry counts and the base cost, and the chain id reaches only signature validity. A consumer running these bytes under a different chain id gets a signature failure, not a different gas figure, which is a loud failure rather than a wrong number.",
+      "generated": "2026-08-30",
+      "wrongBuildMethod": "Nine defects were introduced into go-ethereum's IntrinsicGas one at a time, each confirmed to change the source and to compile, with the unmodified build as a control. THE REFERENCE CLONE WAS NEVER MUTATED: every defect is a `go build -overlay` replacement of one file, and `git status --porcelain --untracked-files=no` in the clone returned zero lines afterwards -- checked with an instrument calibrated to report a change when one exists. A patch whose anchor is not found, or which matches more than once, RAISES rather than building an unchanged binary. THE MULTIPLE-MATCH GUARD EARNED ITS PLACE HERE: `gas += addresses * addressCost` occurs TWICE in the function, once in the Berlin-era block and once in EIP-7981's Amsterdam block which shadows both cost variables with consts of the same names, so the charging block had to be anchored whole.",
+      "wrongBuildScores": {
+        "control": "Unmodified go-ethereum at e9e35a42f: 14/14 pass.",
+        "an_access_list_address_is_not_charged_at_all": "5/14, catching 9 vectors of which 1 are published-anchor -- ACCESS_LIST_ADDRESS_COST is never added. Fails every vector naming at least one address and correctly leaves the empty-list control, both legacy pairs and nothing else alone.",
+        "a_storage_key_is_not_charged_at_all": "10/14, catching 4 vectors of which 1 are published-anchor -- ACCESS_LIST_STORAGE_KEY_COST is never added. The mirror of the defect above on the other constant; between them they bracket the two published values from both sides.",
+        "the_two_published_constants_are_swapped": "7/14, catching 7 vectors of which 0 are published-anchor -- 2400 and 1900 exchange places. NOTE WHAT IT DOES NOT CATCH, which was predicted from the arithmetic and then confirmed by measurement: `one_address_and_one_storage_key` is UNCHANGED at 25300, because 2400 + 1900 is symmetric. The defect is caught only because the file also reads lists with zero keys and with two, which one address-and-key pair alone could not do.",
+        "a_storage_key_is_priced_at_the_address_cost": "10/14, catching 4 vectors of which 1 are published-anchor -- Half of the swap: keys are charged 2400. Caught by exactly the vectors carrying a key, which is the evidence that those vectors isolate the key term rather than the list as a whole.",
+        "the_access_list_is_charged_per_byte_like_calldata": "5/14, catching 9 vectors of which 1 are published-anchor -- Each address additionally charged for its 20 bytes and each key for its 32, at the calldata rate. THIS IS THE DEFECT THE SPECIFICATION'S OWN SENTENCE EXISTS TO FORBID -- 'The access list is NOT charged per-byte fees like tx data is.'",
+        "repeated_entries_are_de_duplicated_before_charging": "12/14, catching 2 vectors of which 0 are published-anchor -- Entries are collected into sets before charging. THE OTHER DEFECT THE SPECIFICATION FORBIDS IN ITS OWN WORDS -- 'non-unique addresses and storage keys are not disallowed, though they will be charged for multiple times.' Caught by EXACTLY the two duplicate vectors and nothing else, which is what those two exist for; without them this defect runs clean.",
+        "every_entry_is_charged_one_storage_key_however_many_it_names": "7/14, catching 7 vectors of which 0 are published-anchor -- The key count is read as the number of ENTRIES rather than the number of keys. Caught broadly, including by lists with no keys at all, which are over-charged.",
+        "an_address_the_transaction_already_names_is_not_charged": "13/14, catching 1 vectors of which 0 are published-anchor -- An entry naming the transaction's own target is skipped, on the plausible reasoning that it is warmed anyway. Caught by EXACTLY ONE VECTOR -- `an_access_list_naming_the_transactions_own_target` -- which is the only thing in this corpus standing between that defect and a clean run, and the reason that vector is in the file.",
+        "the_base_transaction_price_is_wrong": "0/14, catching 14 vectors of which 2 are published-anchor -- The 21000 every figure sits on top of is off by 8. Fails all fourteen, INCLUDING every control. Here the base price is common to every figure, so no vector is immune to it -- the same property the EIP-2028 suite recorded. The controls still do their job, which is to be identical ACROSS THE STEP: they are, under this defect too."
+      },
+      "whatTHEPUBLISHEDVALUESdoNOTreach": "Scored deliberately, because the suite landed immediately before this one found that three of its eight defects were caught by ZERO vectors anchored on published values -- a suite can look fully anchored and leave a third of its defect surface resting on vectors its author invented. EIP-2930 publishes ONE complete charge (its worked example) and the zero case implied by its formula, where EIP-2565 published a fifteen-row table, so the published-anchor subset here is 2 of 14 vectors. 4 of the nine defects are caught by NONE of it: an_address_the_transaction_already_names_is_not_charged, every_entry_is_charged_one_storage_key_however_many_it_names, repeated_entries_are_de_duplicated_before_charging, the_two_published_constants_are_swapped. Each rests entirely on vectors this suite authored -- the duplicate pairs, the zero-key and two-key readings, and the list naming the transaction's own target. That is not a weakness to fix by adding published vectors, because the specification publishes no more; it is the honest boundary of what its published values can certify.",
+      "whyTHESTANDARDactivationDEFECTisABSENT": "Both landed suites in this shape carry a `the_proposal_is_active_before_it_was_adopted` defect, and this one deliberately does not. It is not an oversight and it is not laziness: GO-ETHEREUM'S IntrinsicGas CONTAINS NO EIP-2930 ACTIVATION GATE AT ALL. The access-list charge is applied whenever the list is non-nil, and activation is enforced upstream, at transaction-type acceptance. Patching that acceptance so Istanbul admits a type-1 transaction moves NO vector here, because a REJECTED transaction produces no receipt and this shape asserts a receipt -- so the defect would be inert, and an inert defect scores full marks and reads exactly like a coverage gap. The rule-set field is carried instead by the two legacy control pairs and by the typed vectors being expressible at one rule set only; see theRULESETfieldISLOADBEARINGdifferentlyHEREthanINEIP2028.",
+      "theSHAPEcannotASSERTaREJECTEDtransaction": "A KNOWN GAP, recorded rather than worked around. The sharpest single observation available for this subject is that both seams REFUSE a type-1 transaction at Istanbul, in two independently worded errors -- which is direct evidence of where EIP-2930 activates. This shape cannot state it: `status` distinguishes a transaction that FAILED, which has a receipt, from one that succeeded, and a REJECTED transaction has no receipt at all. An `expectRejection` field would close it and is a change to the shape rather than to this suite, so it is not made here. The observation is recorded in this file's provenance and in the thread report; it is not asserted as a vector.",
+      "everyVectorIsCaughtByAtLeastOneDefect": "No vector survives all nine defects -- the base-price defect reaches all fourteen. That is a property of intrinsic gas having one common term rather than of this file being better covered than the frame-level suites, where a control surviving every defect is exactly what a control is for. Recorded so the contrast is not misread, exactly as the EIP-2028 suite recorded it.",
+      "whatThisFileDoesNotReach": "THE WARM-UP HALF of EIP-2930 -- the access list seeds EIP-2929's accessed sets, which is observable only through an executing opcode and belongs to the frame-level shape; it is also the subject of a live attribution dispute between implementations, recorded in the EIP-2929 suite. A LIST NAMING A PRECOMPILE -- charged the same 2400 at this seam, so a vector would be sound, but it sits one inference away from that dispute and a fixture inviting the confusion is worth less than none. CONTRACT CREATION with an access list, where the base term becomes TxGasContractCreation and, from Shanghai, an init-code word term joins it, so a vector would assert a composite. AMSTERDAM'S REPRICING of these same two constants to 2900 and 2000, plus EIP-7981's per-byte term -- visible in the same function, a legitimate future subject, and a different proposal's rule. And the rejection above, which the shape cannot express."
+    },
+    "transactionContext": {
+      "comment": "What every vector's transaction holds in common. Stated because it is not derivable from the vectors and a reader guessing differently gets different gas.",
+      "gasLimit": "100000",
+      "gasPrice": "1000000000",
+      "nonce": "0",
+      "value": "0",
+      "theTYPEisPERVECTORandNOTshared": "Unlike the EIP-2028 suite, this file carries BOTH transaction forms: `type` is `\"0\"` for the legacy controls and `\"1\"` for every vector carrying an access list. It has to -- the cross-step control cannot be typed, because a type-1 transaction does not exist at the earlier rule set. Each vector states its own.",
+      "theTARGETisCODELESSandTHATisLOADBEARING": "Every transaction goes to an account whose `pre` entry states `\"code\": \"0x\"`, so execution never begins and the receipt's gasUsed is the intrinsic gas alone. Point one at a funded contract and this file stops measuring EIP-2930's intrinsic term and starts measuring the warm-up, which is a different subject with a live attribution dispute.",
+      "theSENDERisFUNDEDinPre": "A transaction needs its sender to afford gasLimit * gasPrice, so `pre` funds it. That balance is not an input to any asserted value; it is a precondition for the transaction being executed at all."
+    },
+    "ruleSets": {
+      "withoutEip2930": {
+        "comment": "The journal WITHOUT the proposal -- Istanbul. Both seams address it and agree.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658",
+          "EIP-145",
+          "EIP-1014",
+          "EIP-1052",
+          "EIP-1234",
+          "EIP-152",
+          "EIP-1108",
+          "EIP-1344",
+          "EIP-1884",
+          "EIP-2028",
+          "EIP-2200"
+        ],
+        "generatedWith": {
+          "go-ethereum": "evm t8n --state.fork=Istanbul",
+          "anvil": "anvil --hardfork istanbul"
+        },
+        "onlyLEGACYtransactionsAREEXPRESSIBLEhere": "Not a choice this file made. A type-1 transaction cannot exist before EIP-2718 and EIP-2930, and BOTH seams reject one here -- measured, in independently worded errors. So this rule set carries the two legacy control pairs and nothing else, and that is a property of the step rather than a gap in the file."
+      },
+      "withEip2930InBerlin": {
+        "comment": "The proposal reached through the upgrade that carried it, which is the only route either seam has -- `evm t8n` and an RPC node both take a fork NAME, so there is no minimal pair at this seam.",
+        "proposals": [
+          "EIP-2",
+          "EIP-7",
+          "EIP-150",
+          "EIP-155",
+          "EIP-160",
+          "EIP-161",
+          "EIP-170",
+          "EIP-100",
+          "EIP-140",
+          "EIP-196",
+          "EIP-197",
+          "EIP-198",
+          "EIP-211",
+          "EIP-214",
+          "EIP-649",
+          "EIP-658",
+          "EIP-145",
+          "EIP-1014",
+          "EIP-1052",
+          "EIP-1234",
+          "EIP-152",
+          "EIP-1108",
+          "EIP-1344",
+          "EIP-1884",
+          "EIP-2028",
+          "EIP-2200",
+          "EIP-2565",
+          "EIP-2718",
+          "EIP-2929",
+          "EIP-2930"
+        ],
+        "generatedWith": {
+          "go-ethereum": "evm t8n --state.fork=Berlin",
+          "anvil": "anvil --hardfork berlin"
+        },
+        "twoOfTHESEFOURcannotBEREACHEDbyANYvectorHEREandONEcanBYCONSTRUCTION": "EIP-2565 and EIP-2929 both act inside the frame and no transaction here begins execution, so neither is reachable. EIP-2718 IS reachable by construction -- a type-1 transaction cannot exist without it -- and this file says so rather than claiming a clean separation it does not have. Its contribution is measured and is zero: see `_info.theATTRIBUTIONisWEAKERthanTHEEIP2028suitesANDthatISSTATED`."
+      }
+    },
+    "vectors": [
+      {
+        "name": "a_legacy_transaction_with_no_payload_before_the_proposal",
+        "comment": "CONTROL, first half. A legacy transaction with no calldata and no access list, at the rule set BEFORE the proposal. The bare 21000 every figure in this file sits on top of.",
+        "ruleSet": "withoutEip2930",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "0",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86480843b9aca00830186a09400000000000000000000000000000000000000aa808025a0f731777055a424acca5ab45aa6065c307d7eb713870894271acd2ee07daddea3a069872253743188d63034e3818418a9629913d5ec6f1f37520d4fb90af6880c14",
+        "gasUsed": "21000",
+        "status": "1",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "a_legacy_transaction_with_no_payload_after_the_proposal",
+        "comment": "CONTROL, second half, and THE ONLY CONTROL THE STEP ADMITS. Byte-identical bytes to the vector above, executed at the rule set that carries the proposal, and the receipt does not move. A type-1 transaction cannot be the cross-step control because it cannot exist at Istanbul at all -- see `_info.theCONTROLtheOBVIOUSDESIGNwouldREACHforDOESnotEXIST`.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "0",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86480843b9aca00830186a09400000000000000000000000000000000000000aa808025a0f731777055a424acca5ab45aa6065c307d7eb713870894271acd2ee07daddea3a069872253743188d63034e3818418a9629913d5ec6f1f37520d4fb90af6880c14",
+        "gasUsed": "21000",
+        "status": "1",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "a_legacy_transaction_with_calldata_before_the_proposal",
+        "comment": "CONTROL on the calldata term, first half. EIP-2930 quotes EIP-2028's formula verbatim -- '21000 + 4 * zeroes + 16 * nonzeroes' -- so the step must leave it alone. Ten non-zero bytes at 16.",
+        "ruleSet": "withoutEip2930",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "0",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0xffffffffffffffffffff",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86e80843b9aca00830186a09400000000000000000000000000000000000000aa808affffffffffffffffffff25a009edbed9ebb78e0d47b98a213203120f6970261c055890f60af3c2eeaa296267a024067e21927b3c37364119ebe20d0bdc7fd8f17a4105bd0faa5e947c6539d08f",
+        "gasUsed": "21160",
+        "status": "1",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "a_legacy_transaction_with_calldata_after_the_proposal",
+        "comment": "The other half. The step that introduces the access-list term does not touch the calldata term, and this pair is what says so.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "0",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0xffffffffffffffffffff",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0"
+        },
+        "txbytes": "0xf86e80843b9aca00830186a09400000000000000000000000000000000000000aa808affffffffffffffffffff25a009edbed9ebb78e0d47b98a213203120f6970261c055890f60af3c2eeaa296267a024067e21927b3c37364119ebe20d0bdc7fd8f17a4105bd0faa5e947c6539d08f",
+        "gasUsed": "21160",
+        "status": "1",
+        "tags": [
+          "control",
+          "attribution"
+        ]
+      },
+      {
+        "name": "an_empty_access_list_costs_nothing_beyond_the_base_price",
+        "comment": "THE SHARPEST CONTROL IN THE FILE, and it is the specification's own formula evaluated at zero: ACCESS_LIST_ADDRESS_COST * 0 + ACCESS_LIST_STORAGE_KEY_COST * 0 = 0. A TYPED transaction carrying an EMPTY list costs exactly what the legacy transaction costs, so the EIP-2718 envelope itself is free and the entire excess in every vector below is the access-list term rather than the transaction type. The cross-step control cannot separate those two; this one does.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": []
+        },
+        "txbytes": "0x01f8660180843b9aca00830186a09400000000000000000000000000000000000000aa8080c001a0b21ce5487c14842d88c6b7fe6201dece914e6b016c24b3a89329f286df5771eda029c5e531f58b6284acffbfecef83826beebfbbf8eecae24a6575aecec68e3a0c",
+        "gasUsed": "21000",
+        "status": "1",
+        "tags": [
+          "control",
+          "attribution",
+          "spec-published-control"
+        ]
+      },
+      {
+        "name": "one_address_and_no_storage_keys",
+        "comment": "THE SUBJECT. One address, no storage keys: a single ACCESS_LIST_ADDRESS_COST of 2400 over the base. The address is the first in the specification's own example and is NOT funded in `pre` -- an access-list entry does not require the account to exist.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": [
+            {
+              "address": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+              "storageKeys": []
+            }
+          ]
+        },
+        "txbytes": "0x01f87d0180843b9aca00830186a09400000000000000000000000000000000000000aa8080d7d694de0b295669a9fd93d5f28d9ec85e40f4cb697baec001a048fd0dfc7ee050d051f4ac74b0dfe7cfb186cdb403c35dc813396b14199c1d05a0221a219bffe5a355a1aa729a5c16340fd1d39a48739640faf87a0c409a48de32",
+        "gasUsed": "23400",
+        "status": "1",
+        "tags": [
+          "subject"
+        ]
+      },
+      {
+        "name": "one_address_and_one_storage_key",
+        "comment": "THE SUBJECT, with the second constant in play: 2400 for the address plus one ACCESS_LIST_STORAGE_KEY_COST of 1900.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": [
+            {
+              "address": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+              "storageKeys": [
+                "0x0000000000000000000000000000000000000000000000000000000000000003"
+              ]
+            }
+          ]
+        },
+        "txbytes": "0x01f89f0180843b9aca00830186a09400000000000000000000000000000000000000aa8080f838f794de0b295669a9fd93d5f28d9ec85e40f4cb697baee1a0000000000000000000000000000000000000000000000000000000000000000301a0d5c9d2f957263200801c097f4394da6a26ba65432dc6df0c5775669b117d73baa008d23fd227e64cc5152ac54697eac6076866b9e07c593e47783d9f1e4a35bc8d",
+        "gasUsed": "25300",
+        "status": "1",
+        "tags": [
+          "subject"
+        ]
+      },
+      {
+        "name": "one_address_and_two_storage_keys",
+        "comment": "The key term is PER KEY and not per entry: the same single address, two keys, so exactly one more 1900 than the vector above. Together with the 0-key and 1-key readings this fixes the key coefficient and its multiplier, which one length alone cannot.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": [
+            {
+              "address": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+              "storageKeys": [
+                "0x0000000000000000000000000000000000000000000000000000000000000003",
+                "0x0000000000000000000000000000000000000000000000000000000000000007"
+              ]
+            }
+          ]
+        },
+        "txbytes": "0x01f8c20180843b9aca00830186a09400000000000000000000000000000000000000aa8080f85bf85994de0b295669a9fd93d5f28d9ec85e40f4cb697baef842a00000000000000000000000000000000000000000000000000000000000000003a0000000000000000000000000000000000000000000000000000000000000000780a0f24cadbce59dd3564f5ff0f1a69d1048698de4dafde53cc758b753f60560e5a1a02e145f5054706981416baab50612598664ddb79849daf5a66a6c7f7ab90ced39",
+        "gasUsed": "27200",
+        "status": "1",
+        "tags": [
+          "subject",
+          "discriminator"
+        ]
+      },
+      {
+        "name": "the_specifications_own_worked_example",
+        "comment": "THE SPECIFICATION'S OWN WORKED EXAMPLE, its literal addresses and storage keys. EIP-2930 prints this list and states it 'would be charged ACCESS_LIST_ADDRESS_COST * 2 + ACCESS_LIST_STORAGE_KEY_COST * 2 gas' -- 8600 over the base. This is the one vector whose WHOLE CHARGE the specification publishes rather than leaving to be reconstructed from constants, which makes it the file's strongest single anchor.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": [
+            {
+              "address": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+              "storageKeys": [
+                "0x0000000000000000000000000000000000000000000000000000000000000003",
+                "0x0000000000000000000000000000000000000000000000000000000000000007"
+              ]
+            },
+            {
+              "address": "0xbb9bc244d798123fde783fcc1c72d3bb8c189413",
+              "storageKeys": []
+            }
+          ]
+        },
+        "txbytes": "0x01f8d90180843b9aca00830186a09400000000000000000000000000000000000000aa8080f872f85994de0b295669a9fd93d5f28d9ec85e40f4cb697baef842a00000000000000000000000000000000000000000000000000000000000000003a00000000000000000000000000000000000000000000000000000000000000007d694bb9bc244d798123fde783fcc1c72d3bb8c189413c001a0ab2fc2442573b0cc4b3e68cccea964b3e6ac6949cdbedb4158e4eee4717fe6daa03883e31e0ae57a12ea538d4a10151c8a290d4d7d9829f40673ca25402e58338c",
+        "gasUsed": "29600",
+        "status": "1",
+        "tags": [
+          "subject",
+          "spec-published-charge"
+        ]
+      },
+      {
+        "name": "two_addresses_and_no_storage_keys",
+        "comment": "DISCRIMINATOR on the address multiplier: two distinct addresses, no keys, so exactly twice 2400 and no key term at all. Read as a pair with the repeated-address vector below, which must land on the same figure.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": [
+            {
+              "address": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+              "storageKeys": []
+            },
+            {
+              "address": "0xbb9bc244d798123fde783fcc1c72d3bb8c189413",
+              "storageKeys": []
+            }
+          ]
+        },
+        "txbytes": "0x01f8940180843b9aca00830186a09400000000000000000000000000000000000000aa8080eed694de0b295669a9fd93d5f28d9ec85e40f4cb697baec0d694bb9bc244d798123fde783fcc1c72d3bb8c189413c080a04597508d511672e4159c2e2089f0ebde8c03ce015937794186f2329fbad2e9aea06399c98df358867db5213a0b8a7503d16cea74a9218375d62e901eb17cf50b36",
+        "gasUsed": "25800",
+        "status": "1",
+        "tags": [
+          "discriminator"
+        ]
+      },
+      {
+        "name": "a_repeated_address_is_charged_every_time_it_appears",
+        "comment": "A RULE THE SPECIFICATION STATES IN ITS OWN WORDS: 'non-unique addresses and storage keys are not disallowed, though they will be charged for multiple times.' The SAME address listed twice, and it must cost what TWO DISTINCT addresses cost -- so this vector and `two_addresses_and_no_storage_keys` are asserted as an equal pair. A client de-duplicating into a set gets 23400 here and fails.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": [
+            {
+              "address": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+              "storageKeys": []
+            },
+            {
+              "address": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+              "storageKeys": []
+            }
+          ]
+        },
+        "txbytes": "0x01f8940180843b9aca00830186a09400000000000000000000000000000000000000aa8080eed694de0b295669a9fd93d5f28d9ec85e40f4cb697baec0d694de0b295669a9fd93d5f28d9ec85e40f4cb697baec001a0275913c4f90f371fc63c3bdf950a59c33c6c762dc562f572a4ed78cc2efc573ca05fb65ae3e20d93fcd33b6975135aa27db7f96ba5f3ace1510360193dfc5db230",
+        "gasUsed": "25800",
+        "status": "1",
+        "tags": [
+          "discriminator",
+          "spec-published-rule"
+        ]
+      },
+      {
+        "name": "a_repeated_storage_key_is_charged_every_time_it_appears",
+        "comment": "The other half of the same published rule, on the key term rather than the address term. One address, the SAME key twice, which must cost what two DISTINCT keys cost -- so this vector and `one_address_and_two_storage_keys` are an equal pair. Between them the two duplicate vectors forbid de-duplication on both axes; a client de-duplicating only keys passes the address half.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": [
+            {
+              "address": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+              "storageKeys": [
+                "0x0000000000000000000000000000000000000000000000000000000000000003",
+                "0x0000000000000000000000000000000000000000000000000000000000000003"
+              ]
+            }
+          ]
+        },
+        "txbytes": "0x01f8c20180843b9aca00830186a09400000000000000000000000000000000000000aa8080f85bf85994de0b295669a9fd93d5f28d9ec85e40f4cb697baef842a00000000000000000000000000000000000000000000000000000000000000003a0000000000000000000000000000000000000000000000000000000000000000380a0a0bedab1b242f72bde609e42e57c77e839743eca2d972819489941d912de6d0ba00280cd9a36c494aec98276fddc5a481c8183d858324e25dcf89043c8785c6c72",
+        "gasUsed": "27200",
+        "status": "1",
+        "tags": [
+          "discriminator",
+          "spec-published-rule"
+        ]
+      },
+      {
+        "name": "an_access_list_naming_the_transactions_own_target",
+        "comment": "The charge is PER ENTRY and does not depend on which address is named or on whether the account exists: the target is in `pre` and every other listed address is not, and all of them cost 2400. This is also the file's clearest boundary against the WARM-UP half -- listing the target is exactly the case where a warm-up rule would show, and it does not, because nothing executes.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0x",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": [
+            {
+              "address": "0x00000000000000000000000000000000000000aa",
+              "storageKeys": []
+            }
+          ]
+        },
+        "txbytes": "0x01f87d0180843b9aca00830186a09400000000000000000000000000000000000000aa8080d7d69400000000000000000000000000000000000000aac001a00f51a5088091d1c1bb0f29d271c24d205fc0085e23947d7868bdc8a78e4ffb9fa059384d1ded73cabbc2360f2e12383c10fed0744479a5b9d35e7ab7db65ef0f4a",
+        "gasUsed": "23400",
+        "status": "1",
+        "tags": [
+          "discriminator",
+          "attribution"
+        ]
+      },
+      {
+        "name": "an_access_list_and_calldata_are_charged_additively",
+        "comment": "The two intrinsic terms compose and neither displaces the other: one address and ten non-zero calldata bytes, so 2400 + 160 over the base. It also asserts the specification's sentence that 'the access list is NOT charged per-byte fees like tx data is' -- the 20-byte address contributes 2400 and not 2400 plus a per-byte charge, and the ten calldata bytes contribute 160 and not an access-list rate.",
+        "ruleSet": "withEip2930InBerlin",
+        "pre": {
+          "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b": {
+            "balance": "0x3b9aca0000000000",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          },
+          "0x00000000000000000000000000000000000000aa": {
+            "balance": "0x00",
+            "nonce": "0x00",
+            "code": "0x",
+            "storage": {}
+          }
+        },
+        "transaction": {
+          "type": "1",
+          "to": "0x00000000000000000000000000000000000000aa",
+          "data": "0xffffffffffffffffffff",
+          "value": "0",
+          "gasLimit": "100000",
+          "gasPrice": "1000000000",
+          "nonce": "0",
+          "accessList": [
+            {
+              "address": "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae",
+              "storageKeys": []
+            }
+          ]
+        },
+        "txbytes": "0x01f8870180843b9aca00830186a09400000000000000000000000000000000000000aa808affffffffffffffffffffd7d694de0b295669a9fd93d5f28d9ec85e40f4cb697baec080a01f29bd401ee83a39991e19634c1500256c982b6a9413034dd0133d02f8f40542a032203a6456acdce4fbd8d6f7a5746da9ed5d4c738b5f515c012de06182bd4b2b",
+        "gasUsed": "23560",
+        "status": "1",
+        "tags": [
+          "discriminator",
+          "spec-published-rule"
+        ]
+      }
+    ]
+  }
+}
