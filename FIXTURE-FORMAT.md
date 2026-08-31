@@ -1738,7 +1738,7 @@ publishing it.
   "<proposal><Subject>": {                    // e.g. eip2028CalldataGasAndReceipt
     "_info": { },
     "transactionContext": {                   // what every vector's transaction shares
-      "type": "legacy", "replayProtected": true,
+      "type": "legacy", "replayProtected": true,   // only where EVERY vector agrees — see below
       "gasLimit": "100000", "gasPrice": "1000000000", "nonce": "0", "value": "0"
     },
     "ruleSets": { "withoutEip2028": { "proposals": [ … ], "generatedWith": { … } } },
@@ -1747,8 +1747,10 @@ publishing it.
         "ruleSet":  "withEip2028InIstanbul",
         "pre": { "0x…": { "balance": "0x…", "nonce": "0x…", "code": "0x", "storage": { } } },
         "transaction": {                      // the READABLE decoding of `txbytes`
+          "type": "1",                        // EIP-2718 type; "0" legacy. Per vector
           "to": "0x…", "data": "0x…", "value": "0",
-          "gasLimit": "100000", "gasPrice": "1000000000", "nonce": "0"
+          "gasLimit": "100000", "gasPrice": "1000000000", "nonce": "0",
+          "accessList": [ { "address": "0x…", "storageKeys": [ "0x…" ] } ]
         },
         "txbytes":  "0x…",                    // THE AUTHORITY — execute these bytes
         "gasUsed":  "21160",                  // what the RECEIPT reports
@@ -1764,10 +1766,42 @@ publishing it.
 | `ruleSet` | yes | a key of this file's `ruleSets`, resolved **here** and never in a schedule |
 | `pre` | yes | the same object as everywhere else in this corpus. It must fund the sender |
 | `transaction` | yes | the decoded transaction — readable, and **not** the authority |
+| `transaction.type` | where a file mixes forms | the EIP-2718 transaction type: `"0"` legacy, `"1"` an EIP-2930 access-list transaction |
+| `transaction.accessList` | only on a typed vector | the decoded list, `[{ "address", "storageKeys" }]`. **Absent is not the same as empty** — see below |
 | `txbytes` | yes | the signed transaction. **Execute these bytes**; do not re-sign from the fields |
 | `gasUsed` | yes | the receipt's gas, which is intrinsic gas plus whatever execution occurred |
 | `status` | yes | the receipt's status — `"1"` success, `"0"` failure |
 | `tags` | no | free-form; a reader must not depend on one |
+
+**`transactionContext` states only what EVERY vector in the file agrees on.** The first suite in
+this shape signs one transaction form throughout, so `type` sits there. A file mixing forms — as an
+access-list suite must, because its cross-step control cannot be typed — moves `type` into each
+vector and says so in `transactionContext`. **Read the per-vector field first and fall back to the
+shared one**; a file will not state both.
+
+**An absent `accessList` and an empty one are different transactions.** Absent means a legacy
+transaction with no such field at all; `[]` means a *typed* transaction carrying an empty list. They
+cost the same and they are not the same bytes, and the difference between them is exactly what
+isolates EIP-2718's envelope from EIP-2930's charge.
+
+### A typed `txbytes` is not wrapped like a legacy one
+
+`txbytes` is the authority in this shape, and feeding it to a transition tool takes one step that
+differs by transaction form. A **legacy** transaction is already an RLP list, so it splices straight
+into a block's transaction list. A **typed** one is `type || rlp([…])`, which is not RLP at all, so
+it goes in as an RLP **byte string** and needs a string header first.
+
+**The two encodings are mutually exclusive, so a consumer must choose from each transaction's own
+leading byte rather than setting one wrapping per file.** Getting it backwards is not symmetric, and
+only one direction is loud:
+
+| | under the legacy wrapping | under the typed wrapping |
+|---|---|---|
+| a legacy transaction | correct | rejected loudly — `transaction type not supported` |
+| a typed transaction | **~7.7M `typed transaction too short` warnings, minutes, exit 0** | correct |
+
+Measured against `evm t8n` at go-ethereum `e9e35a42f`. The pathological case reads as a hang rather
+than an error, and a harness timeout hides the flood entirely.
 
 **`txbytes` is the authority, and no signing key is published.** The sender is recoverable from the
 signature, so a consumer needs no key to run the file — the same rule this document already states
@@ -1794,6 +1828,13 @@ transaction-level subject the second is available in a **stronger** form than a 
 runs, so no in-frame proposal in that upgrade can be reached at all, and the receipt's gas is the
 intrinsic gas alone.
 
+**Read that claim exactly as wide as it is: it covers the step's IN-FRAME members and nothing
+else.** A proposal that acts *around* the invocation is not excluded by it — and a proposal the
+transaction's own form depends on is reachable by construction, however little code runs. The
+access-list suite below is the worked instance: it cannot claim its whole step, because a typed
+transaction cannot exist without EIP-2718. Where that happens, name the reachable member and bound
+its contribution by measurement rather than widening the argument to cover it.
+
 ### `eip2028CalldataGasAndReceipt` — the first suite in this shape
 
 Its subject is two sentences long — *"The gas per non-zero byte is reduced from 68 to 16. Gas cost of
@@ -1810,6 +1851,43 @@ begins execution.
 > the same 21000. That is a property of intrinsic gas having one common term, **not** evidence that
 > the frame-level suites are under-covered: there, a control surviving every defect is exactly what
 > a control is for.
+
+### `eip2930AccessListGasAndReceipt` — the first suite carrying a TYPED transaction
+
+Its subject is the **intrinsic-gas half** of EIP-2930 — `ACCESS_LIST_ADDRESS_COST` 2400 per address
+and `ACCESS_LIST_STORAGE_KEY_COST` 1900 per storage key, both published by the EIP — and **not** the
+warm-up half, which seeds EIP-2929's accessed sets, is observable only through an executing opcode,
+and is the subject of the live attribution dispute recorded in `eip2929ColdAndWarmAccess`. A reader
+meeting both files should not conclude either is wrong; they assert different halves at different
+seams.
+
+**It is the first file in this corpus whose vectors are not all one transaction form**, and three
+things follow that the first suite in this shape did not have to say:
+
+- **The control this design would reach for does not exist.** A typed transaction with an empty
+  access list, asserted unchanged across the step, is the obvious control — and **both seams reject
+  every type-1 transaction at Istanbul**, empty list included. The before-side of the step is
+  legacy-only, so the cross-step control is a *legacy* transaction.
+- **The sharper control is the one inside the later rule set.** A typed transaction with an empty
+  list costs exactly what the legacy one costs, which is the EIP's own formula at zero entries. That
+  separates EIP-2718's envelope from EIP-2930's charge; the cross-step control cannot.
+- **Its attribution is two-of-four, not the clean five-of-six above.** EIP-2565 and EIP-2929 are
+  unreachable by the codeless-target argument, but **EIP-2718 is reachable by construction**. The
+  file names it and bounds its contribution by measurement at zero, rather than claiming a
+  separation it does not have.
+
+**Its wrong-build set deliberately omits `the_proposal_is_active_before_it_was_adopted`**, which
+both other suites in this shape carry. go-ethereum's `IntrinsicGas` has no EIP-2930 activation gate
+at all — the charge applies whenever the list is non-nil, and activation lives at transaction-type
+acceptance — so that defect moves no vector and would be **inert**. The rule-set field is carried
+instead by the legacy control pairs' invariance and by the typed vectors being expressible at one
+rule set only.
+
+> **A known gap in this shape, surfaced by this suite.** The sharpest single observation available
+> for an access-list subject — both seams *refusing* a type-1 transaction at Istanbul, in two
+> independently worded errors — **cannot be asserted here.** `status` distinguishes a transaction
+> that FAILED, which has a receipt, from one that succeeded; a **rejected** transaction has no
+> receipt at all. An `expectRejection` field would close it. It is not added by a suite author.
 
 ---
 
