@@ -1483,11 +1483,21 @@ Reach it through `ADDRESS` instead, which is portable; measured across all three
 far, they happen to agree on the address itself, and no fixture should depend on that. Keep
 stated addresses above `0x09` so none can collide with a precompile.
 
-**A precompile is out of reach here, and the specification agrees it should be.** Measured: an
+**A precompile is out of reach *by value*, and the specification agrees it should be.** Measured: an
 address in the precompile range that no `pre` entry names behaves as an absent account in every
-oracle, so a "precompile" vector would be the absent case under another name — coverage in
-appearance and nothing in substance. EIP-1052 itself declines to fix the answer, saying it "is
-either `c5d246…` or `0`". Record the condition; do not write the case.
+oracle, so a "precompile" vector *of that kind* would be the absent case under another name —
+coverage in appearance and nothing in substance. EIP-1052 itself declines to fix the answer, saying
+it "is either `c5d246…` or `0`". Record the condition; do not write the case.
+
+> **Read that as a statement about reading account STATE, not about the shape**, because two later
+> suites reached a precompile through this same seam by other mechanisms. `eip2929ColdAndWarmAccess`
+> reaches one **by cost** — pre-warmed at 100 where an ordinary cold account pays 2600.
+> `eip2565ModexpGasAndOutcome` reaches one **by execution**: a body can CALL a precompile here, and
+> is charged what it costs to run. Measured 2026-08-30 — identity `0x04` returns its input, sha256
+> `0x02` a real digest, bn128Add a real curve point, modexp `0x05` returns `4` for 3^2 mod 5, and an
+> absent-account control at the same seam returns nothing and does not move. **Three mechanisms, one
+> seam: unreachable by value, reachable by cost, reachable by execution.** The paragraph above is
+> about `EXTCODEHASH`'s answer; it never was about dispatch.
 
 ### The GENERATOR does not have to step a whole upgrade — one lineage steps one proposal
 
@@ -1629,6 +1639,74 @@ client's key layout as the rule and fail a client that read the specification.
 indistinguishable from an absent account *by value*, which is why that file declines to assert one.
 Under this rule it is distinguishable *by cost* — pre-warmed at 100 where an ordinary cold account
 pays 2600. Same seam, same address: the earlier note is about that subject, not about the shape.
+
+### `eip2565ModexpGasAndOutcome` — the first suite priced by a FORMULA, and `callData`'s first use
+
+The fourth suite in this shape. The three before it reprice or gate by **fixed amounts**; EIP-2565
+prices the modexp precompile by an arithmetic function of what the caller supplied, so a rule whose
+gas depends on the *input* was unexercised until this file.
+
+**`callData` carries the subject, and no earlier vector in this shape uses the field at all** —
+every one of them states `"0x"`. The consequence is the sharpest minimal pair the shape has
+produced. All 72 vectors run one of **four** bodies; the two halves of a pair are byte-identical in
+`code`, `callData`, `callValue`, `gasBudget` and `pre`, and differ **only** in `ruleSet`. So the
+whole difference in `gasUsed` is the repricing — carried by construction, with no bytecode walk
+needed to argue the bodies cannot reach the step's other members.
+
+The body makes an **inner `STATICCALL`**, which is also new here: `gasUsed` covers the callee, and
+`returnData` is a 32-byte success flag followed by whatever the callee returned. Returning the flag
+*alongside* the output rather than instead of it is what keeps "the call failed" distinguishable
+from "the call succeeded and returned nothing" — one vector exists for exactly that distinction.
+
+**The specification publishes BOTH prices for fifteen cases, and that is why this subject was chosen
+over EIP-1108.** EIP-2565's Test Cases table prints the EIP-198 price *and* the EIP-2565 price for
+each — an anchor on **both sides of the minimal pair**, from the specification. EIP-1108 publishes
+constants and no test cases. Each of the fifteen pair differences asserted here equals the difference
+the EIP prints.
+
+> **The EIP names its fifteen cases without printing their bytes**, so the inputs come from a client's
+> test data. That would be circular if the client supplied a *value*; it supplies a candidate *input*,
+> and the identification is then a **measurement** — an independent transcription that has never read
+> a client reproduces **both** published columns from those bytes. A wrong input could not do that on
+> either column, let alone both.
+
+**The published fifteen do not exercise four of the formula's terms**, which is measured inside the
+file rather than argued: every published case has `base_length == modulus_length`, both multiples of
+64, and `exponent_length ∈ {1, 3}` with a non-zero exponent. Three of the suite's eight wrong builds
+are caught by **zero** published vectors and only by authored ones. Six authored inputs cover
+ceiling-versus-floor, the `exponent_length > 32` branch, the zero-exponent branch and the
+`max(iteration_count, 1)` clamp, and they are tagged `authored` so the anchored fifteen are never
+read as complete coverage.
+
+**The repricing is not monotone**, which no earlier subject in this shape is: EIP-2565 adds a 200-gas
+minimum that EIP-198 has no counterpart for, so the same proposal *raises* small inputs and *lowers*
+large ones. A build modelling it as any single scaling fails one end or the other.
+
+**The whole-upgrade rule set's figures are NOT comparable with the pair's, and the controls
+demonstrate it.** Berlin carries EIP-2929, which reprices the CALL itself, so `withEip2565InBerlin`
+differs from `withEip2565` for a reason that is not the subject — **only the within-pair difference
+is the repricing.** Across the minimal pair all three controls are unmoved; at Berlin the identity
+control *falls* by 600, the absent-account control *rises* by 1900, and the control that makes no
+call at all does not move. Two controls moving in opposite directions is not something this proposal
+could cause.
+
+**One thing this suite deliberately does not settle.** EIP-2565's published `calculate_iteration_count`,
+read literally, prices the `exponent_length > 32` branch from the exponent's **low** 256 bits and
+subtracts 1 from a bit length that may be zero; EIP-198, which EIP-2565 does not restate, reads the
+**first** 32 bytes and says "or zero if all of the first 32 bytes are zero". Those disagree in
+general. The suite applies this document's own rule for a contested axis — **assert only where every
+authority agrees, and record the condition** — by giving its one `exponent_length > 32` vector an
+all-ones exponent, whose head and low 256 bits share a highest-bit index, so every reading returns
+one number. No vector here distinguishes the readings, and settling which is correct is a
+specification question rather than a fixture decision.
+
+**Its file is roughly six times the largest before it, and that was a decision rather than an
+accident.** The bulk is `callData` and `returnData` for the two largest published cases. Hashing the
+output was rejected outright — this section's own case for the shape is that a figure is unreadable
+inside a hash — and dropping those cases from the whole-upgrade set was rejected because that set is
+where the only implementation sharing no code with the oracle can corroborate, which is precisely
+where a big-number defect would live.
+
 
 ## transaction-gas vectors (`components/proposals/<series>/<proposal>/txgas/`)
 
