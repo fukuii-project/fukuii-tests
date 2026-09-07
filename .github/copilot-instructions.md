@@ -18,6 +18,7 @@ fuller, canonical reference — keep the two in sync when either changes.
 | `upstream/` | live upstreams (`ethereum/tests`, `legacytests`, `devp2p`, `hive`, `execution-specs`, `execution-spec-tests`) | pinned submodules, **fetched** — an unfetched pin is a reason to fetch it, not to skip the check |
 | `components/` | rule/mechanism fixtures not tied to one chain — `proposals/` (a single EIP or ECIP), `consensus-algorithms/` | authored |
 | `networks/` | fixtures scoped to a network or an upgrade | authored |
+| `tools/` | maintenance scripts — no fixture data | authored |
 
 `networks/` covers two families unevenly on purpose: `ethereumclassic/` gets a complete suite (we
 are the lead client maintainer, and upstream has been unmaintained since 2023); `ethereum/` gets
@@ -30,6 +31,13 @@ EVM — do not port Ethereum Classic fixtures across to "fill in" the Ethereum f
   byte-identical to what upstream published. Corrections go in `archive/PROVENANCE.md`, never into
   the mirrored files. Do not initialize this submodule casually — it is orders of magnitude larger
   than the rest of the repository.
+- **Advance the archive pin with `tools/archive-pin`, never by hand.** `.gitmodules` sets
+  `ignore = all` on that submodule, so a stale pin is reported by neither `git status` nor
+  `git diff`, and a gitlink is not a file, so no pre-commit hook sees one either — `git submodule
+  status` prints `+` and is the one instrument that is not blinded. The tool verifies the archive
+  is still append-only before moving the pin and refuses otherwise, where a hand-made
+  `git add archive` verifies nothing. `tools/archive-pin-test` covers the gates; run it after
+  touching either script.
 - **Never hardcode the Olympia ECIP suite's membership** — not in this file, a script, or a
   directory listing treated as canonical. The specs are under active revision and the set moves in
   both directions (an ECIP can be cited before it is authored, or exist in a private working copy

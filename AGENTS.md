@@ -39,10 +39,11 @@ under active development.
 
 ## Layout
 
-Four roots, split by **what a thing is** rather than which network it concerns. Two are
-vendored (`archive/`, `upstream/`) and two are authored: `components/` holds what is true of a rule
-or a mechanism anywhere, `networks/` holds what is true of one chain. Nothing is named
-for a bucket that means different things in different places.
+Four roots hold the corpus, split by **what a thing is** rather than which network it concerns.
+Two are vendored (`archive/`, `upstream/`) and two are authored: `components/` holds what is true
+of a rule or a mechanism anywhere, `networks/` holds what is true of one chain. Nothing is named
+for a bucket that means different things in different places. A fifth directory, `tools/`, holds
+maintenance scripts and no fixture data at all.
 
 | directory | what it holds | posture |
 |---|---|---|
@@ -50,6 +51,7 @@ for a bucket that means different things in different places.
 | `upstream/` | live upstreams, pinned as submodules, fetched | tracked |
 | `components/` | the pieces a chain is assembled from, none of them tied to a chain — `proposals/` for a single EIP or ECIP, `consensus-algorithms/` for a mechanism | **authored** |
 | `networks/` | our tests scoped to a network or an upgrade — the real implementations | **authored** |
+| `tools/` | maintenance scripts — no fixture data | **authored** |
 
 `archive/` and `upstream/` sort by **source organization** — `archive/etclabscore/tests`,
 `upstream/ethereum/tests` — because two upstreams both publish a repository called `tests` and a
@@ -256,6 +258,70 @@ git ls-files --stage archive                              # the staged SHA
 git diff --cached --ignore-submodules=none --name-only    # must print exactly: archive
 ```
 
+**`git submodule status` is not blinded, and is the cheapest drift check there is** — it prints a
+`+` before the SHA when the checked-out commit differs from the recorded gitlink. Measured against
+a pin deliberately left behind: plain `git status` and plain `git diff` each report nothing at
+all, `--ignore-submodules=none` reports `archive`, and `git submodule status` prints the `+`. A
+gitlink is not a file either, so `pre-commit` is handed nothing and every hook reports "no files
+to check" — the commit gate cannot see this change any more than `git status` can.
+
+**`tools/archive-pin` is the supported way to move the pin**, and exists because none of the
+above happens by itself. It enumerates the change set with a single
+`git diff --raw -z --ignore-submodules=none` between the two pins, and refuses to bump if a corpus
+present at both has been changed or removed, if the target does not descend from the current pin,
+or if the two trees differ while the comparison reports no path at all — a comparison that could
+not have reported a change is not evidence of a held freeze. A new corpus is the archive's whole
+purpose and passes. `tools/archive-pin --check` reports drift and changes nothing.
+
+**`--ignore-submodules=none` there is load-bearing and must not be dropped.** The archive's own
+`.gitmodules` sets `ignore = all` on every one of its nested submodules, and per `gitmodules(5)`
+that setting suppresses them from `diff`. Without the flag, repointing a nested corpus submodule
+is invisible to the check — the same defect this whole section describes, one level further down,
+and it silently exempts the largest corpora in the archive.
+
+**It does not walk the tree itself, and that is deliberate.** A walk that classifies entries by
+object type sees trees and blobs and silently skips a **gitlink**, and reconstructing paths by
+hand mangles both the names git quotes and any name carrying trailing whitespace. Either defect
+drops a subtree at *both* pins, so nothing is ever reported and that subtree is exempt from the
+freeze permanently. `--raw` rather than `--name-status` because the mode is the only thing that
+tells a file from a gitlink or a symlink at a given path.
+
+**Top-level files may be added or edited, but not deleted or retyped.** They are permitted by
+default rather than by an allow-list: `.gitignore`, `LICENSE`, `.pre-commit-config.yaml` and
+others all change legitimately, and a single unlisted one would block every future bump, which is
+how a gate stops being used. Refusing deletions and type changes keeps that looseness from
+removing `PROVENANCE.md` or swapping a record for a gitlink.
+
+**Three top-level files are guarded.** `CLAUDE.md` and `AGENTS.md`, because this repository
+deliberately does not exclude `archive/` from `claudeMdExcludes`, so their content reaches an
+agent's context; and `.gitmodules`, because it can repoint a nested submodule at another host. All
+three change legitimately when a corpus is recorded, so a change is refused with a message rather
+than forbidden outright — pass `--allow-guarded` once you have read the diff, and the resulting
+commit message names what was let through.
+
+**Anything instruction-shaped is guarded at any depth** — a `.claude/` segment anywhere in the
+path, or a basename of `CLAUDE.md` or `AGENTS.md`. Claude Code loads a nested `.claude/CLAUDE.md`
+and `.claude/rules/*.md` as project instructions when a file beside them is read, which is why
+`archive/` being deliberately absent from this repository's `claudeMdExcludes` matters.
+
+**That guard is prospective, and the honest form says so.** Measured at the recorded pin, the
+archive carries exactly two instruction files, both at the top level, and `archive/.claude/` holds
+only `settings.json` — nothing currently exercises the deeper rule. Nor can it close the class: a
+new corpus may legitimately carry a `CLAUDE.md`, and admitting new corpora is the archive's whole
+purpose. What it buys is that such a file is **named** rather than silent, and `--allow-guarded`
+is the deliberate path past it.
+
+**It never outranks the freeze.** An existing corpus is frozen entire, so an instruction file
+inside one is a violation and `--allow-guarded` will not admit it; only inside a *new* corpus does
+the guard apply. `.github/**` is the archive's own CI, has no bearing on this repository, and is
+reported but not frozen; treating it as a corpus made an ordinary change there block every
+subsequent bump. Under either directory a gitlink or symlink is refused outright — neither is
+configuration.
+
+**`tools/archive-pin-test` exercises every one of those gates.** Each case in it is an attack that
+defeated an earlier version of the script — one that passed the tests its author thought to write.
+Run it after touching either file.
+
 **Gaps and inherited mistakes are answered in `proposals/` and `networks/` instead** — our tests,
 our names, mapped. A reader can then see both what was inherited and what this project asserts,
 which is impossible when the two are the same edited files.
@@ -332,6 +398,13 @@ rather than tracked. `pre-commit` would name the `rev:` pins in `.pre-commit-con
 deliberately under the supply-chain policy stated in that file's own header. Neither key carries
 Dependabot security updates (GitHub's supported-ecosystems table, read 2026-09-03), so enabling
 either would buy version currency only.
+
+**Why `gitsubmodule` stays off, stated precisely, because the obvious reason is the wrong one.** It
+is not that the archive is frozen: that freeze governs the archive's *content*, not its pin, which
+moves every time a corpus is archived. It is that a Dependabot bump would be an unverified one. The
+pin may only advance once the append-only invariant has been checked across the two trees, which is
+`tools/archive-pin`'s job and is not something Dependabot can run, and the six `upstream/ethereum/`
+pins are deliberate freezes that should not track anything at all.
 
 Security-update pull requests are a separate, repository-level GitHub setting with no key in this
 file. Confirmed live via the GitHub API, 2026-09-03: `github-actions` supports Dependabot security

@@ -1,0 +1,275 @@
+#!/usr/bin/env bash
+#
+# archive-pin-test -- exercise every gate in tools/archive-pin.
+#
+# Each case is an input that defeated some earlier version of that script, and
+# every one of those versions passed the tests its author had thought to write.
+# They are kept because the gates are the whole product: a freeze check that
+# silently stops looking is worse than none, since it publishes a commit message
+# certifying a verification that did not happen.
+#
+# Assertions check the REPORTED PATH COUNT, not only the verdict. A case that
+# greps for "freeze violated" alone can pass against a script that never saw the
+# hostile path at all, because some other path in the same fixture produced the
+# verdict.
+#
+# Synthetic archive commits are built with plumbing, so nothing is pushed and no
+# branch is created. Requires a clean worktree and an initialised archive.
+#
+#   tools/archive-pin-test
+
+set -uo pipefail
+
+ROOT=$(git rev-parse --show-toplevel) || { echo "not in a git repository" >&2; exit 2; }
+cd "$ROOT" || exit 2
+[ -e archive/.git ] || { echo "archive is not initialised -- git submodule update --init archive" >&2; exit 2; }
+git diff --cached --quiet --ignore-submodules=none || {
+  echo "something is staged; this suite makes and removes real commits" >&2; exit 2; }
+
+BASE=$(git rev-parse HEAD:archive)
+START=$(git rev-parse HEAD)
+TMP=$(mktemp -d); IDX=$TMP/index
+undo_commit() {
+  git reset -q --soft "$START" 2>/dev/null || true
+  git restore --staged -- archive 2>/dev/null || git reset -q -- archive 2>/dev/null || true
+  git -C archive checkout -q --no-recurse-submodules "$BASE" 2>/dev/null || true
+}
+cleanup() {
+  undo_commit
+  [ -f "$TMP/gitmodules.bak" ] && cp "$TMP/gitmodules.bak" .gitmodules
+  rm -rf "$TMP"
+}
+trap cleanup EXIT
+
+pass=0; fail=0
+ok(){ printf '  PASS  %s\n' "$1"; pass=$((pass+1)); }
+no(){ printf '  FAIL  %s\n' "$1"; fail=$((fail+1)); }
+
+# mk MODE,SHA,PATH ...  -> a commit descending from BASE with those entries set.
+# A fixture that fails to build must abort: a silently-empty tree equals BASE,
+# and the script then correctly reports "nothing to do", which an accept-case
+# would score as a pass.
+mk_from(){ local base=$1; shift; rm -f "$IDX"
+      GIT_INDEX_FILE=$IDX git -C archive read-tree "$base" || { echo "FIXTURE read-tree failed" >&2; return 2; }
+      local e; for e in "$@"; do
+        GIT_INDEX_FILE=$IDX git -C archive update-index --add --cacheinfo "$e" \
+          || { echo "FIXTURE update-index failed: $e" >&2; return 2; }; done
+      local t; t=$(GIT_INDEX_FILE=$IDX git -C archive write-tree) || return 2
+      [ "$t" != "$(git -C archive rev-parse "$base^{tree}")" ] || { echo "FIXTURE tree equals base" >&2; return 2; }
+      git -C archive commit-tree "$t" -p "$base" -m "synthetic"; }
+mk(){ mk_from "$BASE" "$@"; }
+
+restore(){ git reset -q -- archive 2>/dev/null; git -C archive checkout -q --no-recurse-submodules "$BASE"; }
+
+# refuse NAME SHA EXPECTED [extra...]   -- --no-commit so a regression cannot commit
+refuse(){ local name=$1 sha=$2 want=$3; shift 3
+  local out rc; out=$(tools/archive-pin --to "$sha" --no-commit "$@" 2>&1); rc=$?
+  if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q "$want"
+  then ok "$name"; else no "$name (rc=$rc)"; printf '%s\n' "$out" | tail -4 | sed 's/^/          /'; fi
+  if [ "$(git -C archive rev-parse HEAD)" != "$BASE" ]; then no "$name: submodule HEAD moved"; fi
+  if [ -n "$(git diff --cached --ignore-submodules=none --name-only)" ]; then no "$name: left something staged"; fi
+  restore; }
+
+# accept NAME SHA NPATHS [extra...]
+accept(){ local name=$1 sha=$2 n=$3; shift 3
+  local out rc; out=$(tools/archive-pin --to "$sha" --no-commit "$@" 2>&1); rc=$?
+  if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q 'freeze holds'
+  then ok "$name"; else no "$name (rc=$rc)"; printf '%s\n' "$out" | tail -4 | sed 's/^/          /'; fi
+  if [ -n "$n" ] && ! printf '%s' "$out" | grep -q "paths compared: $n "
+  then no "$name: expected 'paths compared: $n', got: $(printf '%s' "$out" | grep -o 'paths compared: [0-9]*')"; fi
+  if [ "$(git ls-files --stage archive | awk '{print $2}')" != "$sha" ]; then no "$name: staged the wrong sha"; fi
+  restore; }
+
+B=$(echo "synthetic payload" | git -C archive hash-object -w --stdin)
+PROV=$(git -C archive rev-parse "$BASE:PROVENANCE.md")
+PROV2=$(git -C archive cat-file -p "$PROV" | sed '$a synthetic appended line' | git -C archive hash-object -w --stdin)
+D2=ethereum/EXTRACTION.md; D2SHA=$(git -C archive rev-parse "$BASE:$D2" 2>/dev/null || true)
+VICTIM=$(git -C archive ls-tree --name-only "$BASE:etclabscore" | head -1)
+NESTED=$(git -C archive ls-tree -r "$BASE" | awk '$2=="commit"{print $4; exit}')
+
+echo "archive-pin gates"
+out=$(tools/archive-pin --to "$BASE" 2>&1); rc=$?
+if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q 'at the tip'
+then ok "an already-current target is a no-op (needs no network)"; else no "at-the-tip (rc=$rc)"; fi
+
+echo
+echo "-- enumeration must not be blinded --"
+# The archive's own .gitmodules sets ignore=all on every nested submodule, so a
+# plain `git diff` omits them. This is the parent's own defect, one level down.
+if [ -n "$NESTED" ]; then
+  NCORP=$(printf '%s' "$NESTED" | cut -d/ -f1-2)
+  refuse "repointing a nested submodule is caught (ignore=all suppresses it from diff)" \
+    "$(mk "160000,$BASE,$NESTED" "100644,$PROV2,PROVENANCE.md")" "CHANGED  $NCORP"
+else no "fixture: no nested gitlink found in the archive"; fi
+
+# A metacharacter, non-ASCII, or trailing whitespace in a top-level name each
+# used to drop that subtree from the scan at BOTH pins. The path-count assertion
+# is what proves it was seen rather than skipped.
+accept "a metacharacter top-level name is enumerated, not skipped" "$(mk "100644,$B,A|B/tests/f.json")" 1
+accept "a non-ASCII top-level name is enumerated, not skipped"      "$(mk "100644,$B,tésts/tests/f.json")" 1
+accept "a trailing-space top-level name is enumerated, not skipped" "$(mk "100644,$B,trailing /x/f.json")" 1
+refuse "a metacharacter name cannot hide a corpus edit" \
+  "$(mk "100644,$B,A|B/t/f.json" "100644,$B,etclabscore/$VICTIM/PAYLOAD.json")" "freeze violated"
+
+echo
+echo "-- entry type and mode --"
+if [ -n "$D2SHA" ]; then
+  refuse "a depth-2 mode change 644->755 is caught" "$(mk "100755,$D2SHA,$D2")" "freeze violated"
+  refuse "a depth-2 file becoming a symlink is caught" "$(mk "120000,$D2SHA,$D2")" "freeze violated"
+else no "fixture: $D2 absent"; fi
+refuse "a top-level gitlink is refused" \
+  "$(mk "160000,$BASE,SYNTHETIC-LINK" "100644,$B,neworg/newcorpus/f.json")" "TOPLEVEL"
+refuse "a top-level gitlink named like a record is still refused" \
+  "$(mk "160000,$BASE,README.md")" "TOPLEVEL"
+
+echo
+echo "-- top-level records --"
+accept "an ordinary top-level file may be edited" "$(mk "100644,$B,.gitignore")" 1
+rm -f "$IDX"; GIT_INDEX_FILE=$IDX git -C archive read-tree "$BASE"
+GIT_INDEX_FILE=$IDX git -C archive rm --cached -q PROVENANCE.md
+T=$(GIT_INDEX_FILE=$IDX git -C archive write-tree)
+refuse "deleting the provenance ledger is refused" \
+  "$(git -C archive commit-tree "$T" -p "$BASE" -m synthetic)" "TOPLEVEL D"
+
+echo
+echo "-- guarded files --"
+GSHA=$(mk "100644,$B,CLAUDE.md")
+refuse "a change to the archive's CLAUDE.md is refused by default" "$GSHA" "guarded file"
+accept "--allow-guarded permits it deliberately" "$GSHA" 1 --allow-guarded
+refuse "a change to the archive's .gitmodules is refused by default" "$(mk "100644,$B,.gitmodules")" "guarded file"
+
+echo
+echo "-- the archive's own configuration is not a corpus --"
+if git -C archive cat-file -e "$BASE:.github/dependabot.yml" 2>/dev/null; then
+  accept "a change to the archive's .github does not block a bump" "$(mk "100644,$B,.github/dependabot.yml")" 1
+else no "fixture: .github/dependabot.yml absent"; fi
+
+echo
+echo "-- argument injection --"
+out=$(tools/archive-pin --to "--upload-pack=touch $TMP/PWNED-to;true" 2>&1); rc=$?
+if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q 'hex object name'
+then ok "--to refuses an option-shaped value"; else no "--to validation (rc=$rc)"; fi
+if [ -e "$TMP/PWNED-to" ]; then no "command execution via --to"; else ok "no command ran from --to"; fi
+out=$(tools/archive-pin --to "$(printf 'abcdef1\n--upload-pack=touch %s/PWNED-nl;true' "$TMP")" 2>&1) || true
+if [ -e "$TMP/PWNED-nl" ]; then no "command execution via a multiline --to"; else ok "a multiline --to executes nothing"; fi
+cp .gitmodules "$TMP/gitmodules.bak"
+git config -f .gitmodules submodule.archive.url "--upload-pack=touch $TMP/PWNED-url;true"
+out=$(tools/archive-pin --check 2>&1); rc=$?
+if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q 'outside https://github.com/'
+then ok "an option-shaped submodule url is refused"; else no "url validation (rc=$rc)"; fi
+if [ -e "$TMP/PWNED-url" ]; then no "command execution via the url"; else ok "no command ran from the url"; fi
+cp "$TMP/gitmodules.bak" .gitmodules; rm -f "$TMP/gitmodules.bak"
+
+echo
+echo "-- the local-clone escape hatch --"
+out=$(ARCHIVE_LOCAL_CLONE=relative/path tools/archive-pin --check 2>&1); rc=$?
+if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q 'must be an absolute path'
+then ok "a relative ARCHIVE_LOCAL_CLONE is refused"; else no "relative clone path (rc=$rc)"; fi
+out=$(ARCHIVE_LOCAL_CLONE='ext::sh -c whoami' tools/archive-pin --check 2>&1); rc=$?
+if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q 'transport-shaped'
+then ok "a transport-shaped ARCHIVE_LOCAL_CLONE is refused"; else no "transport clone path (rc=$rc)"; fi
+
+echo
+echo "-- refusals leave nothing behind --"
+cp /dev/null UNRELATED-TEST-FILE.txt; git add UNRELATED-TEST-FILE.txt
+out=$(tools/archive-pin --to "$(mk "100644,$B,neworg2/c/f.json")" 2>&1); rc=$?
+if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q 'unrelated changes are staged'
+then ok "unrelated staged work is refused"; else no "staged guard (rc=$rc)"; fi
+if [ "$(git -C archive rev-parse HEAD)" = "$BASE" ]
+then ok "that refusal did not move the submodule"; else no "submodule moved"; fi
+git reset -q -- UNRELATED-TEST-FILE.txt; rm -f UNRELATED-TEST-FILE.txt
+
+echo
+echo "-- history shape --"
+refuse "a rewritten archive history is refused" \
+  "$(git -C archive commit-tree "$(git -C archive rev-parse "$BASE^{tree}")" -m orphan)" "does not descend"
+refuse "--force does not weaken the freeze" \
+  "$(mk "100644,$B,etclabscore/$VICTIM/EVIL.json")" "freeze violated" --force
+accept "a tree-identical commit is accepted without tripping calibration" \
+  "$(git -C archive commit-tree "$(git -C archive rev-parse "$BASE^{tree}")" -p "$BASE" -m same)" 0
+
+echo
+echo "-- the commit path, which no earlier suite reached --"
+GOOD=$(mk "100644,$B,neworg/newcorpus/FILE.txt" "100644,$PROV2,PROVENANCE.md")
+out=$(tools/archive-pin --to "$GOOD" 2>&1); rc=$?
+if [ "$rc" -eq 0 ] && printf '%s' "$out" | grep -q 'committed:'
+then ok "a legitimate bump commits"; else no "commit path (rc=$rc)"; printf '%s\n' "$out"|tail -4|sed 's/^/          /'; fi
+if [ "$(git rev-parse HEAD:archive)" = "$GOOD" ]; then ok "the committed gitlink is the target"; else no "wrong gitlink committed"; fi
+MSG=$(git log -1 --format=%B)
+if printf '%s' "$MSG" | grep -q '2 path(s) compared'; then ok "the message reports what was compared"; else no "message count wrong"; fi
+if printf '%s' "$MSG" | grep -q '0 guarded path(s)'; then ok "the message reports the guarded count"; else no "message omits guarded count"; fi
+undo_commit
+
+GUARDBUMP=$(mk "100644,$B,.gitmodules" "100644,$B,neworg/nc/f.json")
+out=$(tools/archive-pin --to "$GUARDBUMP" --allow-guarded 2>&1) || true
+MSG=$(git log -1 --format=%B)
+if printf '%s' "$MSG" | grep -q 'Guarded:.*\.gitmodules'
+then ok "an --allow-guarded commit names the guarded path in its message"
+else no "the message hides that a guarded file changed"; fi
+undo_commit
+
+echo
+echo "-- the archive's own configuration --"
+refuse "a gitlink under .claude is refused" "$(mk "160000,$BASE,.claude/evilsub")" "CONFIG"
+refuse "a symlink under .github is refused" "$(mk "120000,$B,.github/link")" "CONFIG"
+# .claude content is loaded as project instructions by nested traversal from any
+# file read under archive/, so it is guarded at every depth, not exempt config.
+CL=$(mk "100644,$B,.claude/rules/x.md")
+refuse "a .claude rules file is guarded, not exempt config" "$CL" "guarded file"
+accept "--allow-guarded permits a .claude change deliberately" "$CL" 1 --allow-guarded
+accept "an ordinary .github change is still not guarded" "$(mk "100644,$B,.github/dependabot.yml")" 1
+
+echo
+echo "-- instruction files are guarded at any depth, but never above the freeze --"
+# An EXISTING corpus is frozen entire. An instruction file inside one must stay a
+# freeze violation and must NOT be downgradable to "guarded", which the flag
+# would then wave through.
+IC=$(mk "100644,$B,etclabscore/$VICTIM/CLAUDE.md")
+refuse "an instruction file inside a frozen corpus is a freeze violation" "$IC" "freeze violated"
+refuse "--allow-guarded cannot downgrade that to guarded" "$IC" "freeze violated" --allow-guarded
+# Inside a NEW corpus it is admitted but named: a corpus may legitimately carry
+# one, and the value of the guard is removing the silence, not blocking it.
+NC=$(mk "100644,$B,neworg/newcorp/CLAUDE.md")
+refuse "an instruction file in a new corpus is named, not silent" "$NC" "guarded file"
+accept "--allow-guarded admits it deliberately" "$NC" 1 --allow-guarded
+refuse "a .claude directory inside a new corpus is guarded too" \
+  "$(mk "100644,$B,neworg/.claude/rules.md")" "guarded file"
+
+echo
+echo "-- a corpus whose name is pathspec magic --"
+# `--` stops option parsing, not pathspec-magic parsing. Without
+# --literal-pathspecs the existence probe answers "absent" for a corpus whose org
+# begins with ':', so an EDIT to it is classified as a new corpus and allowed.
+# Reaching that requires the corpus to exist at the recorded pin, so this bumps
+# twice: once to create it, once to edit it.
+C1=$(mk "100644,$B,:sentry/tests/vectors.json" "100644,$PROV2,PROVENANCE.md")
+if out=$(tools/archive-pin --to "$C1" 2>&1) && printf '%s' "$out" | grep -q 'committed:'
+then
+  ok "stage 1: a magic-named corpus is added"
+  B3=$(echo "TAMPERED" | git -C archive hash-object -w --stdin)
+  C2=$(mk_from "$C1" "100644,$B3,:sentry/tests/vectors.json")
+  out=$(tools/archive-pin --to "$C2" --no-commit 2>&1); rc=$?
+  if [ "$rc" -ne 0 ] && printf '%s' "$out" | grep -q 'CHANGED  :sentry/tests'
+  then ok "stage 2: editing it is caught, not read as a new corpus"
+  else no "stage 2: the magic-named corpus edit was not caught (rc=$rc)"
+       printf '%s\n' "$out" | tail -4 | sed 's/^/          /'; fi
+else no "stage 1 fixture did not commit"; fi
+undo_commit
+
+echo
+echo "-- renames must not desynchronise the record stream --"
+# With rename detection on, git emits R/C records carrying TWO paths, which would
+# desync the NUL pair reads and misclassify every following record.
+rm -f "$IDX"; GIT_INDEX_FILE=$IDX git -C archive read-tree "$BASE"
+MOVED=$(git -C archive ls-tree -r --name-only "$BASE:etclabscore/$VICTIM" | head -1)
+if [ -n "$MOVED" ]; then
+  MSHA=$(git -C archive rev-parse "$BASE:etclabscore/$VICTIM/$MOVED")
+  GIT_INDEX_FILE=$IDX git -C archive rm --cached -q "etclabscore/$VICTIM/$MOVED"
+  GIT_INDEX_FILE=$IDX git -C archive update-index --add --cacheinfo "100644,$MSHA,neworg/moved/$MOVED"
+  T=$(GIT_INDEX_FILE=$IDX git -C archive write-tree)
+  refuse "moving a file out of a frozen corpus is refused" \
+    "$(git -C archive commit-tree "$T" -p "$BASE" -m synthetic)" "CHANGED  etclabscore/$VICTIM"
+else no "fixture: no file found under etclabscore/$VICTIM"; fi
+
+printf '\n%s passed, %s failed\n' "$pass" "$fail"
+[ "$fail" -eq 0 ]

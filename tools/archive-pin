@@ -1,0 +1,360 @@
+#!/usr/bin/env bash
+#
+# archive-pin -- report or advance this repository's pin on the archive submodule.
+#
+# WHY THIS EXISTS
+#
+# `.gitmodules` sets `ignore = all` on the archive submodule, so a stale pin is
+# reported by neither `git status` nor `git diff`. A gitlink is not a file
+# either, so no pre-commit hook is ever handed one. Every instrument this
+# repository runs normally is blind to this drift.
+#
+# WHY ADVANCING THE PIN CAN BE AUTOMATED AT ALL
+#
+# The archive is append-only: a corpus is added, never edited (AGENTS.md, "The
+# archive is frozen, and corrections land in the suite"). That makes a bump
+# mechanical, but only while the invariant actually holds. This script verifies
+# it and refuses to move the pin if it does not.
+#
+# HOW THE CHANGE SET IS ENUMERATED
+#
+# One `git diff --raw -z --ignore-submodules=none`, not a hand-rolled tree walk.
+# A walk that classifies entries by object type silently skips a GITLINK, and
+# rebuilding paths by hand mangles the names git quotes and any name carrying
+# trailing whitespace -- each of which drops a subtree at BOTH pins, so nothing
+# is reported and that subtree is exempt from the freeze permanently.
+#
+# `--ignore-submodules=none` IS LOAD-BEARING AND MUST NOT BE DROPPED. The
+# archive's own `.gitmodules` sets `ignore = all` on every one of its nested
+# submodules, and per gitmodules(5) that setting suppresses them from `diff`.
+# Without the flag, repointing a nested corpus submodule is invisible here --
+# the same defect this script exists to correct, one level down.
+#
+# `--raw` rather than `--name-status` because the mode is the only thing that
+# distinguishes a file from a gitlink or a symlink at a given path, and the
+# classification below turns on exactly that.
+#
+# `--no-renames` IS ALSO LOAD-BEARING. Git detects renames by DEFAULT, with no
+# flag and no configuration, and a detected rename emits TWO NUL-terminated
+# paths in one record instead of one. That desynchronises the meta/path read
+# pairing below for every record after it, silently -- the misparsed fields fail
+# the mode and status tests quietly rather than erroring. The malformed-record
+# check in the loop is the second line of defense; this flag is the first.
+#
+# WHAT COUNTS AS A VIOLATION
+#
+#   a corpus present at the old pin, changed in any way   -> refused
+#     ("corpus" means <org>/<second segment>, which may be a bare file such as
+#      ethereum/EXTRACTION.md, not necessarily a directory)
+#   a corpus present at the old pin, removed              -> refused
+#   a NEW <org>/<corpus>                                  -> allowed, the point
+#   a top-level FILE added or modified                    -> allowed, reported
+#   a top-level file DELETED, or changed type             -> refused
+#   a top-level entry that is not a file (gitlink etc.)   -> refused
+#   CLAUDE.md / AGENTS.md / .gitmodules at the top level  -> refused without
+#                                                            --allow-guarded
+#   .github/**  (the archive's own CI)                    -> allowed, reported
+#   .claude/**  (loaded as agent instructions)            -> refused without
+#                                                            --allow-guarded
+#   a gitlink or symlink anywhere under either            -> refused
+#
+# Top-level files are allowed by DEFAULT rather than by an allow-list, because
+# an allow-list there fails closed on the archive's real records (`.gitignore`,
+# `LICENSE`, `.pre-commit-config.yaml` and others all change legitimately) and
+# a single unlisted one then blocks every future bump, which is how a gate
+# stops being used. Deletions and type changes are still refused, so the
+# looseness cannot remove the provenance ledger or swap a record for a gitlink.
+#
+# CLAUDE.md and AGENTS.md are guarded because this repository deliberately does
+# NOT exclude `archive/` from `claudeMdExcludes`, so they reach an agent's
+# context; `.gitmodules` because it can repoint a nested submodule at another
+# host. All three change legitimately when a corpus is recorded -- hence a flag,
+# rather than a refusal you cannot get past.
+#
+# Anything instruction-shaped is guarded at ANY depth: a `.claude/` segment
+# anywhere in the path, or a basename of `CLAUDE.md` or `AGENTS.md`. Claude Code
+# loads a nested `.claude/CLAUDE.md` and `.claude/rules/*.md` as project
+# instructions when a file beside them is read, which is why `archive/` being
+# deliberately absent from this repository's `claudeMdExcludes` matters.
+#
+# THE GUARD IS PROSPECTIVE, and saying so is the honest form. Measured at the
+# recorded pin, this archive carries exactly two instruction files, both at the
+# top level, and `archive/.claude/` holds only `settings.json` -- so nothing
+# currently exercises the deeper rule. Its value is that a corpus arriving with
+# instruction files is NAMED rather than silent. It cannot close the class: a
+# new corpus may legitimately carry a `CLAUDE.md`, and admitting new corpora is
+# the whole purpose of the archive. `--allow-guarded` is the deliberate path.
+#
+# USAGE
+#
+#   tools/archive-pin --check           report drift; exit 1 if the pin is behind
+#   tools/archive-pin                   verify, advance the pin, commit
+#   tools/archive-pin --no-commit       verify and stage, but do not commit
+#   tools/archive-pin --to <sha>        target a specific commit, not the tip
+#   tools/archive-pin --allow-guarded   permit CLAUDE.md/AGENTS.md/.gitmodules
+#   tools/archive-pin --force           skip the fast-forward requirement only
+#
+# `--force` does NOT weaken the freeze check. Nothing does.
+#
+# ARCHIVE_LOCAL_CLONE may name an absolute path to a local clone of the archive,
+# used only to avoid refetching objects over the network. Content is addressed
+# by SHA, so this cannot substitute content; it is still required to be an
+# absolute directory path.
+# --- end usage ---
+
+set -euo pipefail
+
+SUBMODULE=archive
+BRANCH=main
+CONFIG_DIRS=(.claude .github)
+GUARDED=(CLAUDE.md AGENTS.md .gitmodules)
+
+die()  { printf '%s: %s\n' "${0##*/}" "$*" >&2; exit 1; }
+note() { printf '  %s\n' "$*"; }
+has()  { local n=$1; shift; local x; for x in "$@"; do [ "$x" = "$n" ] && return 0; done; return 1; }
+is_objectname() { [[ ${1-} =~ ^[0-9a-f]{7,40}$ ]]; }
+is_filemode()   { case "${1-}" in 100644|100755) return 0 ;; *) return 1 ;; esac; }
+# Instruction-shaped at ANY depth. Guarding only the top level left
+# `<org>/CLAUDE.md` and `<org>/.claude/**` classified as ordinary corpus content.
+is_instruction_path() {
+  case "$1" in .claude/*|*/.claude/*) return 0 ;; esac
+  case "${1##*/}" in CLAUDE.md|AGENTS.md) return 0 ;; esac
+  return 1
+}
+
+MODE=bump COMMIT=yes FORCE=no ALLOW_GUARDED=no TARGET=
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --check)          MODE=check ;;
+    --no-commit)      COMMIT=no ;;
+    --force)          FORCE=yes ;;
+    --allow-guarded)  ALLOW_GUARDED=yes ;;
+    --to)             TARGET="${2:-}"; [ -n "$TARGET" ] || die "--to needs a commit"; shift ;;
+    -h|--help)        sed -n '3,/^# --- end usage ---$/p' "$0" | sed 's/^#\{1,2\} \{0,1\}//; $d'; exit 0 ;;
+    *)                die "unknown argument: $1" ;;
+  esac
+  shift
+done
+
+# An option-shaped value must never reach a git command: git parses options
+# after positional arguments, so `--upload-pack=<command>` in a remote or
+# refspec slot runs that command.
+[ -z "$TARGET" ] || is_objectname "$TARGET" || die "--to takes a hex object name, got: $TARGET"
+
+ROOT=$(git rev-parse --show-toplevel) || die "not inside a git repository"
+cd "$ROOT" || die "could not enter $ROOT"
+[ -e "$SUBMODULE/.git" ] || die "$SUBMODULE is not initialised -- run: git submodule update --init $SUBMODULE"
+
+URL=$(git config -f .gitmodules --get "submodule.$SUBMODULE.url") || die "no url recorded for submodule.$SUBMODULE"
+# `.gitmodules` is tracked, so a pull request can change this value.
+case "$URL" in
+  https://github.com/*) : ;;
+  *) die "refusing a submodule url outside https://github.com/: $URL" ;;
+esac
+
+# --literal-pathspecs because `--` stops OPTION parsing, not PATHSPEC MAGIC
+# parsing: a path beginning with `:` is read as magic and silently rewritten, so
+# the existence probe below would answer "absent" for a real corpus and classify
+# an edit to it as a brand-new one.
+# Relative values are refused rather than resolved: this check would run in
+# $ROOT while the fetch runs via `git -C archive`, one directory deeper, so a
+# relative path would be validated and fetched from two different places.
+CLONE="${ARCHIVE_LOCAL_CLONE:-$ROOT/../archive-reference-material}"
+case "$CLONE" in
+  *::*) die "refusing a transport-shaped ARCHIVE_LOCAL_CLONE: $CLONE" ;;
+  /*)   : ;;
+  *)    die "ARCHIVE_LOCAL_CLONE must be an absolute path: $CLONE" ;;
+esac
+
+sub() { git --literal-pathspecs -C "$SUBMODULE" "$@"; }
+CURRENT=$(git rev-parse "HEAD:$SUBMODULE") || die "no gitlink recorded at $SUBMODULE"
+
+if [ -z "$TARGET" ]; then
+  TARGET=$(git ls-remote --end-of-options "$URL" "refs/heads/$BRANCH" | awk '{print $1}')
+  [ -n "$TARGET" ] || die "could not resolve refs/heads/$BRANCH at $URL"
+fi
+# Re-checked after resolution: `checkout` and `log` below cannot take
+# --end-of-options, so this is what keeps their positional uses safe.
+is_objectname "$TARGET" || die "resolved target is not an object name: $TARGET"
+
+printf '%s\n' "archive pin"
+note "recorded : $CURRENT"
+note "target   : $TARGET"
+if [ "$CURRENT" = "$TARGET" ]; then note "status   : at the tip, nothing to do"; exit 0; fi
+note "status   : BEHIND"
+[ "$MODE" = check ] && { printf '\nThe pin is stale. Advance it with: tools/archive-pin\n' >&2; exit 1; }
+
+# Refuse before touching anything, so no refusal has to be rolled back.
+OTHER=$(git diff --cached --ignore-submodules=none --name-only | grep -v "^$SUBMODULE\$" || true)
+[ -z "$OTHER" ] || die "unrelated changes are staged; commit or reset them first:"$'\n'"$OTHER"
+
+if ! sub cat-file -e "$TARGET^{commit}" 2>/dev/null; then
+  if [ -d "$CLONE" ] && { [ -d "$CLONE/.git" ] || [ -f "$CLONE/HEAD" ]; }; then
+    note "fetching : $TARGET from $CLONE"
+    sub fetch --no-tags --quiet --end-of-options "$CLONE" "$TARGET" 2>/dev/null || true
+  fi
+fi
+if ! sub cat-file -e "$TARGET^{commit}" 2>/dev/null; then
+  note "fetching : $TARGET from $URL"
+  sub fetch --no-tags --quiet --end-of-options "$URL" "$TARGET" 2>/dev/null \
+    || sub fetch --no-tags --quiet --end-of-options "$URL" "$BRANCH"
+fi
+sub cat-file -e "$TARGET^{commit}" 2>/dev/null || die "target $TARGET is not reachable after fetching"
+
+if [ "$FORCE" = no ]; then
+  sub merge-base --is-ancestor "$CURRENT" "$TARGET" \
+    || die "$TARGET does not descend from the recorded pin -- the archive history was rewritten. Inspect it, then re-run with --force if that is intended."
+fi
+
+# ------------------------------------------------------------ freeze check --
+printf '\nfreeze verification\n'
+TMP=$(mktemp) || die "could not create a temporary file"
+APPLYING=
+rollback() {
+  git restore --staged -- "$SUBMODULE" 2>/dev/null || git reset -q -- "$SUBMODULE" 2>/dev/null || true
+  sub checkout --no-recurse-submodules --quiet "$CURRENT" 2>/dev/null || true
+}
+# Interrupting between the checkout and the commit would otherwise leave the
+# submodule moved and the bump staged, invisible to a plain `git status`.
+# Disarms itself first: shared across EXIT and a terminating signal, this handler
+# would otherwise run twice per interrupt, since it exits and that re-enters EXIT.
+on_exit() { local rc=$?; trap - EXIT INT TERM
+            if [ -n "$APPLYING" ]; then rollback; fi; rm -f "$TMP"; exit "$rc"; }
+trap on_exit EXIT INT TERM
+
+# Not a process substitution: a failure inside one is swallowed, and the
+# consuming loop cannot tell a truncated scan from a finished one.
+sub diff --no-renames --raw -z --ignore-submodules=none --end-of-options "$CURRENT" "$TARGET" >"$TMP"
+
+# Reads the tree ENTRY, so it answers correctly for a gitlink whose target
+# object this repository does not have -- unlike `cat-file -e`, which errors
+# there and would be read as "absent", i.e. as a brand-new corpus.
+present_at_current() {
+  local out
+  out=$(sub ls-tree "$CURRENT" -- "$1") || die "could not read '$1' at $CURRENT"
+  [ -n "$out" ]
+}
+
+violations=0 additions=0 recs=0 admins=0 guards=0 total=0
+declare -A corpus_seen=()
+guarded_paths=""
+
+while IFS= read -r -d '' meta && IFS= read -r -d '' p; do
+  total=$((total + 1))
+  # Every --raw record starts with ':'. If one does not, the stream has
+  # desynchronised and every field after it is read from the wrong entry.
+  case "$meta" in :*) : ;; *) die "malformed diff record, refusing: $meta" ;; esac
+  read -r _srcmode dstmode _srcsha _dstsha st <<<"${meta#:}"
+  case "$p" in */*) top=${p%%/*} ;; *) top=$p ;; esac
+
+  if [ "$top" = "$p" ]; then                        # a top-level entry
+    if [ "$st" = D ] || [ "$st" = T ]; then
+      note "TOPLEVEL $st $p   (a top-level record may be added or edited, not removed or retyped)"
+      violations=$((violations + 1))
+    elif ! is_filemode "$dstmode"; then
+      note "TOPLEVEL $st $p   (mode $dstmode -- not a regular file; a gitlink or symlink here is not a record)"
+      violations=$((violations + 1))
+    elif has "$p" "${GUARDED[@]}"; then
+      guards=$((guards + 1)); guarded_paths="$guarded_paths $p"; note "GUARDED  $st $p"
+    else
+      recs=$((recs + 1)); note "record   $st $p"
+    fi
+    continue
+  fi
+
+  if has "$top" "${CONFIG_DIRS[@]}"; then
+    # A gitlink or symlink here is neither configuration nor an instruction
+    # file; a deletion carries mode 000000, so it skips the mode test only.
+    if [ "$st" != D ] && ! is_filemode "$dstmode"; then
+      note "CONFIG   $st $p   (mode $dstmode -- not a regular file)"
+      violations=$((violations + 1))
+    elif is_instruction_path "$p"; then
+      guards=$((guards + 1)); guarded_paths="$guarded_paths $p"; note "GUARDED  $st $p"
+    else
+      admins=$((admins + 1)); note "admin    $st $p"
+    fi
+    continue
+  fi
+
+  rest=${p#*/}; corpus="$top/${rest%%/*}"
+  # Memoised: the answer is the same for every file in a corpus, and probing per
+  # file costs one subprocess per file on an addition that can run to 30k of them.
+  if [ -z "${corpus_seen[$corpus]+x}" ]; then
+    if present_at_current "$corpus"; then
+      corpus_seen[$corpus]=frozen; violations=$((violations + 1)); note "CHANGED  $corpus"
+    else
+      corpus_seen[$corpus]=new; additions=$((additions + 1)); note "added    $corpus"
+    fi
+  fi
+
+  # Order matters here. An EXISTING corpus is frozen entire, so an instruction
+  # file inside one is a freeze violation already recorded above -- it must not
+  # be downgraded to "guarded", which --allow-guarded would then wave through.
+  # Inside a NEW corpus the file is admitted but NAMED, because a corpus may
+  # legitimately carry one and silence is the thing worth removing.
+  if [ "${corpus_seen[$corpus]}" = new ] && is_instruction_path "$p"; then
+    if [ "$st" != D ] && ! is_filemode "$dstmode"; then
+      note "CONFIG   $st $p   (mode $dstmode -- not a regular file)"
+      violations=$((violations + 1))
+    else
+      guards=$((guards + 1)); guarded_paths="$guarded_paths $p"; note "GUARDED  $st $p"
+    fi
+  fi
+done <"$TMP"
+
+note "paths compared: $total    corpora added: $additions    corpora changed: $violations    records: $recs    admin: $admins    guarded: $guards"
+
+# Calibration. Differing trees must yield at least one path; zero means the
+# comparison failed to look, not that the freeze held.
+if [ "$(sub rev-parse "$CURRENT^{tree}")" != "$(sub rev-parse "$TARGET^{tree}")" ] && [ "$total" -eq 0 ]; then
+  die "the two pins have different trees but the comparison reported no path at all -- it is broken, refusing to bump"
+fi
+if [ "$guards" -gt 0 ] && [ "$ALLOW_GUARDED" = no ]; then
+  die "guarded file(s) changed:${guarded_paths}. Review the diff, then re-run with --allow-guarded."
+fi
+[ "$violations" -eq 0 ] || die "freeze violated: $violations path(s) edited, removed or retyped. The archive is append-only; investigate before bumping."
+note "freeze holds"
+
+# ----------------------------------------------------------------- apply it --
+printf '\napplying\n'
+APPLYING=1
+sub checkout --no-recurse-submodules --quiet "$TARGET" -- || die "could not check out $TARGET"
+git add -- "$SUBMODULE" || die "could not stage the bump"
+
+staged=$(git diff --cached --ignore-submodules=none --name-only)
+[ "$staged" = "$SUBMODULE" ] || die "expected only '$SUBMODULE' staged, got: ${staged:-<nothing>}"
+note "staged   : $(git ls-files --stage -- "$SUBMODULE" | awk '{print $2}')"
+
+if [ "$COMMIT" = no ]; then
+  APPLYING=; note "left staged as requested; commit it yourself"; exit 0
+fi
+
+# C0 control bytes, and the bidi overrides that let a rendered subject differ
+# from its bytes, would otherwise land verbatim in published history.
+summary=$(sub log --format=%s -1 "$TARGET" \
+  | tr -d '\000-\010\013\014\015\016-\037\177' \
+  | LC_ALL=C sed -e 's/\xe2\x80[\x8e\x8f\xaa-\xae]//g' -e 's/\xe2\x81[\xa6-\xa9]//g' \
+  | git stripspace)
+[ -n "$summary" ] || summary="(no subject)"
+
+git commit --quiet -F - <<EOF || die "the commit was rejected; the bump has been rolled back"
+chore(archive): advance the pin to $(printf %.11s "$TARGET")
+
+$summary
+
+Append-only verified across the bump by \`git diff --raw --ignore-submodules=none\`
+between the two pins: $total path(s) compared, $additions corpus/corpora added,
+0 changed, 0 removed. $recs top-level record(s), $admins archive-config path(s),
+and $guards guarded path(s) moved.${guarded_paths:+
+Guarded:${guarded_paths}}
+
+The comparison is calibrated: differing trees reporting no path at all is
+treated as a broken scan and refused, not as a held freeze.
+
+Recorded by tools/archive-pin. The gitlink is invisible to \`git status\` and
+\`git diff\`, which is why this is verified rather than eyeballed.
+EOF
+
+APPLYING=
+note "committed: $(git log --oneline -1)"
