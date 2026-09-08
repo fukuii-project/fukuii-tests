@@ -436,7 +436,7 @@ vocabularies are in circulation and no single name is understood by everything:
 | vocabulary | example | where it comes from |
 |---|---|---|
 | **modern** | `TransactionException.TYPE_NOT_SUPPORTED` | the current spec-tests enum, `TransactionException` / `BlockException` |
-| **legacy `TR_`** | `TR_TypeNotSupportedBlob` | retesteth-era. Rare — the whole archived tree holds 24 occurrences of exactly one such name |
+| **legacy `TR_`** | `TR_TypeNotSupportedBlob` | retesteth-era, and not rare — six such names across 100 `expectException` occurrences in the archived tree, of which `TR_TypeNotSupported` is 37 and this `Blob` form 24 |
 
 **Several names alternate, bar-separated**, and that is the corpus's own convention, verified in
 the vendored tree and in the fill side's test data:
@@ -455,11 +455,21 @@ The reader's contract:
    happened to leave the state root where the fixture expected it.
 
 That contract cuts both ways, and this suite has been on the wrong end of it: a fixture here
-stated `TR_TypeNotSupported`, a name that exists in no corpus and no client — the archived label
-has a `Blob` suffix — so all twelve of its cases diverged on every run, and the divergence read
+stated `TR_TypeNotSupported`, a name **no consumer maps back to a rule**, so the intersection in
+step 2 was empty and all twelve of its cases diverged on every run, and the divergence read
 exactly like the client refusing for the wrong rule. **When you author a refusal, state a name
 some consumer maps, and state more than one when the vocabularies do not overlap.** Never invent
 one.
+
+> **That name is not invented, and widespread is not the same as mapped.** An earlier revision of
+> this section asserted the name appeared in no corpus and in no client; both halves are wrong.
+> It is the most common legacy name in the vendored trees — 55 files in this repository, and 37 of
+> the archived tree's 100 `TR_` occurrences on an `expectException` line, against 24 for the
+> `Blob`-suffixed form. A client emits it: core-geth's `tests/state_mgen_test.go` writes exactly
+> this string when its fixture generator meets `ErrTxTypeNotSupported`. What no consumer does is
+> **read** it — core-geth's own `checkError` accepts any non-empty `expectException` without ever
+> comparing the string, which is the shortcut rule 4 above exists to forbid. Only the unmapped
+> half breaks a run.
 
 Refusal names in use in this suite today:
 
