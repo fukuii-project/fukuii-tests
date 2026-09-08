@@ -74,13 +74,20 @@ fact rather than a path component. See `components/README.md`.
 | family | upstream corpus | our standing | what we author |
 |---|---|---|---|
 | `ethereumclassic/` | unmaintained since 2023, deprecating | lead client maintainer | a complete suite |
-| `ethereum/` | alive and maintained | a consumer of rules decided elsewhere | only what upstream structurally cannot hold |
+| `ethereum/` | alive and maintained — **except for proof-of-work** | a consumer of rules decided elsewhere | what upstream structurally cannot hold, plus proof-of-work material it no longer authors |
 
 **Do not "fill in" the Ethereum family by porting Ethereum Classic's fixtures across.** Ethereum's
 own corpus is pinned under `upstream/` and is the authority for the EVM; re-authoring it here would
 duplicate a far larger corpus, go stale as it moves, and carry no authority. The test for adding an
 Ethereum-family fixture is one question — *could the upstream corpus express this?* — and the
 measured answer for what it cannot is in `networks/ethereum/README.md`.
+
+**One carve-out, and it is proof-of-work material.** That question asks what upstream *can* express
+and assumes it *will*; since the Merge it will not, so expressibility no longer implies a home.
+Proof-of-work fixtures are admissible here on that ground alone. It is narrow by design — not a
+general "whatever is missing" or "whatever is set to be lost" policy, neither of which this
+repository has ever held. The argument and the measurement behind it are in
+`networks/ethereum/README.md`.
 
 **The reverse also holds.** Ethereum Classic's coverage is complete because nobody upstream will
 ever test ECIP-1017's emission, ECIP-1041's bomb removal, ECIP-1099's epoch change or ECIP-1100's

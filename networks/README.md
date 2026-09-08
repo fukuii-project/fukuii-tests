@@ -102,11 +102,13 @@ decision rather than a backlog:
 | family | upstream corpus | our standing | what we author |
 |---|---|---|---|
 | `ethereumclassic/` | unmaintained, deprecating | lead client maintainer | a complete suite |
-| `ethereum/` | alive and maintained | consumer of rules decided elsewhere | only what upstream structurally cannot hold |
+| `ethereum/` | alive and maintained — **except for proof-of-work** | consumer of rules decided elsewhere | what upstream structurally cannot hold, plus proof-of-work material it no longer authors |
 
 For the Ethereum family the test for adding anything is one question — *could the upstream corpus
 express this?* — and the answer is recorded in `ethereum/README.md` along with what upstream was
 measured to lack: no fork-identifier vectors, no network activation heights, no DAO event, no Merge.
+**Proof-of-work material is the one carve-out**, admitted because upstream can express it but has
+not authored it since the Merge; `ethereum/README.md` carries the argument.
 
 **Four different schedule shapes appear across these networks**, and a reader who has met only one
 has not met the shape of the problem: Ethereum Classic is block-based throughout with no timestamp

@@ -25,6 +25,10 @@ are the lead client maintainer, and upstream has been unmaintained since 2023); 
 what `upstream/` structurally cannot express (upstream is alive and is the authority for the
 EVM — do not port Ethereum Classic fixtures across to "fill in" the Ethereum family).
 
+**Proof-of-work material is the one carve-out**, and it is narrow: upstream can express it but has
+not authored it since the Merge, so expressibility no longer implies a home. The argument is in
+`networks/ethereum/README.md`.
+
 ## Hard rules
 
 - **Never edit anything under `archive/`.** It is a frozen mirror; its value is being

@@ -12,7 +12,7 @@ The two families are in opposite positions, and coverage follows that rather tha
 | upstream corpus | `etclabscore` — **unmaintained since 2023**, scheduled for deprecation | `ethereum/tests` — **alive and maintained** |
 | its ETC-labelled tier | thin, and thinning at the edges | not applicable |
 | this project's standing | **lead client maintainer** | a consumer of rules decided elsewhere |
-| consequence | we author a complete suite | **we pin theirs and author only what it cannot hold** |
+| consequence | we author a complete suite | **we pin theirs and author what it cannot hold — plus proof-of-work material, which it can express but no longer authors** |
 
 Re-authoring Ethereum's state, gas, opcode and precompile fixtures would duplicate a corpus far
 larger than anything maintainable here, go stale as upstream moves, and carry no authority — the
@@ -32,6 +32,47 @@ adding anything here is one question:
 
 > **Could the upstream corpus express this?** If yes, it belongs upstream and we pin it. If no,
 > it belongs here.
+
+### The proof-of-work carve-out
+
+**That question asks whether upstream *can* hold a fact. It silently assumes upstream *will* — and
+for one tier that premise is false.**
+
+Ethereum has run proof-of-stake since the Merge in 2022, and the proof-of-work oracle left
+`go-ethereum` in 2023. No new proof-of-work vector will be authored upstream, however cleanly the
+format expresses one. Expressibility and authorship came apart; the question above reads only the
+first, so as written it sends this material to a corpus that will never hold it.
+
+**The gap is measured, not supposed.** Read as a dated reading rather than a standing figure:
+**measured 2026-09-03, across 264,761 blockchain-test cases in five published corpora, no header
+reached block 268** — so every proof-of-work header rule observable only above that was untested in
+every published corpus, in every fork, for both chains. The instrument was calibrated: the same run
+reported different per-network maxima within one corpus, so it discriminated rather than returning a
+uniform number.
+
+**The date is not decoration.** This repository does not quote a bare count anywhere else, precisely
+because a count is wrong the next time anything is added, and two of the corpora behind this one are
+moving clones rather than pinned trees. What is durable is the shape of the finding — the published
+tier stops orders of magnitude short of any height where a proof-of-work header rule diverges — and
+that does not depend on the number being current.
+
+So for this tier, and only this tier, a second question follows the first:
+
+> **Will upstream ever author it?** Where the answer is no *because the rule is only observable on a
+> proof-of-work chain*, the first question's "yes, so pin it" does not apply, and the fixture
+> belongs here.
+
+**The carve-out is deliberately narrow, and the wider version is rejected.** It admits proof-of-work
+material and nothing else — not "whatever is missing", and not "whatever is set to be lost". Both are
+wider than the argument supporting them, and neither has ever been written into this repository.
+Upstream is alive and authoritative for the EVM; outside the proof-of-work tier the first question
+remains the whole test.
+
+**It does not license duplicating Ethereum Classic's suite.** A proof-of-work rule both chains share
+is a proposal-layer fact, authored once and network-agnostic under `../../components/proposals/`.
+The carve-out changes which corpus a fixture belongs to, never which of the three layers — proposal,
+upgrade, activation — that `AGENTS.md` defines under "The three layers, and which one a test belongs
+to". A reader who has landed here directly should read that table before authoring anything.
 
 ## What is here
 

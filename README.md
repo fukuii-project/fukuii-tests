@@ -53,18 +53,20 @@ check them.
 |---|---|---|
 | **Ethereum Classic mainnet** | 56 | a complete authored suite |
 | **Mordor** (ETC testnet) | 8 | complete against its configuration |
-| **Ethereum mainnet** | 3 | only what the upstream corpus cannot hold |
+| **Ethereum mainnet** | 3 | what the upstream corpus cannot hold, plus proof-of-work it no longer authors |
 | **Sepolia, Holesky, Hoodi** | 4 | the same |
 
 **The asymmetry is deliberate and is the first thing to understand about this repository.** Fukuii
 is the lead maintainer of an Ethereum Classic client and the ETC upstream corpus is unmaintained, so
 ETC gets a full suite authored here. Ethereum's own corpus is alive and vastly larger than anything
-maintainable here, so it is **pinned** under `upstream/` and this repository authors only what that
-corpus structurally cannot contain — fork identifiers, activation heights, the DAO event, the Merge.
+maintainable here, so it is **pinned** under `upstream/` and this repository authors what that
+corpus structurally cannot contain — fork identifiers, activation heights, the DAO event, the Merge
+— plus proof-of-work material, which it can express but no longer authors.
 
 The test for adding an Ethereum-family fixture is one question: *could the upstream corpus express
-this?* If yes it belongs upstream. If no it belongs here. See
-[`networks/ethereum/README.md`](networks/ethereum/README.md).
+this?* If yes it belongs upstream. If no it belongs here. **Proof-of-work material is the one
+carve-out** — upstream can express it but has not authored it since the Merge, so that question does
+not decide it. See [`networks/ethereum/README.md`](networks/ethereum/README.md).
 
 ## Shapes
 
